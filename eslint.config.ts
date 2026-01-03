@@ -1,11 +1,23 @@
-import { defineConfig, globalIgnores } from "eslint/config"
+import { defineConfig } from 'eslint/config'
 import ts from 'typescript-eslint'
 import vue from 'eslint-plugin-vue'
 import vueParser from 'vue-eslint-parser'
-import obsidianmd from "eslint-plugin-obsidianmd"
-import globals from "globals"
+import obsidianmd from 'eslint-plugin-obsidianmd'
+import globals from 'globals'
 
 export default defineConfig(
+  {
+    ignores: [
+      'node_modules',
+      'dist',
+      'vite.config.ts',
+      'esbuild.config.mjs',
+      'eslint.config.mjs',
+      'version-bump.mjs',
+      'versions.json',
+      'main.js',
+    ],
+  },
   ...(obsidianmd.configs.recommended as unknown[]),
   {
     files: ['**/*.vue'],
@@ -34,15 +46,12 @@ export default defineConfig(
       'vue/html-self-closing': ['warn', {
         'html': { 'normal': 'never', 'void': 'always' },
       }],
-      'vue/component-name-in-template-casing': ['warn', 'kebab-case' ],
+      'vue/component-name-in-template-casing': ['warn', 'kebab-case'],
       'vue/v-for-delimiter-style': ['warn', 'of'],
     },
   },
   {
     files: ['**/*.ts'],
-    plugins: {
-      '@typescript-eslint': ts.plugin,
-    },
     extends: [
       ...ts.configs.recommended,
     ],
@@ -53,13 +62,15 @@ export default defineConfig(
       parserOptions: {
         projectService: {
           allowDefaultProject: [
-            'eslint.config.js',
-            'manifest.json'
-          ]
+            'manifest.json',
+          ],
         },
         tsconfigRootDir: import.meta.dirname,
-        extraFileExtensions: ['.json']
+        extraFileExtensions: ['.json'],
       },
+    },
+    rules: {
+      'obsidianmd/ui/sentence-case': 'off',
     },
   },
   {
@@ -73,14 +84,20 @@ export default defineConfig(
       'prefer-const': 'warn',
     },
   },
-  globalIgnores([
-    "node_modules",
-    "dist",
-    "vite.config.ts",
-    "esbuild.config.mjs",
-    "eslint.config.mjs",
-    "version-bump.mjs",
-    "versions.json",
-    "main.js",
-  ]),
+  {
+    languageOptions: {
+      globals: {
+        ...globals.es2024,
+        ...globals.browser,
+      },
+    },
+    rules: {
+      indent: ['warn', 2, { SwitchCase: 1 }],
+      semi: ['warn', 'never'],
+      quotes: ['warn', 'single', { 'allowTemplateLiterals': true }],
+      'comma-dangle': ['warn', 'always-multiline'],
+      'arrow-parens': ['warn', 'always'],
+      'eol-last': ['warn', 'always'],
+    },
+  },
 )

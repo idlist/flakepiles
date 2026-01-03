@@ -1,99 +1,98 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin } from 'obsidian'
-import { DEFAULT_SETTINGS, MyPluginSettings, SampleSettingTab } from "./settings"
+import { Plugin, TFolder } from 'obsidian'
+import { AppView, VIEW_TYPE } from './app'
 
-// Remember to rename these classes and interfaces!
-
-export default class MyPlugin extends Plugin {
-  settings: MyPluginSettings
-
+export default class Noteflakes extends Plugin {
   async onload() {
-    await this.loadSettings()
+    // Register Noteflake view
+    this.registerView(
+      VIEW_TYPE,
+      (leaf) => new AppView(leaf),
+    )
 
-    // This creates an icon in the left ribbon.
-    this.addRibbonIcon('dice', 'Sample', (evt: MouseEvent) => {
-      // Called when the user clicks the icon.
-      new Notice('This is a notice!')
+    this.registerExtensions(['noteflakes'], VIEW_TYPE)
+
+    this.addRibbonIcon('sticker', 'Create a box for Noteflakes', async (_) => {
+      await this.createNewNoteflakes()
     })
 
-    // This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-    const statusBarItemEl = this.addStatusBarItem()
-    statusBarItemEl.setText('Status bar text')
-
-    // This adds a simple command that can be triggered anywhere
     this.addCommand({
-      id: 'open-modal-simple',
-      name: 'Open modal (simple)',
-      callback: () => {
-        new SampleModal(this.app).open()
-      }
-    })
-    // This adds an editor command that can perform some operation on the current editor instance
-    this.addCommand({
-      id: 'replace-selected',
-      name: 'Replace selected content',
-      editorCallback: (editor: Editor, view: MarkdownView) => {
-        editor.replaceSelection('Sample editor command')
-      }
-    })
-    // This adds a complex command that can check whether the current state of the app allows execution of the command
-    this.addCommand({
-      id: 'open-modal-complex',
-      name: 'Open modal (complex)',
-      checkCallback: (checking: boolean) => {
-        // Conditions to check
-        const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView)
-        if (markdownView) {
-          // If checking is true, we're simply "checking" if the command can be run.
-          // If checking is false, then we want to actually perform the operation.
-          if (!checking) {
-            new SampleModal(this.app).open()
-          }
-
-          // This command will only show up in Command Palette when the check function returns true
-          return true
-        }
-        return false
-      }
+      id: 'create-noteflakes-file',
+      name: '新建 Noteflakes 卡片盒',
+      callback: async () => {
+        await this.createNewNoteflakes()
+      },
     })
 
-    // This adds a settings tab so the user can configure various aspects of the plugin
-    this.addSettingTab(new SampleSettingTab(this.app, this))
+    this.registerEvent(
+      this.app.workspace.on('file-menu', (menu, file) => {
+        if (!(file instanceof TFolder)) return
 
-    // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-    // Using this function will automatically remove the event listener when this plugin is disabled.
-    this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-      new Notice("Click")
-    })
-
-    // When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-    this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000))
-
+        menu.addItem((item) => {
+          item
+            .setTitle('新建 Noteflakes 卡片盒')
+            .setIcon('sticker')
+            .onClick(async () => {
+              await this.createNewNoteflakes(file)
+            })
+        })
+      }),
+    )
   }
 
   onunload() {
+    // Unload
   }
 
-  async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<MyPluginSettings>)
-  }
+  /**
+   * 核心方法：创建并打开新文件
+   * @param folder (可选) 指定在哪个文件夹下创建，默认为当前活动文件所在目录或根目录
+   */
+  async createNewNoteflakes(folder?: TFolder) {
+    // 1. 确定目标文件夹
+    let targetFolder = folder
+    if (!targetFolder) {
+      const activeFile = this.app.workspace.getActiveFile()
+      // 如果当前聚焦的是文件，就取其父目录；否则取根目录
+      if (activeFile) {
+        targetFolder = activeFile.parent || this.app.vault.getRoot()
+      } else {
+        targetFolder = this.app.vault.getRoot()
+      }
+    }
 
-  async saveSettings() {
-    await this.saveData(this.settings)
-  }
-}
+    // 2. 寻找可用的文件名 (防止覆盖)
+    // 目标：Untitled.noteflakes, Untitled 1.noteflakes ...
+    const baseName = '未命名看板'
+    const extension = 'noteflakes'
+    let fileName = `${baseName}.${extension}`
+    let filePath = `${targetFolder.path}/${fileName}`
 
-class SampleModal extends Modal {
-  constructor(app: App) {
-    super(app)
-  }
+    // 如果是根目录，路径不要双斜杠
+    if (targetFolder.isRoot()) {
+      filePath = fileName
+    }
 
-  onOpen() {
-    let { contentEl } = this
-    contentEl.setText('Woah!')
-  }
+    let i = 1
+    // 循环检查文件是否存在
+    while (await this.app.vault.adapter.exists(filePath)) {
+      fileName = `${baseName} ${i}.${extension}`
+      filePath = targetFolder.isRoot()
+        ? fileName
+        : `${targetFolder.path}/${fileName}`
+      i++
+    }
 
-  onClose() {
-    const { contentEl } = this
-    contentEl.empty()
+    try {
+      // 3. 创建文件
+      // 注意：初始内容必须是 "[]" (空数组的 JSON)，否则 JSON.parse 会报错
+      const newFile = await this.app.vault.create(filePath, '[]')
+
+      // 4. 在新标签页中打开它
+      await this.app.workspace.getLeaf(true).openFile(newFile)
+
+    } catch (error) {
+      console.error('创建文件失败:', error)
+      // new Notice("创建失败: " + error.message); // 可以引入 Notice 组件提示用户
+    }
   }
 }

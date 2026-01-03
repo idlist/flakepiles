@@ -41,6 +41,10 @@ export default defineConfig(({ mode }) => {
         output: {
           exports: 'named',
           banner,
+          assetFileNames: (assetInfo) => {
+            if (assetInfo.names[0].endsWith('.css')) return 'styles.css'
+            return '[name][extname]'
+          },
         }
       },
       outDir: '.',
