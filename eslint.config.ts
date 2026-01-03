@@ -1,0 +1,86 @@
+import { defineConfig, globalIgnores } from "eslint/config"
+import ts from 'typescript-eslint'
+import vue from 'eslint-plugin-vue'
+import vueParser from 'vue-eslint-parser'
+import obsidianmd from "eslint-plugin-obsidianmd"
+import globals from "globals"
+
+export default defineConfig(
+  ...(obsidianmd.configs.recommended as unknown[]),
+  {
+    files: ['**/*.vue'],
+    extends: [
+      ...ts.configs.recommended,
+      ...vue.configs['flat/recommended'],
+    ],
+    languageOptions: {
+      parser: vueParser,
+      parserOptions: {
+        parser: ts.parser,
+      },
+    },
+    rules: {
+      'vue/html-closing-bracket-newline': ['off'],
+      'vue/first-attribute-linebreak': ['off'],
+      'vue/singleline-html-element-content-newline': ['off'],
+
+      'vue/html-indent': ['warn', 2, {
+        alignAttributesVertically: false,
+      }],
+      'vue/max-attributes-per-line': ['warn', {
+        singleline: { max: Number.POSITIVE_INFINITY },
+        multiline: { max: 1 },
+      }],
+      'vue/html-self-closing': ['warn', {
+        'html': { 'normal': 'never', 'void': 'always' },
+      }],
+      'vue/component-name-in-template-casing': ['warn', 'kebab-case' ],
+      'vue/v-for-delimiter-style': ['warn', 'of'],
+    },
+  },
+  {
+    files: ['**/*.ts'],
+    plugins: {
+      '@typescript-eslint': ts.plugin,
+    },
+    extends: [
+      ...ts.configs.recommended,
+    ],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: [
+            'eslint.config.js',
+            'manifest.json'
+          ]
+        },
+        tsconfigRootDir: import.meta.dirname,
+        extraFileExtensions: ['.json']
+      },
+    },
+  },
+  {
+    files: ['**/*.ts', '**/*.vue'],
+    rules: {
+      '@typescript-eslint/no-empty': 'off',
+      '@typescript-eslint/no-empty-interface': 'off',
+
+      '@typescript-eslint/no-empty-function': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'prefer-const': 'warn',
+    },
+  },
+  globalIgnores([
+    "node_modules",
+    "dist",
+    "vite.config.ts",
+    "esbuild.config.mjs",
+    "eslint.config.mjs",
+    "version-bump.mjs",
+    "versions.json",
+    "main.js",
+  ]),
+)
