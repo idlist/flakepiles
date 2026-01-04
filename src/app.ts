@@ -1,13 +1,13 @@
 import { TextFileView, type WorkspaceLeaf } from 'obsidian'
-import { createApp, type App } from 'vue'
-import FlakeList from './FlakeList.vue'
+import { createApp, shallowRef, type App, type Component, type ShallowRef } from 'vue'
+import FlakepileView from './FlakepileView.vue'
+import { createFlakepile, type Flakepile } from './data'
 
-export const VIEW_TYPE = 'noteflakes-view'
+export const VIEW_TYPE = 'flakepile-view'
 
-export class AppView extends TextFileView {
-  vueApp: App | null = null
-  // 内存中的数据源，Vue 会直接修改这个对象
-  items: unknown[] = []
+export class FlakepileApp extends TextFileView {
+  view?: App
+  pile: ShallowRef<Flakepile | undefined> = shallowRef(undefined)
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf)
@@ -18,60 +18,49 @@ export class AppView extends TextFileView {
   }
 
   getDisplayText() {
-    return this.file?.basename || 'Card View'
+    return this.file?.basename || 'Flakepile View'
   }
 
-  // 1. 打开视图时：挂载 Vue
   async onOpen() {
-    const container = this.containerEl.children[1]!
+    const container = this.contentEl
     container.empty()
-    const mountPoint = container.createDiv()
+    const mountPoint = container.createEl('div')
 
-    this.vueApp = createApp(FlakeList, {
-      // 将 data 传给 Vue 的 modelValue (对应 defineModel)
-      modelValue: this.data,
-      // 当 Vue 内部修改数据时触发
-      'onUpdate:modelValue': (newData: unknown[]) => {
-        this.items = newData
-        // 关键：告诉 Obsidian "文件变了，请在后台帮我保存"
+    this.view = createApp(FlakepileView as Component, {
+      pile: this.pile,
+      onUpdate: () => {
         this.requestSave()
       },
     })
 
-    this.vueApp.mount(mountPoint)
+    this.view.mount(mountPoint)
   }
 
-  // 2. 关闭视图时：销毁 Vue
   async onClose() {
-    if (this.vueApp) {
-      this.vueApp.unmount()
-      this.vueApp = null
+    if (this.view) {
+      this.view.unmount()
+      this.view = undefined
     }
   }
 
-  // 3. 读取文件：Obsidian 从硬盘读到字符串 -> 插件转成 JSON
-  setViewData(data: string): void {
+  setViewData(data: string) {
+    let updatedPile: Flakepile
+
     try {
-      this.items = data ? JSON.parse(data) : []
+      updatedPile = JSON.parse(data) as Flakepile
     } catch (e) {
-      console.error('JSON 解析失败', e)
-      this.items = []
+      console.error('Cannot parse Flakepile file: ', e)
+      return
     }
 
-    // 如果 Vue 已经在运行，我们需要刷新它显示的数据
-    // 为了简单稳定，这里采用重新挂载的方式（生产环境可用 reactive 对象优化，但这样最不容易出错）
-    if (this.vueApp) {
-      this.vueApp.unmount()
-      this.onOpen()
-    }
+    this.pile.value = updatedPile
   }
 
-  // 4. 保存文件：Obsidian 要保存时 -> 插件把 JSON 转成字符串
   getViewData(): string {
-    return JSON.stringify(this.data, null, 2)
+    return JSON.stringify(this.pile?.value, null, 2)
   }
 
-  clear(): void {
-    this.items = []
+  clear() {
+    this.pile = shallowRef(createFlakepile())
   }
 }

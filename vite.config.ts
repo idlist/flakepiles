@@ -45,11 +45,13 @@ export default defineConfig(({ mode }) => {
             if (assetInfo.names[0].endsWith('.css')) return 'styles.css'
             return '[name][extname]'
           },
-        }
+        },
+        treeshake: true,
       },
       outDir: '.',
       emptyOutDir: false,
       target: 'es2018',
+      minify: prod,
       sourcemap: prod ? false : 'inline',
     },
   }

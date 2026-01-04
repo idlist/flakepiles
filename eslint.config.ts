@@ -1,4 +1,5 @@
 import { defineConfig } from 'eslint/config'
+import stylistic from '@stylistic/eslint-plugin'
 import ts from 'typescript-eslint'
 import vue from 'eslint-plugin-vue'
 import vueParser from 'vue-eslint-parser'
@@ -85,19 +86,16 @@ export default defineConfig(
     },
   },
   {
-    languageOptions: {
-      globals: {
-        ...globals.es2024,
-        ...globals.browser,
-      },
+    plugins: {
+      '@stylistic': stylistic,
     },
     rules: {
-      indent: ['warn', 2, { SwitchCase: 1 }],
-      semi: ['warn', 'never'],
-      quotes: ['warn', 'single', { 'allowTemplateLiterals': true }],
-      'comma-dangle': ['warn', 'always-multiline'],
-      'arrow-parens': ['warn', 'always'],
-      'eol-last': ['warn', 'always'],
+      // '@stylistic/indent': ['warn', 2, { 'SwitchCase': 1 }], <- this rule is curently bugged.
+      '@stylistic/semi': ['warn', 'never'],
+      '@stylistic/quotes': ['warn', 'single', { 'allowTemplateLiterals': 'always' }],
+      '@stylistic/comma-dangle': ['warn', 'always-multiline'],
+      '@stylistic/arrow-parens': ['warn', 'always'],
+      '@stylistic/eol-last': ['warn', 'always'],
     },
   },
 )
