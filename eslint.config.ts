@@ -45,9 +45,12 @@ export default defineConfig(
         multiline: { max: 1 },
       }],
       'vue/html-self-closing': ['warn', {
-        'html': { 'normal': 'never', 'void': 'always' },
+        html: { normal: 'never', void: 'always' },
       }],
-      'vue/component-name-in-template-casing': ['warn', 'kebab-case'],
+      'vue/component-name-in-template-casing': ['warn', 'PascalCase'],
+      'vue/no-mutating-props': ['warn', {
+        shallowOnly: true,
+      }],
       'vue/v-for-delimiter-style': ['warn', 'of'],
     },
   },
@@ -90,9 +93,9 @@ export default defineConfig(
       '@stylistic': stylistic,
     },
     rules: {
-      // '@stylistic/indent': ['warn', 2, { 'SwitchCase': 1 }], <- this rule is curently bugged.
+      // '@stylistic/indent': ['warn', 2, { SwitchCase: 1 }], <- this rule is curently bugged.
       '@stylistic/semi': ['warn', 'never'],
-      '@stylistic/quotes': ['warn', 'single', { 'allowTemplateLiterals': 'always' }],
+      '@stylistic/quotes': ['warn', 'single', { allowTemplateLiterals: 'always' }],
       '@stylistic/comma-dangle': ['warn', 'always-multiline'],
       '@stylistic/arrow-parens': ['warn', 'always'],
       '@stylistic/eol-last': ['warn', 'always'],

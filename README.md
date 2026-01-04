@@ -10,7 +10,7 @@ Vite + Vue 3 + Sass
 
 ## Roadmap
 
-- [x] Insert Vue into Obsidian
+- [x] Mount Vue into Obsidian
 - [ ] Flakepile
   - [ ] Flow direction (vertical / horizontal)
   - [ ] Flake width

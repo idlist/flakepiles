@@ -23,20 +23,18 @@ export default class Flakepiles extends Plugin {
     })
 
     // Register file menu option for creating Flakepile.
-    this.registerEvent(
-      this.app.workspace.on('file-menu', (menu, file) => {
-        if (!(file instanceof TFolder)) return
+    this.registerEvent(this.app.workspace.on('file-menu', (menu, file) => {
+      if (!(file instanceof TFolder)) return
 
-        menu.addItem((item) => {
-          item
-            .setTitle('Create new Flakepile')
-            .setIcon('sticker')
-            .onClick(async () => {
-              await this.createFlakepileFile(file)
-            })
-        })
-      }),
-    )
+      menu.addItem((item) => {
+        item
+          .setTitle('Create new Flakepile')
+          .setIcon('sticker')
+          .onClick(async () => {
+            await this.createFlakepileFile(file)
+          })
+      })
+    }))
   }
 
   onunload() {
@@ -75,7 +73,7 @@ export default class Flakepiles extends Plugin {
 
       await this.app.workspace.getLeaf().openFile(newFile)
     } catch (e) {
-      new Notice('Failed to create Flakepile. Check dev console for more info.')
+      new Notice('Failed to create Flakepile. Check dev console for more info.', 0)
       console.error('Failed to create Flakepile: ', e)
     }
   }
