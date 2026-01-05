@@ -3,9 +3,8 @@ import {
   createApp, shallowRef, triggerRef, ref,
   type App as VueApp, type Component, type ShallowRef, type Ref,
 } from 'vue'
-import { useElementSize } from '@vueuse/core'
 import { createFlakepile, type Flakepile } from './data'
-import FlakepileView from './FlakepileView.vue'
+import FlakepileView from './vue/FlakepileView.vue'
 
 export const VIEW_TYPE = 'flakepile-view'
 
@@ -13,14 +12,11 @@ export type FileRef = ShallowRef<TFile | null>
 
 export type PileShallowRef = ShallowRef<Flakepile>
 
-export type ContainerSizeRef = ReturnType<typeof useElementSize>
-
 export class FlakepileApp extends TextFileView {
   view?: VueApp
   parsed: Ref<boolean> = ref(false)
   pile: PileShallowRef = shallowRef(createFlakepile())
   fileRef: FileRef = shallowRef(this.file)
-  containerSize?: ContainerSizeRef
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf)
@@ -38,7 +34,6 @@ export class FlakepileApp extends TextFileView {
     const container = this.contentEl
     container.empty()
     const mountPoint = container.createEl('div')
-    this.containerSize = useElementSize(container)
 
     this.view = createApp(FlakepileView as Component, {
       pile: this.pile,
@@ -51,7 +46,6 @@ export class FlakepileApp extends TextFileView {
     this.view.provide('app', this.app)
     this.view.provide('leaf', this)
     this.view.provide('parsed', this.parsed)
-    this.view.provide('size', this.containerSize)
     this.view.provide('fileRef', this.fileRef)
     this.view.mount(mountPoint)
 
@@ -64,10 +58,6 @@ export class FlakepileApp extends TextFileView {
     if (this.view) {
       this.view.unmount()
       this.view = undefined
-    }
-
-    if (this.containerSize) {
-      this.containerSize.stop()
     }
   }
 
@@ -92,6 +82,6 @@ export class FlakepileApp extends TextFileView {
   }
 
   clear() {
-    this.pile = shallowRef(createFlakepile())
+    // Do nothing.
   }
 }

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { inject, nextTick, useTemplateRef, watch } from 'vue'
 import { MarkdownRenderer, type App, type Component } from 'obsidian'
-import { type Flake } from './data'
-import type { FileRef } from './app'
+import { type Flake } from '@/data'
+import type { FileRef } from '@/app'
 import { isNullish } from '@rewl/kit'
 
 const props = defineProps<{ flake: Flake }>()
@@ -11,7 +11,7 @@ const elFlake = useTemplateRef('el-flake')
 const elContent = useTemplateRef('el-content')
 
 const emit = defineEmits<{
-  (e: 'rendered', createdAt: number, width: number, height: number): void
+  (e: 'rendered', id: string, width: number, height: number): void
 }>()
 
 const app = inject('app') as App
@@ -28,21 +28,27 @@ const RenderContent = async () => {
   if (isNullish(fileRef.value)) return
 
   elContent.value.innerHTML = ''
-  await MarkdownRenderer.render(
-    app,
-    flake.content,
-    elContent.value,
-    fileRef.value.path,
-    leaf,
-  )
 
-  await nextTick()
-  emit(
-    'rendered',
-    flake.createdAt,
-    elFlake.value.offsetWidth,
-    elFlake.value.offsetHeight,
-  )
+  try {
+    await MarkdownRenderer.render(
+      app,
+      flake.content,
+      elContent.value,
+      fileRef.value.path,
+      leaf,
+    )
+  } finally {
+    await nextTick()
+
+    const rect = elFlake.value.getBoundingClientRect()
+
+    emit(
+      'rendered',
+      flake.id,
+      rect.width,
+      rect.height,
+    )
+  }
 }
 </script>
 

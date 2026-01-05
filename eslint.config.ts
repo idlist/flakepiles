@@ -31,6 +31,9 @@ export default defineConfig(
       parserOptions: {
         parser: ts.parser,
       },
+      globals: {
+        ...globals.browser,
+      },
     },
     rules: {
       'vue/html-closing-bracket-newline': ['off'],

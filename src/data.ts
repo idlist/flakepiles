@@ -53,12 +53,12 @@ export interface FlakeTheme {
 export interface Flakepile {
   id: string
   flow: 'vertical' | 'horizontal'
-  sortBy: 'title' | 'createdAt' | 'modifiedAt'
+  sortBy: 'name' | 'createdAt' | 'modifiedAt'
   sortOrder: 'asc' | 'desc'
   width: number
-  widthStretch: boolean
-  maxHeightUsed: boolean
+  elasticWidth: boolean
   maxHeight: number
+  enableMaxHeight: boolean
   flakes: Flake[]
 }
 
@@ -66,12 +66,12 @@ export const createFlakepile = (): Flakepile => {
   return {
     id: nanoid(16),
     flow: 'vertical',
-    sortBy: 'title',
+    sortBy: 'name',
     sortOrder: 'desc',
     width: 1,
-    widthStretch: false,
-    maxHeightUsed: false,
+    elasticWidth: false,
     maxHeight: 2,
+    enableMaxHeight: false,
     flakes: [],
   }
 }
