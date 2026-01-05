@@ -1,67 +1,163 @@
 <script setup lang="ts">
-import { inject, nextTick, useTemplateRef, watch } from 'vue'
-import { MarkdownRenderer, type App, type Component } from 'obsidian'
+import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from 'vue'
+import { MarkdownRenderer, moment, type App, type Component } from 'obsidian'
+import { useTextareaAutosize } from '@vueuse/core'
 import { type Flake } from '@/data'
 import type { FileRef } from '@/app'
 import { isNullish } from '@rewl/kit'
+import ObIcon from './ObIcon.vue'
 
 const props = defineProps<{ flake: Flake }>()
 const flake = props.flake
-const elFlake = useTemplateRef('el-flake')
-const elContent = useTemplateRef('el-content')
+const hasContent = computed(() => !!flake.content)
+
+const refFlake = useTemplateRef('el-flake')
+const refContent = useTemplateRef('el-content')
+
+
+const {
+  textarea: editArea,
+  input: editContent,
+} = useTextareaAutosize({ styleProp: 'minHeight' })
+
+type State = 'view' | 'edit'
+const state = ref<State>('view')
+const isView = computed(() => state.value == 'view')
+const isEdit = computed(() => state.value == 'edit')
 
 const emit = defineEmits<{
-  (e: 'rendered', id: string, width: number, height: number): void
+  (e: 'render', id: string, width: number, height: number): void
+  (e: 'edit', id: string): void
+  (e: 'delete', id: string): void
 }>()
 
 const app = inject('app') as App
 const leaf = inject('leaf') as Component
 const fileRef = inject('fileRef') as FileRef
 
-watch([() => flake.content, fileRef, elContent], async () => {
+onMounted(async () => {
   await RenderContent()
 })
 
 const RenderContent = async () => {
-  if (!elFlake.value) return
-  if (!elContent.value) return
   if (isNullish(fileRef.value)) return
-
-  elContent.value.innerHTML = ''
+  const elFlake = refFlake.value!
 
   try {
-    await MarkdownRenderer.render(
-      app,
-      flake.content,
-      elContent.value,
-      fileRef.value.path,
-      leaf,
-    )
+    if (hasContent.value) {
+      const elContent = refContent.value!
+      elContent.innerHTML = ''
+
+      await MarkdownRenderer.render(
+        app,
+        flake.content,
+        elContent,
+        fileRef.value.path,
+        leaf,
+      )
+    }
   } finally {
     await nextTick()
 
-    const rect = elFlake.value.getBoundingClientRect()
-
+    const rect = elFlake.getBoundingClientRect()
     emit(
-      'rendered',
+      'render',
       flake.id,
       rect.width,
       rect.height,
     )
   }
 }
+
+const beginEdit = () => {
+  state.value = 'edit'
+  editContent.value = flake.content
+}
+
+const finishEdit = async () => {
+  state.value = 'view'
+  flake.content = editContent.value.trim()
+  flake.modifiedAt = moment.now()
+
+  emit('edit', flake.id)
+  await nextTick()
+  await RenderContent()
+}
+
+const deleteFlake = () => {
+  emit('delete', flake.id)
+}
 </script>
 
 <template>
-  <div ref="el-flake" :class="['flake-view', `-${flake.theme}`]">
-    <div class="name">{{ flake.name }}</div>
-    <div class="divider"></div>
-    <div ref="el-content" class="content flake-markdown"></div>
+  <div class="flake-layout">
+    <div ref="el-flake" :class="['flake-view', `-${flake.theme}`]">
+      <div v-if="isView" class="name">{{ flake.name }}</div>
+      <input v-if="isEdit" v-model="flake.name" class="edit-name" />
+
+      <div class="divider"></div>
+
+      <div v-if="isView && !hasContent" class="nocontent">
+        No Content
+      </div>
+      <div v-if="isView && hasContent"
+        ref="el-content"
+        class="content _fp-markdown">
+      </div>
+      <div v-if="isEdit" class="edit-content">
+        <textarea
+          ref="editArea"
+          v-model="editContent"
+          class="textarea"
+          rows="3">
+        </textarea>
+      </div>
+    </div>
+
+    <div class="tooltip-top">
+      <button v-if="isView" class="_fp-btn-icon" @click="beginEdit">
+        <ObIcon name="pencil-line" />
+      </button>
+      <button v-if="isView" class="_fp-btn-icon" @click="deleteFlake">
+        <ObIcon name="trash-2" css-color="var(--color-red)" />
+      </button>
+      <button v-if="isEdit" class="_fp-btn-icon" @click="finishEdit">
+        <ObIcon name="check" />
+      </button>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+%flake-name {
+  padding: 0.5em;
+  padding-bottom: 0.25em;
+  line-height: 1.5;
+
+  font-family: var(--font-default);
+  font-size: var(--font-text-size);
+  font-weight: var(--font-bold);
+
+  color: var(--flake-name);
+  background-color: var(--flake-name-bg);
+}
+
+.flake-layout {
+  max-height: 100%;
+  position: relative;
+
+  &:hover>.tooltip-top {
+    display: flex;
+  }
+}
+
 .flake-view {
+  max-height: 100%;
+  overflow: hidden;
+
+  display: grid;
+  grid-template-rows: min-content min-content auto;
+
   color: var(--flake-text);
   background-color: var(--flake-text-bg);
 
@@ -72,24 +168,27 @@ const RenderContent = async () => {
     1px 1px 2px var(--flake-shadow);
 
   &>.name {
-    margin: 0.5em;
-    margin-bottom: 0.25em;
-    font-weight: bold;
+    @extend %flake-name;
+    word-break: break-word;
     user-select: text;
-
-    color: var(--flake-name);
-    background-color: var(--flake-name-bg);
   }
 
   &>.divider {
-    margin: 0.25em 0;
     border-bottom: 1px solid var(--flake-border);
   }
 
+  &>.nocontent {
+    padding: 0.5em;
+    font-size: var(--font-small);
+    font-style: italic;
+    color: var(--text-faint);
+  }
+
   &>.content {
-    margin: 0.25em 0.5em;
+    padding: 0 0.5em;
     font-size: var(--font-small);
     user-select: text;
+    overflow-y: auto;
   }
 
   &.-default {
@@ -102,12 +201,34 @@ const RenderContent = async () => {
     --flake-text-bg: var(--background-primary);
   }
 }
-</style>
 
-<style lang="scss">
-.flake-markdown {
-  & p {
-    margin: 0.5em 0;
+.edit-name {
+  @extend %flake-name;
+  border: none;
+}
+
+.edit-content {
+  display: flex;
+  max-height: 100%;
+  overflow-y: auto;
+
+  &>.textarea {
+    width: 100%;
+    padding: 0.5em;
+    resize: none;
+    border: none;
+    font-size: var(--font-small);
   }
+}
+
+.tooltip-top {
+  position: absolute;
+  top: 0.25em;
+  right: 0.25em;
+  z-index: 4;
+
+  display: none; // flex when hovered
+  flex-direction: column;
+  row-gap: 0.25em;
 }
 </style>

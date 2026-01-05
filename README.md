@@ -16,6 +16,8 @@ I don't want 100 `.md` files with 1 sentence each.
 
 Vite + Vue 3 + Sass
 
+Why Vue? I don't know.
+
 ## Goals
 
 - [x] Mount Vue into Obsidian
@@ -27,7 +29,7 @@ Vite + Vue 3 + Sass
   - [ ] Flake type (text / image / code)
   - [ ] Flake color (theme)
   - [ ] Flake labels
-- [ ] Searching inside a flake
+- [ ] Searching inside a flakepile
 - [ ] Import multiple markdown files to Flakes
 - [ ] Export files to a .zip archive, each Flake as a markdown file
 

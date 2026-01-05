@@ -1,6 +1,7 @@
 import { Notice, Plugin, TFolder } from 'obsidian'
 import { FlakepileApp, VIEW_TYPE } from './app'
 import { createFlakepile } from './data'
+import './globals.scss'
 
 export default class Flakepiles extends Plugin {
   async onload() {

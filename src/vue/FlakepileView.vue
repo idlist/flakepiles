@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, reactive, ref, triggerRef, useTemplateRef, watch } from 'vue'
 import { useElementSize } from '@vueuse/core'
-import { createDummyFlake, FLAKE_WIDTH, type Flake } from '@/data'
+import { createDummyFlake, createFlake, FLAKE_WIDTH, type Flake } from '@/data'
 import { usePartialRef } from '@/hooks'
 import type { FileRef, PileShallowRef } from '@/app'
 import FlakeView from './FlakeView.vue'
@@ -64,8 +64,8 @@ const name = computed<string>(() => {
   return fileRef.value?.basename ?? ''
 })
 
-const elContent = useTemplateRef('el-content')
-const size = useElementSize(elContent)
+const refContent = useTemplateRef('el-content')
+const size = useElementSize(refContent)
 
 const columnWidth = computed(() => {
   return FLAKE_WIDTH * pile.value.width
@@ -88,6 +88,13 @@ const createColumnContent = (height: number = 0): ColumnContent => {
 
 const columnsContent = ref<ColumnContent[]>([])
 
+const addFlake = async () => {
+  var flake = createFlake()
+  pile.value.flakes.push(flake)
+  triggerRef(pile)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const addDummyFlake = () => {
   var dummy = createDummyFlake()
   pile.value.flakes.push(dummy)
@@ -117,12 +124,13 @@ const arrangeFlake = () => {
   if (flow.value == 'vertical') {
     arrangeFlakeVertical()
   }
-  else if (flow.value == 'horizontal') {
+  if (flow.value == 'horizontal') {
     arrangeFlakeHorizontal()
   }
 }
 
 const GAP_SIZE = 16
+const SCROLL_SIZE = 12
 
 const arrangeFlakeVertical = () => {
   columnsContent.value = []
@@ -132,7 +140,12 @@ const arrangeFlakeVertical = () => {
   }
 
   for (const flake of sortedFlakes.value) {
-    const height = flakesInfoMap.get(flake.id)!.height
+    const info = flakesInfoMap.get(flake.id)
+    if (!info) {
+      console.warn(`Cannot get info for Flake ${flake.id}.`)
+      continue
+    }
+    const height = info.height
 
     let shortestIndex = 0
     let shortest = Number.MAX_SAFE_INTEGER
@@ -153,15 +166,21 @@ const arrangeFlakeVertical = () => {
 
 const arrangeFlakeHorizontal = () => {
   columnsContent.value = []
-  let column: ColumnContent = createColumnContent(GAP_SIZE)
+  const occupied = GAP_SIZE + SCROLL_SIZE
+  let column: ColumnContent = createColumnContent(occupied)
 
   for (const flake of sortedFlakes.value) {
-    const height = flakesInfoMap.get(flake.id)!.height
+    const info = flakesInfoMap.get(flake.id)
+    if (!info) {
+      console.warn(`Cannot get info for Flake ${flake.id}.`)
+      continue
+    }
+    const height = info.height
     const nextHeight = column.height + height
 
     if (column.flakes.length > 0 && nextHeight > size.height.value) {
       columnsContent.value.push(column)
-      column = createColumnContent(GAP_SIZE)
+      column = createColumnContent(occupied)
     }
 
     column.height += height + GAP_SIZE
@@ -197,6 +216,21 @@ watch(size.height, () => {
     rearrangeFlake()
   }
 })
+
+const onFlakeEdited = () => {
+  rearrangeFlake()
+  triggerRef(pile)
+}
+
+const onFlakeDeleted = (id: string) => {
+  const index = pile.value.flakes.findIndex((item) => item.id == id)
+  if (index == -1) return
+
+  pile.value.flakes.splice(index, 1)
+  flakesInfoMap.delete(id)
+  rearrangeFlake()
+  triggerRef(pile)
+}
 </script>
 
 <template>
@@ -204,7 +238,7 @@ watch(size.height, () => {
     <div class="header">
       <h1>{{ name }}</h1>
       <div class="tool-list">
-        <button @click="addDummyFlake">Add Flake</button>
+        <button @click="addFlake">Add Flake</button>
         <div class="item">
           <label>Flow</label>
           <select v-model="flow">
@@ -221,13 +255,13 @@ watch(size.height, () => {
           </select>
           <button
             v-if="sortOrder == 'desc'"
-            class="icon-button"
+            class="_fp-btn-icon"
             @click="sortOrder = 'asc'">
             <ObIcon name="arrow-down" />
           </button>
           <button
             v-if="sortOrder == 'asc'"
-            class="icon-button"
+            class="_fp-btn-icon"
             @click="sortOrder = 'desc'">
             <ObIcon name="arrow-up" />
           </button>
@@ -241,7 +275,7 @@ watch(size.height, () => {
 
         <template v-else>
           <div v-if="flow == 'vertical'" class="vertical-view">
-            <div class="flow">
+            <div class="vertical-flow">
               <div v-for="(column, i) of columnsContent"
                 :key="i"
                 class="column"
@@ -254,13 +288,18 @@ watch(size.height, () => {
           </div>
 
           <div v-if="flow == 'horizontal'" class="horizontal-view">
-            <div v-for="(column, i) of columnsContent"
-              :key="i"
-              class="column"
-              :style="{ width: `${columnWidth}px` }">
-              <FlakeView v-for="flake of column.flakes"
-                :key="flake.id"
-                :flake="flake" />
+            <div class="horizontal-flow">
+              <div v-for="(column, i) of columnsContent"
+                :key="i"
+                class="column"
+                :style="{ width: `${columnWidth}px` }">
+                <FlakeView v-for="flake of column.flakes"
+                  :key="flake.id"
+                  :flake="flake"
+                  @render="onFlakeRendered"
+                  @edit="onFlakeEdited"
+                  @delete="onFlakeDeleted" />
+              </div>
             </div>
           </div>
 
@@ -271,7 +310,7 @@ watch(size.height, () => {
             <FlakeView v-for="flake of unrenderedFlakes"
               :key="flake.id"
               :flake="flake"
-              @rendered="onFlakeRendered" />
+              @render="onFlakeRendered" />
           </div>
         </template>
       </div>
@@ -322,22 +361,15 @@ watch(size.height, () => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  column-gap: 0.5em;
-  row-gap: 0.25rem;
+  column-gap: 1em;
+  row-gap: 0.25em;
   font-size: var(--font-small);
 
   &>.item {
     display: flex;
     align-items: center;
-    column-gap: 0.25em;
+    column-gap: 0.5em;
   }
-}
-
-.icon-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5em;
 }
 
 .no-flakes {
@@ -354,14 +386,14 @@ watch(size.height, () => {
   align-items: center;
   justify-content: center;
   padding: 0.5em 1em 2em 1em;
+}
 
-  &>.flow {
-    display: flex;
-    flex-direction: row;
-    column-gap: 1em;
-  }
+.vertical-flow {
+  display: flex;
+  flex-direction: row;
+  column-gap: 1em;
 
-  &>.flow>.column {
+  &>.column {
     display: flex;
     flex-direction: column;
     row-gap: 1em;
@@ -371,9 +403,14 @@ watch(size.height, () => {
 .horizontal-view {
   height: 100%;
   display: flex;
+}
+
+.horizontal-flow {
+  display: flex;
+  flex: 1 0 0;
   flex-direction: row;
-  padding: 0.5em 2em 0.5em 1em;
   column-gap: 1em;
+  padding: 0.5em 2em 0.5em 1em;
 
   &>.column {
     display: flex;
@@ -384,6 +421,6 @@ watch(size.height, () => {
 }
 
 .flake-renderer {
-  opacity: 0;
+  visibility: hidden;
 }
 </style>
