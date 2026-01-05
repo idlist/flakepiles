@@ -1,47 +1,62 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from 'vue'
+import { computed, inject, nextTick, onMounted, useTemplateRef } from 'vue'
 import { MarkdownRenderer, moment, type App, type Component } from 'obsidian'
 import { useTextareaAutosize } from '@vueuse/core'
-import { type Flake } from '@/data'
+import type { Flake } from '@/data'
 import type { FileRef } from '@/app'
 import { isNullish } from '@rewl/kit'
 import ObIcon from './ObIcon.vue'
 
-const props = defineProps<{ flake: Flake }>()
+const props = defineProps<{
+  flake: Flake
+  edit: boolean
+}>()
 const flake = props.flake
 const hasContent = computed(() => !!flake.content)
+
+const emit = defineEmits<{
+  (e: 'size-init', id: string, height: number): void
+  (e: 'size-update', id: string, height: number): void
+  (e: 'edit', id: string, state: 'begin' | 'finish'): void
+  (e: 'delete', id: string): void
+}>()
 
 const refFlake = useTemplateRef('el-flake')
 const refContent = useTemplateRef('el-content')
 
-
 const {
   textarea: editArea,
   input: editContent,
-} = useTextareaAutosize({ styleProp: 'minHeight' })
+} = useTextareaAutosize({
+  styleProp: 'minHeight',
+  onResize() {
+    sizeUpdate()
+  },
+})
 
-type State = 'view' | 'edit'
-const state = ref<State>('view')
-const isView = computed(() => state.value == 'view')
-const isEdit = computed(() => state.value == 'edit')
-
-const emit = defineEmits<{
-  (e: 'render', id: string, width: number, height: number): void
-  (e: 'edit', id: string): void
-  (e: 'delete', id: string): void
-}>()
+const isView = computed(() => !props.edit)
+const isEdit = computed(() => props.edit)
 
 const app = inject('app') as App
 const leaf = inject('leaf') as Component
 const fileRef = inject('fileRef') as FileRef
 
+const sizeInit = () => {
+  const rect = refFlake.value!.getBoundingClientRect()
+  emit('size-init', flake.id, rect.height)
+}
+
+const sizeUpdate = () => {
+  const rect = refFlake.value!.getBoundingClientRect()
+  emit('size-update', flake.id, rect.height)
+}
+
 onMounted(async () => {
-  await RenderContent()
+  await renderContent()
 })
 
-const RenderContent = async () => {
+const renderContent = async () => {
   if (isNullish(fileRef.value)) return
-  const elFlake = refFlake.value!
 
   try {
     if (hasContent.value) {
@@ -58,30 +73,24 @@ const RenderContent = async () => {
     }
   } finally {
     await nextTick()
-
-    const rect = elFlake.getBoundingClientRect()
-    emit(
-      'render',
-      flake.id,
-      rect.width,
-      rect.height,
-    )
+    sizeInit()
   }
 }
 
-const beginEdit = () => {
-  state.value = 'edit'
+const beginEdit = async () => {
   editContent.value = flake.content
+
+  emit('edit', flake.id, 'begin')
+  await nextTick()
+  sizeUpdate()
 }
 
 const finishEdit = async () => {
-  state.value = 'view'
   flake.content = editContent.value.trim()
   flake.modifiedAt = moment.now()
 
-  emit('edit', flake.id)
-  await nextTick()
-  await RenderContent()
+  emit('edit', flake.id, 'finish')
+  await renderContent()
 }
 
 const deleteFlake = () => {
@@ -109,7 +118,8 @@ const deleteFlake = () => {
           ref="editArea"
           v-model="editContent"
           class="textarea"
-          rows="3">
+          rows="3"
+          placeholder="Note here...">
         </textarea>
       </div>
     </div>

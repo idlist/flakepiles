@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, reactive, ref, triggerRef, useTemplateRef, watch } from 'vue'
-import { useElementSize } from '@vueuse/core'
+import { useDebounceFn, useElementSize } from '@vueuse/core'
 import { createDummyFlake, createFlake, FLAKE_WIDTH, type Flake } from '@/data'
 import { usePartialRef } from '@/hooks'
 import type { FileRef, PileShallowRef } from '@/app'
@@ -13,11 +13,11 @@ const props = defineProps<{
 const pile = props.pile
 
 const emit = defineEmits<{
-  (e: 'update'): void
+  (e: 'edited'): void
 }>()
 
 watch(pile, () => {
-  emit('update')
+  emit('edited')
 })
 
 const flow = usePartialRef(props.pile, 'flow')
@@ -88,7 +88,7 @@ const createColumnContent = (height: number = 0): ColumnContent => {
 
 const columnsContent = ref<ColumnContent[]>([])
 
-const addFlake = async () => {
+const addFlake = () => {
   var flake = createFlake()
   pile.value.flakes.push(flake)
   triggerRef(pile)
@@ -101,33 +101,40 @@ const addDummyFlake = () => {
   triggerRef(pile)
 }
 
-interface FlakesInfo {
-  width: number
-  height: number
-}
-
-const flakesInfoMap = reactive<Map<string, FlakesInfo>>(new Map())
+const flakesHeight = reactive<Map<string, number>>(new Map())
 
 const unrenderedFlakes = computed<Flake[]>(() => {
-  return pile.value.flakes.filter((item) => !flakesInfoMap.has(item.id)) ?? []
+  const unrendered = pile.value.flakes
+    .filter((item) => !flakesHeight.has(item.id)) ?? []
+  return unrendered
 })
 
-const onFlakeRendered = (id: string, width: number, height: number) => {
-  flakesInfoMap.set(id, { width, height })
+const onFlakeSizeInit = (id: string, height: number) => {
+  flakesHeight.set(id, height)
 
-  if (flakesInfoMap.size == pile.value.flakes.length) {
+  if (flakesHeight.size == pile.value.flakes.length) {
     arrangeFlake()
   }
 }
 
-const arrangeFlake = () => {
-  if (flow.value == 'vertical') {
+const onFlakeSizeUpdate = (id: string, height: number) => {
+  flakesHeight.set(id, height)
+
+  if (pile.value.flow == 'horizontal') {
+    arrangeFlake()
+  }
+}
+
+const arrangeFlakeDebounced = async () => {
+  if (pile.value.flow == 'vertical') {
     arrangeFlakeVertical()
   }
-  if (flow.value == 'horizontal') {
+  if (pile.value.flow == 'horizontal') {
     arrangeFlakeHorizontal()
   }
 }
+
+const arrangeFlake = useDebounceFn(arrangeFlakeDebounced, 0)
 
 const GAP_SIZE = 16
 const SCROLL_SIZE = 12
@@ -140,12 +147,11 @@ const arrangeFlakeVertical = () => {
   }
 
   for (const flake of sortedFlakes.value) {
-    const info = flakesInfoMap.get(flake.id)
-    if (!info) {
-      console.warn(`Cannot get info for Flake ${flake.id}.`)
+    const height = flakesHeight.get(flake.id)
+    if (!height) {
+      console.warn(`Cannot get height for Flake ${flake.id}.`)
       continue
     }
-    const height = info.height
 
     let shortestIndex = 0
     let shortest = Number.MAX_SAFE_INTEGER
@@ -170,12 +176,12 @@ const arrangeFlakeHorizontal = () => {
   let column: ColumnContent = createColumnContent(occupied)
 
   for (const flake of sortedFlakes.value) {
-    const info = flakesInfoMap.get(flake.id)
-    if (!info) {
-      console.warn(`Cannot get info for Flake ${flake.id}.`)
+    const height = flakesHeight.get(flake.id)
+
+    if (!height) {
+      console.warn(`Cannot get height for Flake ${flake.id}.`)
       continue
     }
-    const height = info.height
     const nextHeight = column.height + height
 
     if (column.flakes.length > 0 && nextHeight > size.height.value) {
@@ -192,9 +198,49 @@ const arrangeFlakeHorizontal = () => {
   }
 }
 
-const rearrangeFlake = () => {
-  flakesInfoMap.clear()
+const flakesInEdit = reactive<Set<string>>(new Set())
+
+watch(() => pile.value.id, () => {
+  flakesInEdit.clear()
+})
+
+const onFlakeEdit = (id: string, state: 'begin' | 'finish') => {
+  if (state == 'begin') {
+    flakesInEdit.add(id)
+  }
+  else if (state == 'finish') {
+    flakesInEdit.delete(id)
+
+    triggerRef(pile)
+    arrangeFlake()
+  }
 }
+
+const onFlakeDelete = (id: string) => {
+  const index = pile.value.flakes.findIndex((item) => item.id == id)
+  if (index == -1) return
+  pile.value.flakes.splice(index, 1)
+  flakesHeight.delete(id)
+
+  triggerRef(pile)
+  arrangeFlake()
+}
+
+const rearrangeFlake = () => {
+  flakesHeight.clear()
+}
+
+watch(columnNumberVertical, () => {
+  if (pile.value.flow == 'vertical') {
+    rearrangeFlake()
+  }
+})
+
+watch(size.height, () => {
+  if (pile.value.flow == 'horizontal') {
+    rearrangeFlake()
+  }
+})
 
 watch([
   () => pile.value.id,
@@ -204,39 +250,12 @@ watch([
 ], () => {
   rearrangeFlake()
 })
-
-watch(columnNumberVertical, () => {
-  if (flow.value == 'vertical') {
-    rearrangeFlake()
-  }
-})
-
-watch(size.height, () => {
-  if (flow.value == 'horizontal') {
-    rearrangeFlake()
-  }
-})
-
-const onFlakeEdited = () => {
-  rearrangeFlake()
-  triggerRef(pile)
-}
-
-const onFlakeDeleted = (id: string) => {
-  const index = pile.value.flakes.findIndex((item) => item.id == id)
-  if (index == -1) return
-
-  pile.value.flakes.splice(index, 1)
-  flakesInfoMap.delete(id)
-  rearrangeFlake()
-  triggerRef(pile)
-}
 </script>
 
 <template>
   <div class="view-layout">
     <div class="header">
-      <h1>{{ name }}</h1>
+      <h1 class="file-name">{{ name }}</h1>
       <div class="tool-list">
         <button @click="addFlake">Add Flake</button>
         <div class="item">
@@ -282,7 +301,11 @@ const onFlakeDeleted = (id: string) => {
                 :style="{ width: `${columnWidth}px` }">
                 <FlakeView v-for="flake of column.flakes"
                   :key="flake.id"
-                  :flake="flake" />
+                  :flake="flake"
+                  :edit="flakesInEdit.has(flake.id)"
+                  @size-update="onFlakeSizeUpdate"
+                  @edit="onFlakeEdit"
+                  @delete="onFlakeDelete" />
               </div>
             </div>
           </div>
@@ -296,9 +319,10 @@ const onFlakeDeleted = (id: string) => {
                 <FlakeView v-for="flake of column.flakes"
                   :key="flake.id"
                   :flake="flake"
-                  @render="onFlakeRendered"
-                  @edit="onFlakeEdited"
-                  @delete="onFlakeDeleted" />
+                  :edit="flakesInEdit.has(flake.id)"
+                  @size-update="onFlakeSizeUpdate"
+                  @edit="onFlakeEdit"
+                  @delete="onFlakeDelete" />
               </div>
             </div>
           </div>
@@ -310,7 +334,8 @@ const onFlakeDeleted = (id: string) => {
             <FlakeView v-for="flake of unrenderedFlakes"
               :key="flake.id"
               :flake="flake"
-              @render="onFlakeRendered" />
+              :edit="false"
+              @size-init="onFlakeSizeInit" />
           </div>
         </template>
       </div>
@@ -355,6 +380,10 @@ const onFlakeDeleted = (id: string) => {
     overflow-x: auto;
     overflow-y: hidden;
   }
+}
+
+.file-name {
+  margin: 0.25em 0;
 }
 
 .tool-list {

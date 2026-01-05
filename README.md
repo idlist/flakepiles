@@ -26,6 +26,7 @@ Why Vue? I don't know.
   - [ ] Flake width
   - [x] Flake sorting
 - [ ] Flake
+  - [x] Flake CRUD
   - [ ] Flake type (text / image / code)
   - [ ] Flake color (theme)
   - [ ] Flake labels

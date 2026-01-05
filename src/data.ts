@@ -65,8 +65,8 @@ export interface Flakepile {
 export const createFlakepile = (): Flakepile => {
   return {
     id: nanoid(16),
-    flow: 'vertical',
-    sortBy: 'name',
+    flow: 'horizontal',
+    sortBy: 'createdAt',
     sortOrder: 'desc',
     width: 1,
     elasticWidth: false,
