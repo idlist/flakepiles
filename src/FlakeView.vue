@@ -48,7 +48,7 @@ const RenderContent = async () => {
 
 <template>
   <div ref="el-flake" :class="['flake-view', `-${flake.theme}`]">
-    <h5 class="title">{{ flake.name }}</h5>
+    <div class="name">{{ flake.name }}</div>
     <div class="divider"></div>
     <div ref="el-content" class="content flake-markdown"></div>
   </div>
@@ -56,25 +56,44 @@ const RenderContent = async () => {
 
 <style lang="scss" scoped>
 .flake-view {
-  border: 1px solid var(--flake-border);
-  border-radius: 0.5em;
+  color: var(--flake-text);
+  background-color: var(--flake-text-bg);
 
-  &>.title {
-    margin: 0.25em 0.5em;
+  border: 1px solid var(--flake-border);
+  border-radius: var(--radius-s);
+  box-shadow:
+    0 0 4px var(--flake-shadow),
+    1px 1px 2px var(--flake-shadow);
+
+  &>.name {
+    margin: 0.5em;
+    margin-bottom: 0.25em;
+    font-weight: bold;
+    user-select: text;
+
+    color: var(--flake-name);
+    background-color: var(--flake-name-bg);
   }
 
   &>.divider {
-    margin: 0 0.5em;
+    margin: 0.25em 0;
     border-bottom: 1px solid var(--flake-border);
   }
 
   &>.content {
-    margin: 0.5em;
-    font-size: var(--font-small)
+    margin: 0.25em 0.5em;
+    font-size: var(--font-small);
+    user-select: text;
   }
 
   &.-default {
-    --flake-border: oklch(62.5% 0.19 291);
+    --system-hsl: var(--accent-h) var(--accent-s) var(--accent-l);
+    --flake-border: hsla(var(--system-hsl) / 0.5);
+    --flake-shadow: hsla(var(--system-hsl) / 0.2);
+    --flake-name: var(--text-accent);
+    --flake-name-bg: var(--background-primary-alt);
+    --flake-text: var(--text-normal);
+    --flake-text-bg: var(--background-primary);
   }
 }
 </style>
@@ -82,7 +101,7 @@ const RenderContent = async () => {
 <style lang="scss">
 .flake-markdown {
   & p {
-    margin: 0.5rem 0;
+    margin: 0.5em 0;
   }
 }
 </style>

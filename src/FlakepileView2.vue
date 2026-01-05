@@ -11,7 +11,7 @@ const props = defineProps<{
 const pile = props.pile
 
 watch(pile, () => {
-  rearrangeFlakes()
+  rearrange()
 })
 
 const emit = defineEmits<{
@@ -32,7 +32,7 @@ const columnNumber = computed<number>(() => {
 })
 
 watch(columnNumber, () => {
-  rearrangeFlakes()
+  rearrange()
 })
 
 interface ColumnContent {
@@ -64,20 +64,20 @@ const onFlakeRendered = (createdAt: number, width: number, height: number) => {
   flakesInfoMap.set(createdAt, { width, height })
 
   if (flakesInfoMap.size == pile.value.flakes.length) {
-    arrangeFlakes()
+    arrange()
   }
 }
 
-const arrangeFlakes = () => {
+const arrange = () => {
   if (pile.value.flow == 'vertical') {
-    arrangeFlakesVertical()
+    arrangeVertical()
   }
   else if (pile.value.flow == 'horizontal') {
-    arrangeFlakesHorizontal()
+    arrangeHorizontal()
   }
 }
 
-const arrangeFlakesVertical = () => {
+const arrangeVertical = () => {
   columnsContent.value = []
 
   for (let i = 0; i < columnNumber.value; i++) {
@@ -107,52 +107,100 @@ const arrangeFlakesVertical = () => {
   }
 }
 
-const arrangeFlakesHorizontal = () => {
+const arrangeHorizontal = () => {
   noop()
 }
 
-const rearrangeFlakes = () => {
+const rearrange = () => {
   flakesInfoMap.clear()
 }
 </script>
 
 <template>
-  <h1>{{ name }}</h1>
-  <button @click="addDummyFlake">Add Dummy Flake</button>
-  <div class="title-spacing"></div>
+  <div class="view-layout">
+    <div class="header">
+      <h1>{{ name }}</h1>
+      <div>
+        <button @click="addDummyFlake">Add Dummy Flake</button>
+        <label for="flow">Flow: </label>
+        <select v-model="pile.flow">
+          <option value="vertical">Vertical</option>
+          <option value="horizontal">Horizontal</option>
+        </select>
+      </div>
+    </div>
 
-  <div v-if="!pile.flakes.length">No Flakes</div>
+    <div class="content">
+      <div :class="['sub-layout', `-${pile.flow}`]">
+        <div v-if="!pile.flakes.length">No Flakes</div>
 
-  <template v-else>
-    <template v-if="pile.flow == 'vertical'">
-      <div class="vertical-view">
-        <div class="vertical-flow">
-          <div v-for="(column, i) of columnsContent"
-            :key="i"
-            class="column"
-            :style="{ width: `${columnWidth}px` }">
-            <FlakeView v-for="flake of column.flakes"
-              :key="flake.createdAt"
-              :flake="flake" />
+        <template v-else>
+          <div v-if="pile.flow == 'vertical'" class="vertical-view">
+            <div class="vertical-flow">
+              <div v-for="(column, i) of columnsContent"
+                :key="i"
+                class="column"
+                :style="{ width: `${columnWidth}px` }">
+                <FlakeView v-for="flake of column.flakes"
+                  :key="flake.id"
+                  :flake="flake" />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div v-if="unrenderedFlakes.length"
-        class="vertical-renderer"
-        :style="{ width: `${columnWidth}px` }">
-        <FlakeView v-for="flake of unrenderedFlakes"
-          :key="flake.createdAt"
-          :flake="flake"
-          @rendered="onFlakeRendered" />
+          <div v-if="pile.flow == 'horizontal'" class="horizontal-view">
+            <div class="horizontal-flow">
+            </div>
+          </div>
+
+          <div v-if="unrenderedFlakes.length" :style="{ width: `${columnWidth}px` }">
+            <FlakeView v-for="flake of unrenderedFlakes"
+              :key="flake.id"
+              :flake="flake"
+              @rendered="onFlakeRendered" />
+          </div>
+        </template>
       </div>
-    </template>
-  </template>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
-.title-spacing {
-  margin: 0.5rem;
+%_inset {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.view-layout {
+  @extend %_inset;
+  position: fixed;
+  top: var(--header-height);
+
+  display: grid;
+  grid-template-rows: min-content auto;
+
+  &>.header {
+    padding: 0.5em 1em;
+  }
+
+  &>.content {
+    position: relative;
+  }
+}
+
+.sub-layout {
+  @extend %_inset;
+  position: absolute;
+
+  &.-vertical {
+    overflow-y: auto;
+  }
+
+  &.-horizontal {
+    overflow-x: auto;
+  }
 }
 
 .vertical-view {
@@ -160,6 +208,7 @@ const rearrangeFlakes = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0.5em 1em 2em 1em;
 }
 
 .vertical-flow {
@@ -167,10 +216,12 @@ const rearrangeFlakes = () => {
   flex-direction: row;
   column-gap: 1em;
 
-  >.column {
+  &>.column {
     display: flex;
     flex-direction: column;
     row-gap: 1em;
   }
 }
+
+.horizontal-view {}
 </style>

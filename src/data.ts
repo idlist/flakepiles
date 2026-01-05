@@ -1,7 +1,9 @@
 import { moment } from 'obsidian'
 import { faker } from '@faker-js/faker'
+import { nanoid } from 'nanoid'
 
 export interface Flake {
+  id: string
   createdAt: number
   modifiedAt: number
   theme: string
@@ -13,6 +15,7 @@ export interface Flake {
 
 export const createFlake = (): Flake => {
   return {
+    id: nanoid(16),
     createdAt: moment.now(),
     modifiedAt: moment.now(),
     theme: 'default',
@@ -25,6 +28,7 @@ export const createFlake = (): Flake => {
 
 export const createDummyFlake = (): Flake => {
   return {
+    id: nanoid(16),
     createdAt: moment.now(),
     modifiedAt: moment.now(),
     theme: 'default',
@@ -47,6 +51,7 @@ export interface FlakeTheme {
 }
 
 export interface Flakepile {
+  id: string
   flow: 'vertical' | 'horizontal'
   sortBy: 'title' | 'createdAt' | 'modifiedAt'
   sortOrder: 'asc' | 'desc'
@@ -59,6 +64,7 @@ export interface Flakepile {
 
 export const createFlakepile = (): Flakepile => {
   return {
+    id: nanoid(16),
     flow: 'vertical',
     sortBy: 'title',
     sortOrder: 'desc',
