@@ -4,11 +4,19 @@ Sticker pile in a single file.
 
 For personal use. In very early development.
 
+## Status
+
+Not usable.
+
+## Why
+
+I don't want 100 `.md` files with 1 sentence each.
+
 ## Tech Stack
 
 Vite + Vue 3 + Sass
 
-## Roadmap
+## Goals
 
 - [x] Mount Vue into Obsidian
 - [ ] Flakepile
@@ -19,6 +27,16 @@ Vite + Vue 3 + Sass
   - [ ] Flake type (text / image / code)
   - [ ] Flake color (theme)
   - [ ] Flake labels
-- [ ] Searching flake
-- [ ] (PC Only) Import multiple markdown files to Flakes
-- [ ] (PC Only) Export files to a .zip archive, each Flake as a markdown file
+- [ ] Searching inside a flake
+- [ ] Import multiple markdown files to Flakes
+- [ ] Export files to a .zip archive, each Flake as a markdown file
+
+## Non-goals
+
+- Live editing of Flake (too complex)
+- Cross-file searching or Obsidian-wise searching (restricted by API)
+- File linking (tags, wiki links) (restricted by API)
+
+## License
+
+MIT
