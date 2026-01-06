@@ -240,8 +240,8 @@ const copyToClipboard = async () => {
 
   &.-default {
     --system-hsl: var(--accent-h) var(--accent-s) var(--accent-l);
-    --flake-border: hsla(var(--system-hsl) / 0.5);
-    --flake-shadow: hsla(var(--system-hsl) / 0.2);
+    --flake-border: hsla(var(--system-hsl) / 0.25);
+    --flake-shadow: hsla(var(--system-hsl) / 0.25);
     --flake-name: var(--text-accent);
     --flake-name-bg: var(--background-primary-alt);
     --flake-text: var(--text-normal);

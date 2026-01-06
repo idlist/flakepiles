@@ -13,18 +13,14 @@ const props = defineProps<{
 const pile = props.pile
 
 const emit = defineEmits<{
-  (e: 'edited'): void
+  (e: 'update'): void
 }>()
 
 watch(pile, () => {
-  emit('edited')
+  emit('update')
 })
 
 const isSubMenuOpen = ref(false)
-
-const toggleSubMenu = () => {
-  isSubMenuOpen.value = !isSubMenuOpen.value
-}
 
 watch(() => pile.value.id, () => {
   isSubMenuOpen.value = false
@@ -231,8 +227,12 @@ watch([
           <ObSearch v-model="searchQueue" class="wfull" />
         </div>
 
-        <button class="_fp-btn-icon">
-          <ObIcon name="square-menu" @click="toggleSubMenu" />
+        <button v-if="!isSubMenuOpen" class="_fp-btn-icon">
+          <ObIcon name="square-menu" @click="isSubMenuOpen = true" />
+        </button>
+
+        <button v-else class="_fp-btn-icon">
+          <ObIcon name="cross" @click="isSubMenuOpen = false" />
         </button>
 
         <div v-if="isSubMenuOpen" class="tools-sub">

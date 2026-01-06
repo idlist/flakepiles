@@ -24,6 +24,7 @@ Why Vue? I don't know.
 - [ ] Flakepile
   - [x] Flow direction (vertical / horizontal)
   - [ ] Flake size
+  - [ ] Flake elastic sizing
   - [x] Flake sorting
 - [ ] Flake
   - [x] Flake CRUD
