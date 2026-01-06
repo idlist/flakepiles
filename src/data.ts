@@ -57,8 +57,9 @@ export interface Flakepile {
   sortOrder: 'asc' | 'desc'
   width: number
   elasticWidth: boolean
-  maxHeight: number
   enableMaxHeight: boolean
+  maxHeight: number
+  elasticHeight: boolean
   flakes: Flake[]
 }
 
@@ -70,8 +71,9 @@ export const createFlakepile = (): Flakepile => {
     sortOrder: 'desc',
     width: 1,
     elasticWidth: false,
-    maxHeight: 2,
     enableMaxHeight: false,
+    maxHeight: 2,
+    elasticHeight: false,
     flakes: [],
   }
 }

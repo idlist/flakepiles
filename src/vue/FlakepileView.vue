@@ -242,6 +242,10 @@ watch([
 
           <div class="tool-item -grow"></div>
 
+          <button class="_fp-btn-icon-at-left">
+            <ObIcon name="scaling" /> Size Options
+          </button>
+
           <div class="tool-item">
             <label>Flow</label>
             <ObIcon v-if="flow == 'vertical'" name="move-vertical" />
@@ -362,6 +366,7 @@ watch([
 .file-name {
   margin: 0;
   margin-bottom: 0.375em;
+  user-select: text;
 
   &.-faint {
     opacity: 10%;

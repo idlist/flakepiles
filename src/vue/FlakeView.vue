@@ -259,6 +259,7 @@ const copyToClipboard = async () => {
     width: 100%;
     padding: 0 0.5em;
     font-size: var(--font-small);
+    overflow-wrap: break-word;
 
     user-select: text;
   }
@@ -267,6 +268,7 @@ const copyToClipboard = async () => {
     width: 100%;
     padding: 0.5em;
     font-size: var(--font-small);
+    overflow-wrap: break-word;
 
     overflow: hidden;
     resize: none;
