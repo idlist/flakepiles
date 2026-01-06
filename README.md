@@ -23,7 +23,7 @@ Why Vue? I don't know.
 - [x] Mount Vue into Obsidian
 - [ ] Flakepile
   - [x] Flow direction (vertical / horizontal)
-  - [ ] Flake width
+  - [ ] Flake size
   - [x] Flake sorting
 - [ ] Flake
   - [x] Flake CRUD
@@ -31,6 +31,7 @@ Why Vue? I don't know.
   - [ ] Flake color (theme)
   - [ ] Flake labels
 - [ ] Searching inside a flakepile
+- [ ] Virtual scrolling
 - [ ] Import multiple markdown files to Flakes
 - [ ] Export files to a .zip archive, each Flake as a markdown file
 
