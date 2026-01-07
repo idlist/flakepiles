@@ -1,23 +1,37 @@
 <script setup lang="ts">
-import { computed, inject, reactive, ref, triggerRef, useTemplateRef, watch } from 'vue'
-import { useDebounceFn, useElementSize } from '@vueuse/core'
-import { createDummyFlake, createFlake, FLAKE_WIDTH, type Flake } from '@/data'
+import { computed, inject, nextTick, provide, ref, useTemplateRef, watch } from 'vue'
+import { useElementSize, useMediaQuery } from '@vueuse/core'
+import { createFlake, FLAKE_WIDTH, type Flake, type Flakepile } from '@/data'
 import type { FileRef, PileShallowRef } from '@/app'
-import { usePartialRef } from '@/hooks'
 import { ObIcon, ObSearch } from '@/components'
-import FlakeView from './FlakeView.vue'
+import VerticalFlow from './flows/VerticalFlow.vue'
+import HorizontalFlow from './flows/HorizontalFlow.vue'
 
 const props = defineProps<{
   pile: PileShallowRef
 }>()
 const pile = props.pile
 
-const emit = defineEmits<{
-  (e: 'update'): void
-}>()
+const fileRef = inject('fileRef') as FileRef
+const requestSave = inject('requestSave') as () => void
 
-watch(pile, () => {
-  emit('update')
+const usePileProp = <K extends keyof Flakepile>(key: K) => {
+  return computed({
+    get: () => pile.value[key],
+    set: (value: Flakepile[K]) => {
+      pile.value[key] = value
+      requestSave()
+    },
+  })
+}
+
+const flow = usePileProp('flow')
+const sortBy = usePileProp('sortBy')
+const sortOrder = usePileProp('sortOrder')
+
+const isMobile = useMediaQuery('(max-width: 640px)')
+const adaptiveFlow = computed(() => {
+  return isMobile.value ? 'mobile' : flow.value
 })
 
 const isSubMenuOpen = ref(false)
@@ -26,11 +40,37 @@ watch(() => pile.value.id, () => {
   isSubMenuOpen.value = false
 })
 
+const refContent = useTemplateRef('el-content')
+const size = useElementSize(refContent)
+const columnWidth = computed(() => FLAKE_WIDTH * pile.value.width)
+
+const refVerticalFlow = useTemplateRef('el-vertical-flow')
+
 const searchQueue = ref<string>('')
 
-const flow = usePartialRef(props.pile, 'flow')
-const sortBy = usePartialRef(props.pile, 'sortBy')
-const sortOrder = usePartialRef(props.pile, 'sortOrder')
+const name = computed<string>(() => {
+  return fileRef.value?.basename ?? ''
+})
+
+const addFlake = () => {
+  var flake = createFlake()
+  pile.value.flakes.push(flake)
+  requestSave()
+}
+
+const requestDelete = async (id: string) => {
+  const index = pile.value.flakes.findIndex((flake) => flake.id == id)
+  if (index == -1) return
+  pile.value.flakes.splice(index, 1)
+  requestSave()
+
+  if (refVerticalFlow.value) {
+    await nextTick()
+    refVerticalFlow.value.arrangeFlakesWithout(id)
+  }
+}
+
+provide('requestDelete', requestDelete)
 
 const sortedFlakes = computed<Flake[]>(() => {
   const sorted = [...pile.value.flakes]
@@ -64,151 +104,6 @@ const sortedFlakes = computed<Flake[]>(() => {
   })
 
   return sorted
-})
-
-const fileRef = inject('fileRef') as FileRef
-
-const name = computed<string>(() => {
-  return fileRef.value?.basename ?? ''
-})
-
-const addFlake = () => {
-  var flake = createFlake()
-  pile.value.flakes.push(flake)
-  triggerRef(pile)
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const addDummyFlake = () => {
-  var dummy = createDummyFlake()
-  pile.value.flakes.push(dummy)
-  triggerRef(pile)
-}
-
-const refContent = useTemplateRef('el-content')
-const size = useElementSize(refContent)
-
-const columnWidth = computed(() => {
-  return FLAKE_WIDTH * pile.value.width
-})
-const columnNumberVertical = computed<number>(() => {
-  return Math.floor(size.width.value / columnWidth.value)
-})
-
-interface ColumnContent {
-  height: number
-  flakes: Flake[]
-}
-
-const createColumnContent = (height: number = 0): ColumnContent => {
-  return {
-    height,
-    flakes: [],
-  }
-}
-
-const columnsContent = ref<ColumnContent[]>([])
-
-const flakesHeight = reactive<Map<string, number>>(new Map())
-
-const unrenderedFlakes = computed<Flake[]>(() => {
-  const unrendered = pile.value.flakes
-    .filter((item) => !flakesHeight.has(item.id)) ?? []
-  return unrendered
-})
-
-const onFlakeSizeInit = (id: string, height: number) => {
-  flakesHeight.set(id, height)
-
-  if (flakesHeight.size == pile.value.flakes.length) {
-    arrangeFlake()
-  }
-}
-
-const onFlakeSizeUpdate = (id: string, height: number) => {
-  flakesHeight.set(id, height)
-}
-
-const GAP_SIZE = 16
-
-const arrangeFlakeDebounced = async () => {
-  if (columnsContent.value.length) {
-    columnsContent.value = []
-  }
-
-  if (pile.value.flow == 'vertical') {
-    arrangeFlakeVertical()
-  }
-}
-
-const arrangeFlake = useDebounceFn(arrangeFlakeDebounced, 0)
-
-const arrangeFlakeVertical = () => {
-  for (let i = 0; i < columnNumberVertical.value; i++) {
-    columnsContent.value.push(createColumnContent())
-  }
-
-  for (const flake of sortedFlakes.value) {
-    const height = flakesHeight.get(flake.id)
-    if (!height) {
-      console.warn(`Cannot get height for Flake ${flake.id}.`)
-      continue
-    }
-
-    let shortestIndex = 0
-    let shortest = Number.MAX_SAFE_INTEGER
-
-    for (let i = 0; i < columnsContent.value.length; i++) {
-      const content = columnsContent.value[i]!
-      if (content.height < shortest) {
-        shortest = content.height
-        shortestIndex = i
-      }
-    }
-
-    const shortestColumn = columnsContent.value[shortestIndex]!
-    shortestColumn.height += height + GAP_SIZE
-    shortestColumn.flakes.push(flake)
-  }
-}
-
-const onFlakeEdit = () => {
-  triggerRef(pile)
-}
-
-const onFlakeDelete = (id: string) => {
-  const index = pile.value.flakes.findIndex((item) => item.id == id)
-  if (index == -1) return
-  pile.value.flakes.splice(index, 1)
-  flakesHeight.delete(id)
-
-  triggerRef(pile)
-  arrangeFlake()
-}
-
-const rearrangeFlake = () => {
-  flakesHeight.clear()
-}
-
-watch(columnNumberVertical, () => {
-  if (pile.value.flow == 'vertical') {
-    rearrangeFlake()
-  }
-})
-
-watch(size.height, () => {
-  if (pile.value.flow == 'horizontal') {
-    rearrangeFlake()
-  }
-})
-
-watch([
-  () => pile.value.id,
-  () => pile.value.flow,
-  () => pile.value.sortBy,
-  () => pile.value.sortOrder,
-], () => {
-  rearrangeFlake()
 })
 </script>
 
@@ -285,43 +180,15 @@ watch([
         <div v-if="!pile.flakes.length" class="no-flakes">No Flakes</div>
 
         <template v-else>
-          <div v-if="flow == 'vertical'" class="vertical-view">
-            <div class="vertical-flow">
-              <div v-for="(column, i) of columnsContent"
-                :key="i"
-                class="column"
-                :style="{ width: `${columnWidth}px` }">
-                <FlakeView v-for="flake of column.flakes"
-                  :key="flake.id"
-                  :flake="flake"
-                  @edit="onFlakeEdit"
-                  @delete="onFlakeDelete"
-                  @size-update="onFlakeSizeUpdate" />
-              </div>
-            </div>
-          </div>
+          <VerticalFlow v-if="adaptiveFlow == 'vertical'"
+            ref="el-vertical-flow"
+            :flakes="sortedFlakes"
+            :column-width="columnWidth"
+            :viewport-width="size.width.value" />
 
-          <div v-if="flow == 'horizontal'" class="horizontal-view">
-            <div class="horizontal-flow">
-              <FlakeView v-for="flake of sortedFlakes"
-                :key="flake.id"
-                :flake="flake"
-                :style="{ width: `${columnWidth}px` }"
-                @edit="onFlakeEdit"
-                @delete="onFlakeDelete"
-                @size-update="onFlakeSizeUpdate" />
-            </div>
-          </div>
-
-          <div
-            v-if="unrenderedFlakes.length"
-            class="flake-renderer"
-            :style="{ width: `${columnWidth}px` }">
-            <FlakeView v-for="flake of unrenderedFlakes"
-              :key="flake.id"
-              :flake="flake"
-              @size-init="onFlakeSizeInit" />
-          </div>
+          <HorizontalFlow v-else-if="adaptiveFlow == 'horizontal'"
+            :flakes="sortedFlakes"
+            :column-width="columnWidth" />
         </template>
       </div>
     </div>
@@ -376,7 +243,6 @@ watch([
 %fp-tools {
   width: 100%;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   column-gap: 0.75em;
 
@@ -417,44 +283,5 @@ watch([
   font-style: italic;
   color: var(--text-faint);
   text-align: center;
-}
-
-.vertical-view {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5em 1em 2em 1em;
-}
-
-.vertical-flow {
-  display: flex;
-  flex-direction: row;
-  column-gap: 1em;
-
-  >.column {
-    display: flex;
-    flex-direction: column;
-    row-gap: 1em;
-  }
-}
-
-.horizontal-view {
-  display: flex;
-  height: 100%;
-}
-
-.horizontal-flow {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  flex-wrap: wrap;
-  column-gap: 1em;
-  row-gap: 1em;
-  padding: 0.5em 2em 0.5em 1em;
-}
-
-.flake-renderer {
-  visibility: hidden;
 }
 </style>

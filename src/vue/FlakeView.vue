@@ -17,20 +17,13 @@ const refFlake = useTemplateRef('el-flake')
 const refContent = useTemplateRef('el-content')
 
 const emit = defineEmits<{
-  (e: 'edit', id: string): void
-  (e: 'delete', id: string): void
-  (e: 'size-init', id: string, height: number): void
-  (e: 'size-update', id: string, height: number): void
+  (e: 'init', id: string): void
+  (e: 'update-height', id: string, height: number): void
 }>()
 
-const sizeInit = () => {
+const updateHeight = () => {
   const rect = refFlake.value!.getBoundingClientRect()
-  emit('size-init', flake.id, rect.height)
-}
-
-const sizeUpdate = () => {
-  const rect = refFlake.value!.getBoundingClientRect()
-  emit('size-update', flake.id, rect.height)
+  emit('update-height', flake.id, rect.height)
 }
 
 const {
@@ -39,7 +32,7 @@ const {
 } = useTextareaAutosize({
   styleProp: 'minHeight',
   onResize() {
-    sizeUpdate()
+    updateHeight()
   },
 })
 
@@ -49,11 +42,14 @@ const isView = computed(() => !isEdit.value)
 const app = inject('app') as App
 const leaf = inject('leaf') as Component
 const fileRef = inject('fileRef') as FileRef
+const requestSave = inject('requestSave') as () => void
+const requestDelete = inject('requestDelete') as (id: string) => Promise<void>
 
 onMounted(async () => {
   await renderContent()
   await nextTick()
-  sizeInit()
+  updateHeight()
+  emit('init', flake.id)
 })
 
 const renderContent = async () => {
@@ -81,7 +77,7 @@ const editBegin = async () => {
   editContent.value = flake.content
 
   await nextTick()
-  sizeUpdate()
+  updateHeight()
 }
 
 const editFinish = async () => {
@@ -93,12 +89,12 @@ const editFinish = async () => {
   await renderContent()
 
   await nextTick()
-  sizeUpdate()
-  emit('edit', flake.id)
+  updateHeight()
+  requestSave()
 }
 
-const deleteAction = () => {
-  emit('delete', flake.id)
+const deleteAction = async () => {
+  await requestDelete(flake.id)
 }
 
 const copyNotice = ref(false)
@@ -121,7 +117,7 @@ const copyToClipboard = async () => {
   try {
     await navigator.clipboard.writeText(flake.content)
     showCopyNotice()
-  } catch(e) {
+  } catch (e) {
     console.warn(`Failed to copy the content of Flake ${flake.id}: `, e)
     new Notice('Failed to copy. Check dev console for detail.', 0)
   }

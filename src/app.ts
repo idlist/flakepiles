@@ -35,18 +35,21 @@ export class FlakepileApp extends TextFileView {
     container.empty()
     const mountPoint = container.createEl('div')
 
+    const requestSave = () => {
+      if (!this.parsed) return
+      triggerRef(this.pile)
+      this.requestSave()
+    }
+
     this.view = createApp(FlakepileView as Component, {
       pile: this.pile,
-      onUpdate: () => {
-        if (!this.parsed) return
-        this.requestSave()
-      },
     })
 
     this.view.provide('app', this.app)
     this.view.provide('leaf', this)
     this.view.provide('parsed', this.parsed)
     this.view.provide('fileRef', this.fileRef)
+    this.view.provide('requestSave', requestSave)
     this.view.mount(mountPoint)
 
     this.registerEvent(this.app.vault.on('rename', () => {
@@ -69,6 +72,7 @@ export class FlakepileApp extends TextFileView {
       updatedPile = JSON.parse(data) as Flakepile
       this.parsed.value = true
     } catch (e) {
+      this.parsed.value = false
       new Notice('Cannot parse Flakepile file. Check dev console for more info.', 0)
       console.error('Cannot parse Flakepile file: ', e)
       return

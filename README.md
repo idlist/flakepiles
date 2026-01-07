@@ -6,7 +6,7 @@ For personal use. In very early development.
 
 ## Status
 
-Not usable.
+MVP (i.e., barely usable), lacking convenient tools.
 
 ## Why
 
@@ -15,8 +15,6 @@ I don't want 100 `.md` files with 1 sentence each.
 ## Tech Stack
 
 Vite + Vue 3 + Sass
-
-Why Vue? I don't know.
 
 ## Goals
 
@@ -27,7 +25,8 @@ Why Vue? I don't know.
   - [ ] Flake elastic sizing
   - [x] Flake sorting
 - [ ] Flake
-  - [x] Flake CRUD
+  - [x] Flake markdown rendering
+  - [x] Flake creation, update, deletion
   - [ ] Flake type (text / image / code)
   - [ ] Flake color (theme)
   - [ ] Flake labels
