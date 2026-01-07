@@ -24,6 +24,7 @@ Vite + Vue 3 + Sass
   - [ ] Flake size
   - [ ] Flake elastic sizing
   - [x] Flake sorting
+  - [x] Adaptive layout
 - [ ] Flake
   - [x] Flake markdown rendering
   - [x] Flake creation, update, deletion

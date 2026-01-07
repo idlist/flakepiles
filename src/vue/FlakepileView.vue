@@ -8,7 +8,7 @@ import { ObIcon, ObSearch } from '@/components'
 import VerticalFlow from './flows/VerticalFlow.vue'
 import HorizontalFlow from './flows/HorizontalFlow.vue'
 import MobileFlow from './flows/MobileFlow.vue'
-import ToolSorting from './ToolSorting.vue'
+import SortOptions from './SortOptions.vue'
 
 const props = defineProps<{
   pile: PileShallowRef
@@ -55,11 +55,11 @@ const isTablet = computed(() => {
 const adaptiveFlow = computed(() => {
   return isViewportSmall.value || isPhone.value ? 'mobile' : flow.value
 })
+const placeFlowOptions = computed(() => {
+  return isViewportMedium.value || isViewportLarge.value || isTablet.value
+})
 const placeSortOptions = computed(() => {
   return isViewportSmall.value || isViewportLarge.value || isPhone.value
-})
-const placeLayoutOptions = computed(() => {
-  return isViewportMedium.value || isViewportLarge.value || isTablet.value
 })
 
 const isSubMenuOpen = ref(false)
@@ -170,12 +170,12 @@ const sortedFlakes = computed<Flake[]>(() => {
 
           <div class="tool-item -grow"></div>
 
-          <button v-if="placeLayoutOptions"
+          <button v-if="placeFlowOptions"
             class="_fp-btn-icon-at-left">
             <ObIcon name="scaling" /> Size Options
           </button>
 
-          <div v-if="placeLayoutOptions"
+          <div v-if="placeFlowOptions"
             class="tool-item">
             <label>Flow</label>
             <ObIcon v-if="flow == 'vertical'" name="move-vertical" />
@@ -186,7 +186,7 @@ const sortedFlakes = computed<Flake[]>(() => {
             </select>
           </div>
 
-          <ToolSorting v-if="placeSortOptions"
+          <SortOptions v-if="placeSortOptions"
             v-model:sort-by="sortBy"
             v-model:sort-order="sortOrder"
             class="tool-item" />
@@ -196,7 +196,7 @@ const sortedFlakes = computed<Flake[]>(() => {
       <div v-if="isSubMenuOpen && !placeSortOptions" class="tools-below">
         <div class="tool-item -grow"></div>
 
-        <ToolSorting v-if="!placeSortOptions"
+        <SortOptions v-if="!placeSortOptions"
           v-model:sort-by="sortBy"
           v-model:sort-order="sortOrder"
           class="tool-item" />
