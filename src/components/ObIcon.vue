@@ -24,7 +24,7 @@ const styles = computed(() => {
   <div ref="el-icon" class="ob-wrapper" :style="styles"></div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .ob-wrapper {
   display: flex;
 }

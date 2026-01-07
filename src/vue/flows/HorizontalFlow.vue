@@ -10,8 +10,8 @@ defineProps<{
 
 
 <template>
-  <div class="horizontal-view">
-    <div class="horizontal-flow">
+  <div class="horizontal-flow">
+    <div class="horizontal-layout">
       <FlakeView v-for="flake of flakes"
         :key="flake.id"
         :flake="flake"
@@ -21,12 +21,12 @@ defineProps<{
 </template>
 
 <style lang="scss" scoped>
-.horizontal-view {
+.horizontal-flow {
   display: flex;
   height: 100%;
 }
 
-.horizontal-flow {
+.horizontal-layout {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;

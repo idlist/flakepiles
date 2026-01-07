@@ -6,12 +6,15 @@ import FlakeView from '@/vue/FlakeView.vue'
 const props = defineProps<{
   flakes: Flake[]
   columnWidth: number
-  viewportWidth: number
+  containerWidth: number
 }>()
 // Cannot use `const flakes = props.flakes`, will break reactivity.
 
+const GAP_SIZE = 16
+
 const columnNumberVertical = computed<number>(() => {
-  return Math.floor(props.viewportWidth / props.columnWidth)
+  const columns = Math.floor(props.containerWidth / (props.columnWidth + GAP_SIZE))
+  return columns >= 1 ? columns : 1
 })
 
 watch(columnNumberVertical, () => {
@@ -55,8 +58,6 @@ const unrenderedFlakes = computed(() => {
     return unrendered
   }
 })
-
-const GAP_SIZE = 16
 
 const arrangeFlakes = () => {
   columnsContent.value = []
@@ -106,8 +107,8 @@ defineExpose({
 </script>
 
 <template>
-  <div class="vertical-view">
-    <div class="vertical-flow">
+  <div class="vertical-flow">
+    <div class="vertical-layout">
       <div v-for="(column, i) of columnsContent"
         :key="i"
         class="column"
@@ -121,7 +122,7 @@ defineExpose({
   </div>
 
   <div v-if="unrenderedFlakes.length"
-    class="flake-renderer"
+    class="vertical-renderer"
     :style="{ width: `${columnWidth}px` }">
     <FlakeView v-for="flake of unrenderedFlakes"
       :key="flake.id"
@@ -132,15 +133,14 @@ defineExpose({
 </template>
 
 <style lang="scss" scoped>
-.vertical-view {
+.vertical-flow {
   width: 100%;
   display: flex;
-  align-items: center;
   justify-content: center;
   padding: 0.5em 1em 2em 1em;
 }
 
-.vertical-flow {
+.vertical-layout {
   display: flex;
   flex-direction: row;
   column-gap: 1em;
@@ -152,7 +152,7 @@ defineExpose({
   }
 }
 
-.flake-renderer {
+.vertical-renderer {
   visibility: hidden;
 }
 </style>

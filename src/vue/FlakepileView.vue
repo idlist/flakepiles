@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { Platform } from 'obsidian'
 import { computed, inject, nextTick, provide, ref, useTemplateRef, watch } from 'vue'
-import { useElementSize, useMediaQuery } from '@vueuse/core'
+import { useElementSize } from '@vueuse/core'
 import { createFlake, FLAKE_WIDTH, type Flake, type Flakepile } from '@/data'
 import type { FileRef, PileShallowRef } from '@/app'
 import { ObIcon, ObSearch } from '@/components'
 import VerticalFlow from './flows/VerticalFlow.vue'
 import HorizontalFlow from './flows/HorizontalFlow.vue'
+import MobileFlow from './flows/MobileFlow.vue'
+import ToolSorting from './ToolSorting.vue'
 
 const props = defineProps<{
   pile: PileShallowRef
@@ -29,9 +32,34 @@ const flow = usePileProp('flow')
 const sortBy = usePileProp('sortBy')
 const sortOrder = usePileProp('sortOrder')
 
-const isMobile = useMediaQuery('(max-width: 640px)')
+const refViewport = useTemplateRef('el-viewport')
+const viewportSize = useElementSize(refViewport)
+const vw = computed(() => viewportSize.width.value)
+
+const isViewportSmall = computed(() => {
+  return Platform.isDesktop && vw.value <= 480
+})
+const isViewportMedium = computed(() => {
+  return Platform.isDesktop && vw.value > 480 && vw.value <= 720
+})
+const isViewportLarge = computed(() => {
+  return Platform.isDesktop && vw.value > 720
+})
+const isPhone = computed(() => {
+  return Platform.isMobile && vw.value <= 600
+})
+const isTablet = computed(() => {
+  return Platform.isMobile && vw.value > 600
+})
+
 const adaptiveFlow = computed(() => {
-  return isMobile.value ? 'mobile' : flow.value
+  return isViewportSmall.value || isPhone.value ? 'mobile' : flow.value
+})
+const placeSortOptions = computed(() => {
+  return isViewportSmall.value || isViewportLarge.value || isPhone.value
+})
+const placeLayoutOptions = computed(() => {
+  return isViewportMedium.value || isViewportLarge.value || isTablet.value
 })
 
 const isSubMenuOpen = ref(false)
@@ -41,12 +69,10 @@ watch(() => pile.value.id, () => {
 })
 
 const refContent = useTemplateRef('el-content')
-const size = useElementSize(refContent)
+const contentSize = useElementSize(refContent)
 const columnWidth = computed(() => FLAKE_WIDTH * pile.value.width)
 
 const refVerticalFlow = useTemplateRef('el-vertical-flow')
-
-const searchQueue = ref<string>('')
 
 const name = computed<string>(() => {
   return fileRef.value?.basename ?? ''
@@ -71,6 +97,8 @@ const requestDelete = async (id: string) => {
 }
 
 provide('requestDelete', requestDelete)
+
+const searchQueue = ref<string>('')
 
 const sortedFlakes = computed<Flake[]>(() => {
   const sorted = [...pile.value.flakes]
@@ -108,40 +136,47 @@ const sortedFlakes = computed<Flake[]>(() => {
 </script>
 
 <template>
-  <div class="view-layout">
+  <div ref="el-viewport" class="view-layout">
     <div class="header">
-      <h1 :class="['file-name', isSubMenuOpen ? '-faint' : '']">
-        {{ name }}
-      </h1>
-      <div class="tools-main">
-        <button class="_fp-btn-icon-at-left" @click="addFlake">
-          <ObIcon name="plus" /> Add Flake
-        </button>
+      <h1 class="file-name">{{ name }}</h1>
 
-        <div class="tool-item -grow">
-          <ObSearch v-model="searchQueue" class="wfull" />
+      <div class="tools-area">
+        <div class="tools-main">
+          <button class="_fp-btn-icon-at-left" @click="addFlake">
+            <ObIcon name="plus" /> Add Flake
+          </button>
+
+          <div class="tool-item -grow">
+            <ObSearch v-model="searchQueue" class="wfull" />
+          </div>
+
+          <button v-if="!isSubMenuOpen"
+            class="_fp-btn-icon"
+            @click="isSubMenuOpen = true">
+            <ObIcon name="square-menu" />
+          </button>
+
+          <button v-else
+            class="_fp-btn-icon"
+            @click="isSubMenuOpen = false">
+            <ObIcon name="cross" />
+          </button>
         </div>
 
-        <button v-if="!isSubMenuOpen" class="_fp-btn-icon">
-          <ObIcon name="square-menu" @click="isSubMenuOpen = true" />
-        </button>
-
-        <button v-else class="_fp-btn-icon">
-          <ObIcon name="cross" @click="isSubMenuOpen = false" />
-        </button>
-
-        <div v-if="isSubMenuOpen" class="tools-sub">
+        <div v-if="isSubMenuOpen" class="tools-above">
           <button class="_fp-btn-icon-at-left">
             <ObIcon name="tags" /> Labels
           </button>
 
           <div class="tool-item -grow"></div>
 
-          <button class="_fp-btn-icon-at-left">
+          <button v-if="placeLayoutOptions"
+            class="_fp-btn-icon-at-left">
             <ObIcon name="scaling" /> Size Options
           </button>
 
-          <div class="tool-item">
+          <div v-if="placeLayoutOptions"
+            class="tool-item">
             <label>Flow</label>
             <ObIcon v-if="flow == 'vertical'" name="move-vertical" />
             <ObIcon v-if="flow == 'horizontal'" name="move-horizontal" />
@@ -151,32 +186,25 @@ const sortedFlakes = computed<Flake[]>(() => {
             </select>
           </div>
 
-          <div class="tool-item">
-            <label>Sort By</label>
-            <select v-model="sortBy" class="dropdown">
-              <option value="name">Name</option>
-              <option value="createdAt">Time Created</option>
-              <option value="modifiedAt">Time Modified</option>
-            </select>
-            <button
-              v-if="sortOrder == 'desc'"
-              class="_fp-btn-icon"
-              @click="sortOrder = 'asc'">
-              <ObIcon name="arrow-down-wide-narrow" />
-            </button>
-            <button
-              v-if="sortOrder == 'asc'"
-              class="_fp-btn-icon"
-              @click="sortOrder = 'desc'">
-              <ObIcon name="arrow-up-narrow-wide" />
-            </button>
-          </div>
+          <ToolSorting v-if="placeSortOptions"
+            v-model:sort-by="sortBy"
+            v-model:sort-order="sortOrder"
+            class="tool-item" />
         </div>
+      </div>
+
+      <div v-if="isSubMenuOpen && !placeSortOptions" class="tools-below">
+        <div class="tool-item -grow"></div>
+
+        <ToolSorting v-if="!placeSortOptions"
+          v-model:sort-by="sortBy"
+          v-model:sort-order="sortOrder"
+          class="tool-item" />
       </div>
     </div>
 
     <div ref="el-content" class="content">
-      <div :class="['sub-layout', `-${flow}`]">
+      <div :class="['sub-layout', `-${adaptiveFlow}`]">
         <div v-if="!pile.flakes.length" class="no-flakes">No Flakes</div>
 
         <template v-else>
@@ -184,9 +212,13 @@ const sortedFlakes = computed<Flake[]>(() => {
             ref="el-vertical-flow"
             :flakes="sortedFlakes"
             :column-width="columnWidth"
-            :viewport-width="size.width.value" />
+            :container-width="contentSize.width.value" />
 
           <HorizontalFlow v-else-if="adaptiveFlow == 'horizontal'"
+            :flakes="sortedFlakes"
+            :column-width="columnWidth" />
+
+          <MobileFlow v-else-if="adaptiveFlow == 'mobile'"
             :flakes="sortedFlakes"
             :column-width="columnWidth" />
         </template>
@@ -207,18 +239,20 @@ const sortedFlakes = computed<Flake[]>(() => {
   grid-template-rows: min-content auto;
 
   >.header {
+    position: relative;
     padding: 0.5em 1em;
+    background-color: var(--background-primary);
   }
 
   >.content {
     position: relative;
+    background-color: var(--background-primary-alt);
   }
 }
 
 .sub-layout {
   @extend %fp-inset;
   position: absolute;
-  background-color: var(--background-primary-alt);
 
   &.-vertical {
     overflow-y: auto;
@@ -228,6 +262,10 @@ const sortedFlakes = computed<Flake[]>(() => {
     overflow-x: auto;
     overflow-y: hidden;
   }
+
+  &.-mobile {
+    overflow-y: auto;
+  }
 }
 
 .file-name {
@@ -236,7 +274,12 @@ const sortedFlakes = computed<Flake[]>(() => {
   user-select: text;
 
   &.-faint {
-    opacity: 10%;
+    opacity: 0.1
+  }
+
+  .is-mobile & {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
   }
 }
 
@@ -245,8 +288,26 @@ const sortedFlakes = computed<Flake[]>(() => {
   display: flex;
   align-items: center;
   column-gap: 0.75em;
-
   font-size: var(--font-small);
+
+  .is-mobile & {
+    column-gap: 0.5em;
+  }
+}
+
+%fp-tools-additional {
+  @extend %fp-tools;
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 5;
+
+  background-color: color-mix(in srgb, var(--background-primary), transparent 10%);
+}
+
+.tools-area {
+  width: 100%;
+  position: relative;
 }
 
 .tools-main {
@@ -254,13 +315,28 @@ const sortedFlakes = computed<Flake[]>(() => {
   position: relative;
 }
 
-.tools-sub {
+.tools-above {
   @extend %fp-tools;
-  position: absolute;
+  @extend %fp-tools-additional;
+  bottom: 100%;
+  margin-bottom: 0.5em;
 
-  justify-content: end;
-  top: calc(-100% - 1em);
-  padding: 0.5em 0;
+  .is-phone & {
+    position: static;
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+}
+
+.tools-below {
+  @extend %fp-tools;
+  @extend %fp-tools-additional;
+  top: 100%;
+  padding: 0 1em 0.5em 1em;
+
+  .is-phone & {
+    display: none;
+  }
 }
 
 .tool-item {
