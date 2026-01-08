@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef, type StyleValue } from 'vue'
 import { MarkdownRenderer, moment, Notice, type App, type Component } from 'obsidian'
 import { useTextareaAutosize } from '@vueuse/core'
 import { isNullish } from '@rewl/kit'
@@ -7,12 +7,9 @@ import type { Flake } from '@/data'
 import type { FileRef } from '@/app'
 import { ObIcon } from '@/components'
 
-defineOptions({
-  inheritAttrs: false,
-})
-
 const props = defineProps<{
   flake: Flake
+  viewStyle?: StyleValue
 }>()
 const flake = props.flake
 const isEmpty = () => !flake.content
@@ -131,8 +128,8 @@ const copyToClipboard = async () => {
 <template>
   <div class="flake-frame">
     <div ref="el-flake"
-      v-bind="$attrs"
-      :class="['flake-view', `-${flake.theme}`]">
+      :class="['flake-view', `-${flake.theme}`]"
+      :style="viewStyle">
       <div v-if="isView" class="name">{{ flake.name }}</div>
       <input v-if="isEdit" v-model="flake.name" class="nameedit" />
 

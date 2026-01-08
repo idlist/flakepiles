@@ -68,7 +68,7 @@ const styleMaxHeight = computed<string>(() => {
     return `${FLAKE_WIDTH * props.maxHeight}px`
   }
   else {
-    return 'auto'
+    return 'none'
   }
 })
 
@@ -189,7 +189,7 @@ defineExpose({
         <FlakeView v-for="flake of column.flakes"
           :key="flake.id"
           :flake="flake"
-          :style="{ maxHeight: styleMaxHeight }"
+          :view-style="{ maxHeight: styleMaxHeight }"
           @update-height="onFlakeUpdateHeight" />
       </div>
     </div>

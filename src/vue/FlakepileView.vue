@@ -54,28 +54,18 @@ onMounted(() => {
 })
 
 const isDesktop = computed(() => Platform.isDesktop)
-const isViewportSmall = computed(() => {
-  return Platform.isDesktop && vw.value <= 480
-})
-const isViewportLarge = computed(() => {
-  return Platform.isDesktop && vw.value > 480
-})
-const isPhone = computed(() => {
-  return Platform.isMobile && vw.value <= 600
-})
-const isTablet = computed(() => {
-  return Platform.isMobile && vw.value > 600
-})
-
-const isNarrow = computed(() => {
-  return isViewportSmall.value || isPhone.value
-})
+// const isMobile = computed(() => Platform.isMobile)
+const isViewportSmall = computed(() => vw.value <= 600)
+const isViewportLarge = computed(() => vw.value > 600)
 
 const adaptiveFlow = computed(() => {
-  return isNarrow.value ? 'mobile' : flow.value
+  return isViewportSmall.value ? 'mobile' : flow.value
 })
 const placeFlowOptions = computed(() => {
-  return isViewportLarge.value || isTablet.value
+  return isDesktop.value && isViewportLarge.value
+})
+const adaptiveMenuItemClass = computed<string[]>(() => {
+  return ['fp-menu-item', isViewportLarge.value ?  '-withlabel' : '-nolabel']
 })
 
 const isMenuExpanded = ref(false)
@@ -184,7 +174,7 @@ const sortedFlakes = computed<Flake[]>(() => {
 
       <div class="menu-area">
         <div v-if="!isMenuExpanded" class="menu-main">
-          <div :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
+          <div :class="adaptiveMenuItemClass">
             <MenuButton icon="plus" label="Add Flake" @click="addFlake" />
           </div>
 
@@ -200,13 +190,13 @@ const sortedFlakes = computed<Flake[]>(() => {
         </div>
 
         <div v-if="isMenuExpanded" class="menu-main">
-          <div :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
+          <div :class="adaptiveMenuItemClass">
             <MenuButton icon="tags" label="Labels" />
           </div>
 
           <div class="fp-menu-item -grow"></div>
 
-          <div :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
+          <div :class="adaptiveMenuItemClass">
             <SortOptions
               v-model:sort-by="sortBy"
               v-model:sort-order="sortOrder" />
@@ -221,12 +211,12 @@ const sortedFlakes = computed<Flake[]>(() => {
 
         <div v-if="isMenuExpanded" class="menu-above">
           <div v-if="isDesktop"
-            :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
+            :class="adaptiveMenuItemClass">
             <MenuButton icon="import" label="Import" />
           </div>
 
           <div v-if="isDesktop"
-            :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
+            :class="adaptiveMenuItemClass">
             <MenuButton icon="archive-restore" label="Export..." />
           </div>
 
@@ -268,7 +258,10 @@ const sortedFlakes = computed<Flake[]>(() => {
 
           <HorizontalFlow v-else-if="adaptiveFlow == 'horizontal'"
             :flakes="sortedFlakes"
-            :column-width="columnWidth" />
+            :column-width="columnWidth"
+            :enable-max-height="enableMaxHeight"
+            :max-height="maxHeight"
+            :elastic-height="elasticHeight" />
 
           <MobileFlow v-else-if="adaptiveFlow == 'mobile'"
             :flakes="sortedFlakes"
@@ -387,7 +380,7 @@ const sortedFlakes = computed<Flake[]>(() => {
   display: flex;
   align-items: center;
   column-gap: 0.5em;
-  font-size: var(--font-small);
+  font-size: var(--font-smaller);
 }
 
 %fp-tools-additional {
@@ -412,7 +405,6 @@ const sortedFlakes = computed<Flake[]>(() => {
 }
 
 .menu-above {
-  @extend %fp-tools;
   @extend %fp-tools-additional;
   bottom: 100%;
   margin-bottom: 0.5em;
