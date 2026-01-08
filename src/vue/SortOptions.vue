@@ -16,13 +16,13 @@ const sortOrder = defineModel<Flakepile['sortOrder']>('sort-order')
     </select>
     <button
       v-if="sortOrder == 'desc'"
-      class="_fp-btn-icon"
+      class="fp-btn-icon"
       @click="sortOrder = 'asc'">
       <ObIcon name="arrow-down-wide-narrow" />
     </button>
     <button
       v-if="sortOrder == 'asc'"
-      class="_fp-btn-icon"
+      class="fp-btn-icon"
       @click="sortOrder = 'desc'">
       <ObIcon name="arrow-up-narrow-wide" />
     </button>

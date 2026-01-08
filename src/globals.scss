@@ -1,8 +1,12 @@
-._fp-btn-icon {
+.fp-btn-icon {
   padding: 0.5em;
+
+  .is-phone & {
+    min-width: var(--input-height);
+  }
 }
 
-._fp-btn-icon-at-left {
+.fp-btn-icon-with-label {
   padding-left: 0.5em;
 
   display: flex;
@@ -10,7 +14,7 @@
   column-gap: 0.25em;
 }
 
-._fp-markdown {
+.fp-markdown {
   & p {
     margin: 0.5em 0;
   }

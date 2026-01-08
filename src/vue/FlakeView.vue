@@ -138,7 +138,7 @@ const copyToClipboard = async () => {
       <div class="flake-content">
         <div v-if="isView && !isEmpty()"
           ref="el-content"
-          class="view _fp-markdown">
+          class="view fp-markdown">
         </div>
         <textarea
           v-if="isEdit"
@@ -152,17 +152,17 @@ const copyToClipboard = async () => {
     </div>
 
     <div class="flake-menu">
-      <button v-if="isView" class="_fp-btn-icon" @click="deleteAction">
+      <button v-if="isView" class="fp-btn-icon" @click="deleteAction">
         <ObIcon name="trash-2" css-color="var(--color-red)" />
       </button>
-      <button v-if="isView" class="_fp-btn-icon" @click="editBegin">
+      <button v-if="isView" class="fp-btn-icon" @click="editBegin">
         <ObIcon name="pencil-line" />
       </button>
-      <button v-if="isView" class="_fp-btn-icon copy-button" @click="copyToClipboard">
+      <button v-if="isView" class="fp-btn-icon copy-button" @click="copyToClipboard">
         <ObIcon name="copy" />
         <div v-show="copyNotice" class="tooltip copynotice">Copied</div>
       </button>
-      <button v-if="isEdit" class="_fp-btn-icon" @click="editFinish">
+      <button v-if="isEdit" class="fp-btn-icon" @click="editFinish">
         <ObIcon name="check" />
       </button>
     </div>

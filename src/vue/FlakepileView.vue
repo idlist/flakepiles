@@ -52,14 +52,18 @@ const isTablet = computed(() => {
   return Platform.isMobile && vw.value > 600
 })
 
+const isNarrow = computed(() => {
+  return isViewportSmall.value || isPhone.value
+})
+
 const adaptiveFlow = computed(() => {
-  return isViewportSmall.value || isPhone.value ? 'mobile' : flow.value
+  return isNarrow.value ? 'mobile' : flow.value
 })
 const placeFlowOptions = computed(() => {
   return isViewportMedium.value || isViewportLarge.value || isTablet.value
 })
 const placeSortOptions = computed(() => {
-  return isViewportSmall.value || isViewportLarge.value || isPhone.value
+  return isViewportSmall.value || isPhone.value || isViewportLarge.value
 })
 
 const isSubMenuOpen = ref(false)
@@ -142,38 +146,46 @@ const sortedFlakes = computed<Flake[]>(() => {
 
       <div class="tools-area">
         <div class="tools-main">
-          <button class="_fp-btn-icon-at-left" @click="addFlake">
-            <ObIcon name="plus" /> Add Flake
-          </button>
+          <div :class="['tool-item', isNarrow ? '-narrow' : '-withlabel']">
+            <button class="button" @click="addFlake">
+              <ObIcon name="plus" />
+              <span class="label">Add Flake</span>
+            </button>
+          </div>
 
           <div class="tool-item -grow">
             <ObSearch v-model="searchQueue" class="wfull" />
           </div>
 
-          <button v-if="!isSubMenuOpen"
-            class="_fp-btn-icon"
-            @click="isSubMenuOpen = true">
-            <ObIcon name="square-menu" />
-          </button>
-
-          <button v-else
-            class="_fp-btn-icon"
-            @click="isSubMenuOpen = false">
-            <ObIcon name="cross" />
-          </button>
+          <div class="tool-item">
+            <button v-if="!isSubMenuOpen"
+              class="fp-btn-icon"
+              @click="isSubMenuOpen = true">
+              <ObIcon name="square-menu" />
+            </button>
+            <button v-else
+              class="fp-btn-icon"
+              @click="isSubMenuOpen = false">
+              <ObIcon name="cross" />
+            </button>
+          </div>
         </div>
 
         <div v-if="isSubMenuOpen" class="tools-above">
-          <button class="_fp-btn-icon-at-left">
-            <ObIcon name="tags" /> Labels
-          </button>
+          <div :class="['tool-item', isNarrow ? '-narrow' : '-withlabel']">
+            <button class="button">
+              <ObIcon name="tags" />
+              <span class="label">Labels</span>
+            </button>
+          </div>
 
           <div class="tool-item -grow"></div>
 
-          <button v-if="placeFlowOptions"
-            class="_fp-btn-icon-at-left">
-            <ObIcon name="scaling" /> Size Options
-          </button>
+          <div class="tool-item -withlabel">
+            <button v-if="placeFlowOptions">
+              <ObIcon name="scaling" /> Size Options
+            </button>
+          </div>
 
           <div v-if="placeFlowOptions"
             class="tool-item">
@@ -287,12 +299,8 @@ const sortedFlakes = computed<Flake[]>(() => {
   width: 100%;
   display: flex;
   align-items: center;
-  column-gap: 0.75em;
+  column-gap: 0.5em;
   font-size: var(--font-small);
-
-  .is-mobile & {
-    column-gap: 0.5em;
-  }
 }
 
 %fp-tools-additional {
@@ -301,6 +309,7 @@ const sortedFlakes = computed<Flake[]>(() => {
   left: 0;
   right: 0;
   z-index: 5;
+  column-gap: 0.75em;
 
   background-color: color-mix(in srgb, var(--background-primary), transparent 10%);
 }
@@ -320,12 +329,6 @@ const sortedFlakes = computed<Flake[]>(() => {
   @extend %fp-tools-additional;
   bottom: 100%;
   margin-bottom: 0.5em;
-
-  .is-phone & {
-    position: static;
-    margin-top: 0.5em;
-    margin-bottom: 0;
-  }
 }
 
 .tools-below {
@@ -346,6 +349,18 @@ const sortedFlakes = computed<Flake[]>(() => {
 
   &.-grow {
     flex-grow: 1;
+  }
+
+  &.-withlabel>.button {
+    @extend .fp-btn-icon-with-label;
+  }
+
+  &.-narrow>.button {
+    @extend .fp-btn-icon;
+  }
+
+  &.-narrow>.button>.label {
+    display: none;
   }
 
   >.wfull {
