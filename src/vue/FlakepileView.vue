@@ -2,12 +2,17 @@
 import { Platform } from 'obsidian'
 import { computed, inject, nextTick, provide, ref, useTemplateRef, watch } from 'vue'
 import { useElementSize } from '@vueuse/core'
+import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
 import { createFlake, FLAKE_WIDTH, type Flake, type Flakepile } from '@/data'
 import type { FileRef, PileShallowRef } from '@/app'
-import { ObIcon, ObSearch } from '@/components'
+import { ObIcon, ObSearch, ObSlider } from '@/components'
+
 import VerticalFlow from './flows/VerticalFlow.vue'
 import HorizontalFlow from './flows/HorizontalFlow.vue'
 import MobileFlow from './flows/MobileFlow.vue'
+
+import MenuExpander from './MenuExpander.vue'
+import MenuButton from './MenuButton.vue'
 import SortOptions from './SortOptions.vue'
 
 const props = defineProps<{
@@ -31,6 +36,11 @@ const usePileProp = <K extends keyof Flakepile>(key: K) => {
 const flow = usePileProp('flow')
 const sortBy = usePileProp('sortBy')
 const sortOrder = usePileProp('sortOrder')
+const width = usePileProp('width')
+const elasticWidth = usePileProp('elasticWidth')
+const enableMaxHeight = usePileProp('enableMaxHeight')
+const maxHeight = usePileProp('maxHeight')
+const elasticHeight = usePileProp('elasticHeight')
 
 const refViewport = useTemplateRef('el-viewport')
 const viewportSize = useElementSize(refViewport)
@@ -39,11 +49,8 @@ const vw = computed(() => viewportSize.width.value)
 const isViewportSmall = computed(() => {
   return Platform.isDesktop && vw.value <= 480
 })
-const isViewportMedium = computed(() => {
-  return Platform.isDesktop && vw.value > 480 && vw.value <= 720
-})
 const isViewportLarge = computed(() => {
-  return Platform.isDesktop && vw.value > 720
+  return Platform.isDesktop && vw.value > 480
 })
 const isPhone = computed(() => {
   return Platform.isMobile && vw.value <= 600
@@ -60,16 +67,17 @@ const adaptiveFlow = computed(() => {
   return isNarrow.value ? 'mobile' : flow.value
 })
 const placeFlowOptions = computed(() => {
-  return isViewportMedium.value || isViewportLarge.value || isTablet.value
-})
-const placeSortOptions = computed(() => {
-  return isViewportSmall.value || isPhone.value || isViewportLarge.value
+  return isViewportLarge.value || isTablet.value
 })
 
-const isSubMenuOpen = ref(false)
+const isMenuExpanded = ref(true)
 
 watch(() => pile.value.id, () => {
-  isSubMenuOpen.value = false
+  // isMenuExpanded.value = false
+})
+
+const isMenuBelowExpanded = computed(() => {
+  return isMenuExpanded.value && !isNarrow.value
 })
 
 const refContent = useTemplateRef('el-content')
@@ -103,6 +111,22 @@ const requestDelete = async (id: string) => {
 provide('requestDelete', requestDelete)
 
 const searchQueue = ref<string>('')
+
+const showSizeOptions = ref(true)
+
+const toggleSizeOptions = () => {
+  showSizeOptions.value = !showSizeOptions.value
+}
+
+const sizeOptionsButton = useTemplateRef('el-size-options-button')
+const sizeOptionsPanel = useTemplateRef('el-size-options-panel')
+const {
+  floatingStyles: sizeOptionsPanelStyles,
+} = useFloating(sizeOptionsButton, sizeOptionsPanel, {
+  placement: 'bottom-end',
+  middleware: [offset(4), shift({ padding: 4 })],
+  whileElementsMounted: autoUpdate,
+})
 
 const sortedFlakes = computed<Flake[]>(() => {
   const sorted = [...pile.value.flakes]
@@ -144,51 +168,32 @@ const sortedFlakes = computed<Flake[]>(() => {
     <div class="header">
       <h1 class="file-name">{{ name }}</h1>
 
-      <div class="tools-area">
-        <div class="tools-main">
-          <div :class="['tool-item', isNarrow ? '-narrow' : '-withlabel']">
+      <div class="menu-area">
+        <div class="menu-main">
+          <div :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
             <button class="button" @click="addFlake">
               <ObIcon name="plus" />
               <span class="label">Add Flake</span>
             </button>
           </div>
 
-          <div class="tool-item -grow">
+          <div class="fp-menu-item -grow">
             <ObSearch v-model="searchQueue" class="wfull" />
           </div>
 
-          <div class="tool-item">
-            <button v-if="!isSubMenuOpen"
-              class="fp-btn-icon"
-              @click="isSubMenuOpen = true">
-              <ObIcon name="square-menu" />
-            </button>
-            <button v-else
-              class="fp-btn-icon"
-              @click="isSubMenuOpen = false">
-              <ObIcon name="cross" />
-            </button>
+          <div class="fp-menu-item">
+            <MenuExpander v-model="isMenuExpanded" />
           </div>
         </div>
 
-        <div v-if="isSubMenuOpen" class="tools-above">
-          <div :class="['tool-item', isNarrow ? '-narrow' : '-withlabel']">
-            <button class="button">
-              <ObIcon name="tags" />
-              <span class="label">Labels</span>
-            </button>
+        <div v-if="isMenuExpanded" class="menu-above">
+          <div v-if="!isMenuBelowExpanded" class="fp-menu-item -nolabel">
+            <MenuButton icon="tags" label="Labels" />
           </div>
 
-          <div class="tool-item -grow"></div>
+          <div class="fp-menu-item -grow"></div>
 
-          <div class="tool-item -withlabel">
-            <button v-if="placeFlowOptions">
-              <ObIcon name="scaling" /> Size Options
-            </button>
-          </div>
-
-          <div v-if="placeFlowOptions"
-            class="tool-item">
+          <div v-if="placeFlowOptions" class="fp-menu-item">
             <label>Flow</label>
             <ObIcon v-if="flow == 'vertical'" name="move-vertical" />
             <ObIcon v-if="flow == 'horizontal'" name="move-horizontal" />
@@ -198,20 +203,34 @@ const sortedFlakes = computed<Flake[]>(() => {
             </select>
           </div>
 
-          <SortOptions v-if="placeSortOptions"
-            v-model:sort-by="sortBy"
-            v-model:sort-order="sortOrder"
-            class="tool-item" />
+          <div v-if="placeFlowOptions" class="fp-menu-item -withlabel">
+            <MenuButton
+              ref="el-size-options-button"
+              icon="scaling"
+              label="Size Options"
+              @click="toggleSizeOptions" />
+          </div>
+
+          <div v-if="!isMenuBelowExpanded" class="fp-menu-item">
+            <SortOptions
+              v-model:sort-by="sortBy"
+              v-model:sort-order="sortOrder" />
+          </div>
         </div>
       </div>
 
-      <div v-if="isSubMenuOpen && !placeSortOptions" class="tools-below">
-        <div class="tool-item -grow"></div>
+      <div v-if="isMenuBelowExpanded" class="menu-below">
+        <div class="fp-menu-item -withlabel">
+          <MenuButton icon="tags" label="Labels" />
+        </div>
 
-        <SortOptions v-if="!placeSortOptions"
-          v-model:sort-by="sortBy"
-          v-model:sort-order="sortOrder"
-          class="tool-item" />
+        <div class="fp-menu-item -grow"></div>
+
+        <div class="fp-menu-item">
+          <SortOptions
+            v-model:sort-by="sortBy"
+            v-model:sort-order="sortOrder" />
+        </div>
       </div>
     </div>
 
@@ -237,6 +256,50 @@ const sortedFlakes = computed<Flake[]>(() => {
       </div>
     </div>
   </div>
+
+  <div class="floating-container">
+    <div v-if="showSizeOptions"
+      ref="el-size-options-panel"
+      class="fp-obsidian-panel size-options-panel"
+      :style="sizeOptionsPanelStyles">
+      <div v-if="flow == 'vertical'" class="size-option">
+        <span>Width</span>
+        <ObSlider
+          v-model="width"
+          :min="0.5"
+          :max="2"
+          :step="0.05"
+          class="slider" />
+      </div>
+
+      <label v-if="flow == 'vertical'" class="size-option">
+        <span>Elastic Width</span>
+        <input v-model="elasticWidth" type="checkbox" />
+      </label>
+
+      <hr v-if="flow == 'vertical'" />
+
+      <label class="size-option">
+        <span>Set Maximum Height</span>
+        <input v-model="enableMaxHeight" type="checkbox" />
+      </label>
+
+      <div class="size-option">
+        <span :class="['label', enableMaxHeight ? '' : '-disabled']">Height</span>
+        <ObSlider v-model="maxHeight"
+          :min="0.5"
+          :max="4"
+          :step="0.1"
+          :disabled="!enableMaxHeight"
+          class="slider" />
+      </div>
+
+      <label v-if="flow == 'horizontal'" class="size-option">
+        <span>Elastic Height</span>
+        <input v-model="elasticHeight" type="checkbox" />
+      </label>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -254,6 +317,7 @@ const sortedFlakes = computed<Flake[]>(() => {
     position: relative;
     padding: 0.5em 1em;
     background-color: var(--background-primary);
+    border-bottom: var(--border-width) solid var(--background-modifier-border);
   }
 
   >.content {
@@ -314,24 +378,24 @@ const sortedFlakes = computed<Flake[]>(() => {
   background-color: color-mix(in srgb, var(--background-primary), transparent 10%);
 }
 
-.tools-area {
+.menu-area {
   width: 100%;
   position: relative;
 }
 
-.tools-main {
+.menu-main {
   @extend %fp-tools;
   position: relative;
 }
 
-.tools-above {
+.menu-above {
   @extend %fp-tools;
   @extend %fp-tools-additional;
   bottom: 100%;
   margin-bottom: 0.5em;
 }
 
-.tools-below {
+.menu-below {
   @extend %fp-tools;
   @extend %fp-tools-additional;
   top: 100%;
@@ -342,7 +406,60 @@ const sortedFlakes = computed<Flake[]>(() => {
   }
 }
 
-.tool-item {
+.no-flakes {
+  width: 100%;
+  padding: 1rem;
+  font-style: italic;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.floating-container {
+  @extend %fp-inset;
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.size-options-panel {
+  font-size: var(--font-small);
+  pointer-events: painted;
+
+  display: grid;
+  row-gap: 0.5em;
+  padding: 0.75em;
+
+  >:deep(hr) {
+    margin: 0.125em 0;
+  }
+}
+
+.size-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 1em;
+  padding: 0 0.25em;
+
+  >.slider {
+    width: auto;
+    min-width: 120px;
+  }
+
+  >input {
+    margin-inline-end: 0;
+  }
+
+  >.label.-disabled {
+    color: var(--text-faint);
+  }
+}
+</style>
+
+<style lang="scss">
+@use '../globals.scss' as *;
+
+.fp-menu-item {
   display: flex;
   align-items: center;
   column-gap: 0.5em;
@@ -351,28 +468,20 @@ const sortedFlakes = computed<Flake[]>(() => {
     flex-grow: 1;
   }
 
-  &.-withlabel>.button {
+  &.-withlabel .button {
     @extend .fp-btn-icon-with-label;
   }
 
-  &.-narrow>.button {
+  &.-nolabel .button {
     @extend .fp-btn-icon;
   }
 
-  &.-narrow>.button>.label {
+  &.-nolabel .label {
     display: none;
   }
 
   >.wfull {
     width: 100%;
   }
-}
-
-.no-flakes {
-  width: 100%;
-  padding: 1rem;
-  font-style: italic;
-  color: var(--text-faint);
-  text-align: center;
 }
 </style>

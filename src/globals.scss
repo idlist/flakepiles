@@ -20,6 +20,13 @@
   }
 }
 
+.fp-obsidian-panel {
+  background-color: var(--background-primary);
+  border: var(--border-width) solid var(--background-modifier-border);
+  border-radius: var(--input-radius);
+  box-shadow: var(--input-shadow);
+}
+
 %fp-inset {
   top: 0;
   bottom: 0;
