@@ -72,7 +72,7 @@ export const createFlakepile = (): Flakepile => {
     width: 1,
     elasticWidth: false,
     enableMaxHeight: false,
-    maxHeight: 2,
+    maxHeight: 1,
     elasticHeight: false,
     flakes: [],
   }

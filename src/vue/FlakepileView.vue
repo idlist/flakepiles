@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Platform } from 'obsidian'
-import { computed, inject, nextTick, provide, ref, useTemplateRef, watch } from 'vue'
-import { useElementSize } from '@vueuse/core'
+import { computed, inject, nextTick, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
+import { useElementSize, useThrottleFn } from '@vueuse/core'
 import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
 import { createFlake, FLAKE_WIDTH, type Flake, type Flakepile } from '@/data'
 import type { FileRef, PileShallowRef } from '@/app'
@@ -11,7 +11,6 @@ import VerticalFlow from './flows/VerticalFlow.vue'
 import HorizontalFlow from './flows/HorizontalFlow.vue'
 import MobileFlow from './flows/MobileFlow.vue'
 
-import MenuExpander from './MenuExpander.vue'
 import MenuButton from './MenuButton.vue'
 import SortOptions from './SortOptions.vue'
 
@@ -42,10 +41,19 @@ const enableMaxHeight = usePileProp('enableMaxHeight')
 const maxHeight = usePileProp('maxHeight')
 const elasticHeight = usePileProp('elasticHeight')
 
+const columnWidth = computed(() => FLAKE_WIDTH * pile.value.width)
+
 const refViewport = useTemplateRef('el-viewport')
 const viewportSize = useElementSize(refViewport)
-const vw = computed(() => viewportSize.width.value)
+const vw = ref(0)
 
+onMounted(() => {
+  watch(viewportSize.width, useThrottleFn((value) => {
+    vw.value = value
+  }, 10, true))
+})
+
+const isDesktop = computed(() => Platform.isDesktop)
 const isViewportSmall = computed(() => {
   return Platform.isDesktop && vw.value <= 480
 })
@@ -70,19 +78,11 @@ const placeFlowOptions = computed(() => {
   return isViewportLarge.value || isTablet.value
 })
 
-const isMenuExpanded = ref(true)
+const isMenuExpanded = ref(false)
 
 watch(() => pile.value.id, () => {
-  // isMenuExpanded.value = false
+  isMenuExpanded.value = false
 })
-
-const isMenuBelowExpanded = computed(() => {
-  return isMenuExpanded.value && !isNarrow.value
-})
-
-const refContent = useTemplateRef('el-content')
-const contentSize = useElementSize(refContent)
-const columnWidth = computed(() => FLAKE_WIDTH * pile.value.width)
 
 const refVerticalFlow = useTemplateRef('el-vertical-flow')
 
@@ -94,6 +94,15 @@ const addFlake = () => {
   var flake = createFlake()
   pile.value.flakes.push(flake)
   requestSave()
+}
+
+const requestArrange = async () => {
+  requestSave()
+
+  if (refVerticalFlow.value) {
+    await nextTick()
+    refVerticalFlow.value.arrangeFlakes()
+  }
 }
 
 const requestDelete = async (id: string) => {
@@ -108,11 +117,16 @@ const requestDelete = async (id: string) => {
   }
 }
 
+provide('requestArrange', requestArrange)
 provide('requestDelete', requestDelete)
+
+watch(() => pile.value.id, () => {
+  refVerticalFlow.value?.rerenderFlakes()
+})
 
 const searchQueue = ref<string>('')
 
-const showSizeOptions = ref(true)
+const showSizeOptions = ref(false)
 
 const toggleSizeOptions = () => {
   showSizeOptions.value = !showSizeOptions.value
@@ -169,26 +183,51 @@ const sortedFlakes = computed<Flake[]>(() => {
       <h1 class="file-name">{{ name }}</h1>
 
       <div class="menu-area">
-        <div class="menu-main">
+        <div v-if="!isMenuExpanded" class="menu-main">
           <div :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
-            <button class="button" @click="addFlake">
-              <ObIcon name="plus" />
-              <span class="label">Add Flake</span>
-            </button>
+            <MenuButton icon="plus" label="Add Flake" @click="addFlake" />
           </div>
 
           <div class="fp-menu-item -grow">
             <ObSearch v-model="searchQueue" class="wfull" />
           </div>
 
-          <div class="fp-menu-item">
-            <MenuExpander v-model="isMenuExpanded" />
+          <button
+            class="fp-btn-icon"
+            @click="isMenuExpanded = true">
+            <ObIcon name="square-menu" />
+          </button>
+        </div>
+
+        <div v-if="isMenuExpanded" class="menu-main">
+          <div :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
+            <MenuButton icon="tags" label="Labels" />
           </div>
+
+          <div class="fp-menu-item -grow"></div>
+
+          <div :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
+            <SortOptions
+              v-model:sort-by="sortBy"
+              v-model:sort-order="sortOrder" />
+          </div>
+
+          <button
+            class="fp-btn-icon"
+            @click="isMenuExpanded = false">
+            <ObIcon name="cross" />
+          </button>
         </div>
 
         <div v-if="isMenuExpanded" class="menu-above">
-          <div v-if="!isMenuBelowExpanded" class="fp-menu-item -nolabel">
-            <MenuButton icon="tags" label="Labels" />
+          <div v-if="isDesktop"
+            :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
+            <MenuButton icon="import" label="Import" />
+          </div>
+
+          <div v-if="isDesktop"
+            :class="['fp-menu-item', isNarrow ? '-nolabel' : '-withlabel']">
+            <MenuButton icon="archive-restore" label="Export..." />
           </div>
 
           <div class="fp-menu-item -grow"></div>
@@ -210,31 +249,11 @@ const sortedFlakes = computed<Flake[]>(() => {
               label="Size Options"
               @click="toggleSizeOptions" />
           </div>
-
-          <div v-if="!isMenuBelowExpanded" class="fp-menu-item">
-            <SortOptions
-              v-model:sort-by="sortBy"
-              v-model:sort-order="sortOrder" />
-          </div>
-        </div>
-      </div>
-
-      <div v-if="isMenuBelowExpanded" class="menu-below">
-        <div class="fp-menu-item -withlabel">
-          <MenuButton icon="tags" label="Labels" />
-        </div>
-
-        <div class="fp-menu-item -grow"></div>
-
-        <div class="fp-menu-item">
-          <SortOptions
-            v-model:sort-by="sortBy"
-            v-model:sort-order="sortOrder" />
         </div>
       </div>
     </div>
 
-    <div ref="el-content" class="content">
+    <div class="content">
       <div :class="['sub-layout', `-${adaptiveFlow}`]">
         <div v-if="!pile.flakes.length" class="no-flakes">No Flakes</div>
 
@@ -243,7 +262,9 @@ const sortedFlakes = computed<Flake[]>(() => {
             ref="el-vertical-flow"
             :flakes="sortedFlakes"
             :column-width="columnWidth"
-            :container-width="contentSize.width.value" />
+            :elastic-width="elasticWidth"
+            :enable-max-height="enableMaxHeight"
+            :max-height="maxHeight" />
 
           <HorizontalFlow v-else-if="adaptiveFlow == 'horizontal'"
             :flakes="sortedFlakes"
@@ -262,10 +283,10 @@ const sortedFlakes = computed<Flake[]>(() => {
       ref="el-size-options-panel"
       class="fp-obsidian-panel size-options-panel"
       :style="sizeOptionsPanelStyles">
-      <div v-if="flow == 'vertical'" class="size-option">
+      <div class="size-option">
         <span>Width</span>
-        <ObSlider
-          v-model="width"
+        <ObSlider v-model="width"
+          :default="1"
           :min="0.5"
           :max="2"
           :step="0.05"
@@ -277,7 +298,7 @@ const sortedFlakes = computed<Flake[]>(() => {
         <input v-model="elasticWidth" type="checkbox" />
       </label>
 
-      <hr v-if="flow == 'vertical'" />
+      <hr />
 
       <label class="size-option">
         <span>Set Maximum Height</span>
@@ -287,6 +308,7 @@ const sortedFlakes = computed<Flake[]>(() => {
       <div class="size-option">
         <span :class="['label', enableMaxHeight ? '' : '-disabled']">Height</span>
         <ObSlider v-model="maxHeight"
+          :default="1"
           :min="0.5"
           :max="4"
           :step="0.1"
@@ -312,6 +334,7 @@ const sortedFlakes = computed<Flake[]>(() => {
 
   display: grid;
   grid-template-rows: min-content auto;
+  font-size: var(--font-text-size);
 
   >.header {
     position: relative;
@@ -373,7 +396,7 @@ const sortedFlakes = computed<Flake[]>(() => {
   left: 0;
   right: 0;
   z-index: 5;
-  column-gap: 0.75em;
+  column-gap: 0.5em;
 
   background-color: color-mix(in srgb, var(--background-primary), transparent 10%);
 }
@@ -393,17 +416,6 @@ const sortedFlakes = computed<Flake[]>(() => {
   @extend %fp-tools-additional;
   bottom: 100%;
   margin-bottom: 0.5em;
-}
-
-.menu-below {
-  @extend %fp-tools;
-  @extend %fp-tools-additional;
-  top: 100%;
-  padding: 0 1em 0.5em 1em;
-
-  .is-phone & {
-    display: none;
-  }
 }
 
 .no-flakes {
@@ -441,7 +453,7 @@ const sortedFlakes = computed<Flake[]>(() => {
   column-gap: 1em;
   padding: 0 0.25em;
 
-  >.slider {
+  & .slider {
     width: auto;
     min-width: 120px;
   }

@@ -21,11 +21,11 @@ const styles = computed(() => {
 </script>
 
 <template>
-  <div ref="el-icon" class="ob-wrapper" :style="styles"></div>
+  <div ref="el-icon" class="ob-icon-wrapper" :style="styles"></div>
 </template>
 
 <style scoped>
-.ob-wrapper {
+.ob-icon-wrapper {
   display: flex;
 }
 </style>

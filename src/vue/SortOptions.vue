@@ -7,7 +7,7 @@ const sortOrder = defineModel<Flakepile['sortOrder']>('sort-order')
 </script>
 
 <template>
-  <label>Sort By</label>
+  <label class="label">Sort By</label>
   <select v-model="sortBy" class="dropdown">
     <option value="name">Name</option>
     <option value="createdAt">Time Created</option>

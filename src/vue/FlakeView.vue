@@ -7,6 +7,10 @@ import type { Flake } from '@/data'
 import type { FileRef } from '@/app'
 import { ObIcon } from '@/components'
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 const props = defineProps<{
   flake: Flake
 }>()
@@ -42,7 +46,7 @@ const isView = computed(() => !isEdit.value)
 const app = inject('app') as App
 const leaf = inject('leaf') as Component
 const fileRef = inject('fileRef') as FileRef
-const requestSave = inject('requestSave') as () => void
+const requestArrange = inject('requestArrange') as () => Promise<void>
 const requestDelete = inject('requestDelete') as (id: string) => Promise<void>
 
 onMounted(async () => {
@@ -90,7 +94,7 @@ const editFinish = async () => {
 
   await nextTick()
   updateHeight()
-  requestSave()
+  await requestArrange()
 }
 
 const deleteAction = async () => {
@@ -125,8 +129,10 @@ const copyToClipboard = async () => {
 </script>
 
 <template>
-  <div class="flake-layout">
-    <div ref="el-flake" :class="['flake-view', `-${flake.theme}`]">
+  <div class="flake-frame">
+    <div ref="el-flake"
+      v-bind="$attrs"
+      :class="['flake-view', `-${flake.theme}`]">
       <div v-if="isView" class="name">{{ flake.name }}</div>
       <input v-if="isEdit" v-model="flake.name" class="nameedit" />
 
@@ -172,7 +178,7 @@ const copyToClipboard = async () => {
 <style lang="scss" scoped>
 @use '@/globals.scss' as *;
 
-.flake-layout {
+.flake-frame {
   display: grid;
   min-height: 0;
   max-height: 100%;
@@ -224,7 +230,7 @@ const copyToClipboard = async () => {
   }
 
   >.divider {
-    border-bottom: 1px solid var(--flake-border);
+    border-bottom: var(--border-width) solid var(--flake-border);
   }
 
   >.nocontent {

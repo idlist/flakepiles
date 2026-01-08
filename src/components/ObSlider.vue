@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onMounted, watch, useTemplateRef } from 'vue'
 import { SliderComponent } from 'obsidian'
+import ObIcon from './ObIcon.vue'
 
 const props = withDefaults(defineProps<{
+  default: number
   min?: number
   max?: number
   step?: number
@@ -18,7 +20,7 @@ const props = withDefaults(defineProps<{
   showTooltip: true,
 })
 
-const model = defineModel<number>({ default: 0 })
+const model = defineModel<number>({ required: true })
 
 const refSlider = useTemplateRef('el-slider')
 let component: SliderComponent | null = null
@@ -61,20 +63,46 @@ watch(() => props.instant, (next) => {
 watch(() => props.disabled, (next) => {
   component?.setDisabled(next)
 })
+
+const reset = () => {
+  model.value = props.default
+}
 </script>
 
 <template>
-  <div ref="el-slider" class="ob-wrapper"></div>
+  <div class="ob-slider">
+    <div v-if="!disabled" class="clickable-icon" @click="reset">
+      <ObIcon name="rotate-ccw" />
+    </div>
+    <div v-else class="icon-placeholder"></div>
+    <div ref="el-slider" class="ob-slider-wrapper"></div>
+  </div>
 </template>
 
-<style scoped>
-.ob-wrapper {
+<style lang="scss" scoped>
+.clickable-icon {
+  padding: var(--size-2-2);
+}
+
+.icon-placeholder {
+  $size: calc(24px + var(--size-2-1));
+  min-width: $size;
+  min-height: $size;
+}
+
+.ob-slider {
+  display: flex;
+  align-items: center;
+  column-gap: 0.25em;
+}
+
+.ob-slider-wrapper {
   display: flex;
   align-items: center;
   width: 100%;
 }
 
-.ob-wrapper :deep(.slider) {
+.ob-slider-wrapper :deep(.slider) {
   width: 100%;
 }
 </style>
