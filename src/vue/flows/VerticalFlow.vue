@@ -189,7 +189,7 @@ defineExpose({
         <FlakeView v-for="flake of column.flakes"
           :key="flake.id"
           :flake="flake"
-          :view-style="{ maxHeight: styleMaxHeight }"
+          :innerStyle="{ maxHeight: styleMaxHeight }"
           @update-height="onFlakeUpdateHeight" />
       </div>
     </div>

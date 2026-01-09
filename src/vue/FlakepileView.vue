@@ -1,80 +1,65 @@
 <script setup lang="ts">
 import { Platform } from 'obsidian'
-import { computed, inject, nextTick, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
-import { useElementSize, useThrottleFn } from '@vueuse/core'
+import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { useElementSize, watchThrottled } from '@vueuse/core'
 import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
-import { createFlake, FLAKE_WIDTH, type Flake, type Flakepile } from '@/data'
-import type { FileRef, PileShallowRef } from '@/app'
+import { createFlake, type Flake } from '@/data'
+import type { FileRef, PileActions, PileRef } from '@/app'
 import { ObIcon, ObSearch, ObSlider } from '@/components'
-
-import VerticalFlow from './flows/VerticalFlow.vue'
-import HorizontalFlow from './flows/HorizontalFlow.vue'
-import MobileFlow from './flows/MobileFlow.vue'
 
 import MenuButton from './MenuButton.vue'
 import SortOptions from './SortOptions.vue'
+import MasonryUnified from './MasonryUnified.vue'
 
 const props = defineProps<{
-  pile: PileShallowRef
+  pile: PileRef
 }>()
 const pile = props.pile
 
 const fileRef = inject('fileRef') as FileRef
-const requestSave = inject('requestSave') as () => void
+const actions = inject('actions') as PileActions
 
-const usePileProp = <K extends keyof Flakepile>(key: K) => {
-  return computed({
-    get: () => pile.value[key],
-    set: (value: Flakepile[K]) => {
-      pile.value[key] = value
-      requestSave()
-    },
-  })
-}
-
-const flow = usePileProp('flow')
-const sortBy = usePileProp('sortBy')
-const sortOrder = usePileProp('sortOrder')
-const width = usePileProp('width')
-const elasticWidth = usePileProp('elasticWidth')
-const enableMaxHeight = usePileProp('enableMaxHeight')
-const maxHeight = usePileProp('maxHeight')
-const elasticHeight = usePileProp('elasticHeight')
-
-const columnWidth = computed(() => FLAKE_WIDTH * pile.value.width)
+// Only watch shallow properties.
+watch(pile, () => {
+  actions.save()
+})
 
 const refViewport = useTemplateRef('el-viewport')
 const viewportSize = useElementSize(refViewport)
 const vw = ref(0)
 
 onMounted(() => {
-  watch(viewportSize.width, useThrottleFn((value) => {
+  watchThrottled(viewportSize.width, (value) => {
     vw.value = value
-  }, 10, true))
+  }, { throttle: 10 })
 })
 
 const isDesktop = computed(() => Platform.isDesktop)
-// const isMobile = computed(() => Platform.isMobile)
 const isViewportSmall = computed(() => vw.value <= 600)
 const isViewportLarge = computed(() => vw.value > 600)
 
 const adaptiveFlow = computed(() => {
-  return isViewportSmall.value ? 'mobile' : flow.value
+  return isViewportSmall.value ? 'mobile' : pile.value.flow
 })
 const placeFlowOptions = computed(() => {
   return isDesktop.value && isViewportLarge.value
 })
 const adaptiveMenuItemClass = computed<string[]>(() => {
-  return ['fp-menu-item', isViewportLarge.value ?  '-withlabel' : '-nolabel']
+  return ['fp-menu-item', isViewportLarge.value ? '-withlabel' : '-nolabel']
 })
 
 const isMenuExpanded = ref(false)
 
 watch(() => pile.value.id, () => {
   isMenuExpanded.value = false
+  showSizeOptions.value = false
 })
 
-const refVerticalFlow = useTemplateRef('el-vertical-flow')
+watch(() => isViewportSmall, (small) => {
+  if (small) {
+    showSizeOptions.value = false
+  }
+})
 
 const name = computed<string>(() => {
   return fileRef.value?.basename ?? ''
@@ -83,36 +68,8 @@ const name = computed<string>(() => {
 const addFlake = () => {
   var flake = createFlake()
   pile.value.flakes.push(flake)
-  requestSave()
+  actions.save()
 }
-
-const requestArrange = async () => {
-  requestSave()
-
-  if (refVerticalFlow.value) {
-    await nextTick()
-    refVerticalFlow.value.arrangeFlakes()
-  }
-}
-
-const requestDelete = async (id: string) => {
-  const index = pile.value.flakes.findIndex((flake) => flake.id == id)
-  if (index == -1) return
-  pile.value.flakes.splice(index, 1)
-  requestSave()
-
-  if (refVerticalFlow.value) {
-    await nextTick()
-    refVerticalFlow.value.arrangeFlakesWithout(id)
-  }
-}
-
-provide('requestArrange', requestArrange)
-provide('requestDelete', requestDelete)
-
-watch(() => pile.value.id, () => {
-  refVerticalFlow.value?.rerenderFlakes()
-})
 
 const searchQueue = ref<string>('')
 
@@ -136,27 +93,27 @@ const sortedFlakes = computed<Flake[]>(() => {
   const sorted = [...pile.value.flakes]
 
   sorted.sort((a, b) => {
-    if (sortBy.value == 'name') {
-      if (sortOrder.value == 'asc') {
+    if (pile.value.sortBy == 'name') {
+      if (pile.value.sortOrder == 'asc') {
         return a.name.localeCompare(b.name)
       }
-      else if (sortOrder.value == 'desc') {
+      else if (pile.value.sortOrder == 'desc') {
         return b.name.localeCompare(a.name)
       }
     }
-    else if (sortBy.value == 'createdAt') {
-      if (sortOrder.value == 'asc') {
+    else if (pile.value.sortBy == 'createdAt') {
+      if (pile.value.sortOrder == 'asc') {
         return a.createdAt - b.createdAt
       }
-      else if (sortOrder.value == 'desc') {
+      else if (pile.value.sortOrder == 'desc') {
         return b.createdAt - a.createdAt
       }
     }
-    else if (sortBy.value == 'modifiedAt') {
-      if (sortOrder.value == 'asc') {
+    else if (pile.value.sortBy == 'modifiedAt') {
+      if (pile.value.sortOrder == 'asc') {
         return a.modifiedAt - b.modifiedAt
       }
-      else if (sortOrder.value == 'desc') {
+      else if (pile.value.sortOrder == 'desc') {
         return b.modifiedAt - a.modifiedAt
       }
     }
@@ -198,8 +155,8 @@ const sortedFlakes = computed<Flake[]>(() => {
 
           <div :class="adaptiveMenuItemClass">
             <SortOptions
-              v-model:sort-by="sortBy"
-              v-model:sort-order="sortOrder" />
+              v-model:sort-by="pile.sortBy"
+              v-model:sort-order="pile.sortOrder" />
           </div>
 
           <button
@@ -224,9 +181,9 @@ const sortedFlakes = computed<Flake[]>(() => {
 
           <div v-if="placeFlowOptions" class="fp-menu-item">
             <label>Flow</label>
-            <ObIcon v-if="flow == 'vertical'" name="move-vertical" />
-            <ObIcon v-if="flow == 'horizontal'" name="move-horizontal" />
-            <select v-model="flow" class="dropdown">
+            <ObIcon v-if="pile.flow == 'vertical'" name="move-vertical" />
+            <ObIcon v-if="pile.flow == 'horizontal'" name="move-horizontal" />
+            <select v-model="pile.flow" class="dropdown">
               <option value="vertical">Vertical</option>
               <option value="horizontal">Horizontal</option>
             </select>
@@ -248,24 +205,17 @@ const sortedFlakes = computed<Flake[]>(() => {
         <div v-if="!pile.flakes.length" class="no-flakes">No Flakes</div>
 
         <template v-else>
-          <VerticalFlow v-if="adaptiveFlow == 'vertical'"
-            ref="el-vertical-flow"
+          <MasonryUnified
+            :id="pile.id"
             :flakes="sortedFlakes"
-            :column-width="columnWidth"
-            :elastic-width="elasticWidth"
-            :enable-max-height="enableMaxHeight"
-            :max-height="maxHeight" />
-
-          <HorizontalFlow v-else-if="adaptiveFlow == 'horizontal'"
-            :flakes="sortedFlakes"
-            :column-width="columnWidth"
-            :enable-max-height="enableMaxHeight"
-            :max-height="maxHeight"
-            :elastic-height="elasticHeight" />
-
-          <MobileFlow v-else-if="adaptiveFlow == 'mobile'"
-            :flakes="sortedFlakes"
-            :column-width="columnWidth" />
+            :flow="adaptiveFlow"
+            :options="{
+              width: pile.width,
+              elasticWidth: pile.elasticWidth,
+              enableMaxHeight: pile.enableMaxHeight,
+              maxHeight: pile.maxHeight,
+              elasticHeight: pile.elasticHeight,
+            }" />
         </template>
       </div>
     </div>
@@ -278,7 +228,7 @@ const sortedFlakes = computed<Flake[]>(() => {
       :style="sizeOptionsPanelStyles">
       <div class="size-option">
         <span>Width</span>
-        <ObSlider v-model="width"
+        <ObSlider v-model="pile.width"
           :default="1"
           :min="0.5"
           :max="2"
@@ -286,32 +236,35 @@ const sortedFlakes = computed<Flake[]>(() => {
           class="slider" />
       </div>
 
-      <label v-if="flow == 'vertical'" class="size-option">
+      <label v-if="pile.flow == 'vertical'" class="size-option">
         <span>Elastic Width</span>
-        <input v-model="elasticWidth" type="checkbox" />
+        <input v-model="pile.elasticWidth" type="checkbox" />
       </label>
 
       <hr />
 
       <label class="size-option">
         <span>Set Maximum Height</span>
-        <input v-model="enableMaxHeight" type="checkbox" />
+        <input v-model="pile.enableMaxHeight" type="checkbox" />
       </label>
 
-      <div class="size-option">
-        <span :class="['label', enableMaxHeight ? '' : '-disabled']">Height</span>
-        <ObSlider v-model="maxHeight"
+      <div :class="['size-option', pile.enableMaxHeight ? '' : '-disabled']">
+        <span class="label">Height</span>
+        <ObSlider v-model="pile.maxHeight"
           :default="1"
           :min="0.5"
           :max="4"
           :step="0.1"
-          :disabled="!enableMaxHeight"
+          :disabled="!pile.enableMaxHeight"
           class="slider" />
       </div>
 
-      <label v-if="flow == 'horizontal'" class="size-option">
-        <span>Elastic Height</span>
-        <input v-model="elasticHeight" type="checkbox" />
+      <label v-if="pile.flow == 'horizontal'"
+        :class="['size-option', pile.enableMaxHeight ? '' : '-disabled']">
+        <span class="label">Elastic Height</span>
+        <input v-model="pile.elasticHeight"
+          type="checkbox"
+          :disabled="!pile.enableMaxHeight" />
       </label>
     </div>
   </div>
@@ -345,18 +298,20 @@ const sortedFlakes = computed<Flake[]>(() => {
 .sub-layout {
   @extend %fp-inset;
   position: absolute;
+  overflow-x: auto;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 
   &.-vertical {
-    overflow-y: auto;
+    padding: 0.5em 1em 2em 1em;
   }
 
   &.-horizontal {
-    overflow-x: auto;
-    overflow-y: hidden;
+    padding: 0.5em 2em 0.5em 1em;
   }
 
   &.-mobile {
-    overflow-y: auto;
+    padding: 0.5em 1em 2em 1em;
   }
 }
 
@@ -450,13 +405,14 @@ const sortedFlakes = computed<Flake[]>(() => {
     min-width: 120px;
   }
 
-  >input {
+  & input[type=checkbox] {
     margin-inline-end: 0;
   }
 
-  >.label.-disabled {
+  &.-disabled>.label {
     color: var(--text-faint);
   }
+
 }
 </style>
 

@@ -10,13 +10,19 @@ export const VIEW_TYPE = 'flakepile-view'
 
 export type FileRef = ShallowRef<TFile | null>
 
-export type PileShallowRef = ShallowRef<Flakepile>
+export type PileRef = Ref<Flakepile>
+
+export interface PileActions {
+  save: () => void
+  saveLazy: () => void
+  deleteFlake: (id: string) => void
+}
 
 export class FlakepileApp extends TextFileView {
   view?: VueApp
   parsed: Ref<boolean> = ref(false)
-  pile: PileShallowRef = shallowRef(createFlakepile())
   fileRef: FileRef = shallowRef(this.file)
+  pile: PileRef = ref(createFlakepile())
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf)
@@ -35,10 +41,21 @@ export class FlakepileApp extends TextFileView {
     container.empty()
     const mountPoint = container.createEl('div')
 
-    const requestSave = () => {
-      if (!this.parsed) return
-      triggerRef(this.pile)
-      this.requestSave()
+    const actions: PileActions = {
+      save: () => {
+        if (!this.parsed) return
+        void this.save()
+      },
+      saveLazy: () => {
+        if (!this.parsed) return
+        this.requestSave()
+      },
+      deleteFlake: (id) => {
+        const index = this.pile.value.flakes.findIndex((f) => f.id == id)
+        if (index == -1) return
+        this.pile.value.flakes.splice(index, 1)
+        actions.save()
+      },
     }
 
     this.view = createApp(FlakepileView as Component, {
@@ -49,7 +66,7 @@ export class FlakepileApp extends TextFileView {
     this.view.provide('leaf', this)
     this.view.provide('parsed', this.parsed)
     this.view.provide('fileRef', this.fileRef)
-    this.view.provide('requestSave', requestSave)
+    this.view.provide('actions', actions)
     this.view.mount(mountPoint)
 
     this.registerEvent(this.app.vault.on('rename', () => {

@@ -4,6 +4,10 @@
   .is-phone & {
     min-width: var(--input-height);
   }
+
+  &.-red {
+    color: var(--color-red);
+  }
 }
 
 .fp-btn-icon-with-label {

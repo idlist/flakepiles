@@ -1,71 +1,79 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef, type StyleValue } from 'vue'
+import { computed, inject, onMounted, ref, useTemplateRef, watch, type StyleValue } from 'vue'
 import { MarkdownRenderer, moment, Notice, type App, type Component } from 'obsidian'
-import { useTextareaAutosize } from '@vueuse/core'
-import { isNullish } from '@rewl/kit'
+import { useResizeObserver, useTextareaAutosize, useThrottleFn, watchDebounced } from '@vueuse/core'
 import type { Flake } from '@/data'
-import type { FileRef } from '@/app'
+import type { FileRef, PileActions } from '@/app'
 import { ObIcon } from '@/components'
 
 const props = defineProps<{
   flake: Flake
-  viewStyle?: StyleValue
+  editing: boolean
+  innerStyle?: StyleValue
 }>()
-const flake = props.flake
-const isEmpty = () => !flake.content
-
-const refFlake = useTemplateRef('el-flake')
-const refContent = useTemplateRef('el-content')
 
 const emit = defineEmits<{
   (e: 'init', id: string): void
-  (e: 'update-height', id: string, height: number): void
+  (e: 'edit-begin', id: string): void
+  (e: 'edit-finish', id: string): void
+  (e: 'height-update', id: string, height: number): void
 }>()
 
-const updateHeight = () => {
-  const rect = refFlake.value!.getBoundingClientRect()
-  emit('update-height', flake.id, rect.height)
-}
+const empty = () => !props.flake.content
 
-const {
-  textarea: editArea,
-  input: editContent,
-} = useTextareaAutosize({
-  styleProp: 'minHeight',
-  onResize() {
-    updateHeight()
-  },
-})
-
-const isEdit = ref(false)
-const isView = computed(() => !isEdit.value)
+const viewing = computed(() => !props.editing)
+const { textarea: editArea, input: editContent } = useTextareaAutosize()
 
 const app = inject('app') as App
 const leaf = inject('leaf') as Component
 const fileRef = inject('fileRef') as FileRef
-const requestArrange = inject('requestArrange') as () => Promise<void>
-const requestDelete = inject('requestDelete') as (id: string) => Promise<void>
+const actions = inject('actions') as PileActions
 
-onMounted(async () => {
-  await renderContent()
-  await nextTick()
-  updateHeight()
-  emit('init', flake.id)
+const refFlake = useTemplateRef('el-flake')
+const refName = useTemplateRef('el-name')
+const refContent = useTemplateRef('el-content')
+const refMarkdownAnchor = useTemplateRef('el-markdown-anchor')
+
+// Might need nextTick() to wait for rendering.
+const getFrameBorderHeight = (): number => {
+  if (!refFlake.value) return 0
+  const styles = window.getComputedStyle(refFlake.value)
+  const top = parseFloat(styles.borderTopWidth)
+  const bottom = parseFloat(styles.borderBottomWidth)
+  return top + bottom
+}
+
+const heightRecord = ref(0)
+
+watchDebounced(heightRecord, (next, prev) => {
+  if (Math.abs(next - prev) < 1) return
+  emit('height-update', props.flake.id, next)
+}, { debounce: 10 })
+
+onMounted(() => {
+  useResizeObserver([refName, refContent], (entries) => {
+    let height = 0
+    for (const entry of entries) {
+      const sizes = entry.borderBoxSize
+      for (const size of sizes) {
+        height += size.blockSize
+      }
+    }
+    height += getFrameBorderHeight()
+    heightRecord.value = height
+  })
 })
 
 const renderContent = async () => {
-  if (isNullish(fileRef.value)) return
-  if (isEmpty()) return
-
   try {
-    const elContent = refContent.value!
-    elContent.innerHTML = ''
+    const elMarkdownAnchor = refMarkdownAnchor.value!
+    elMarkdownAnchor.innerHTML = ''
 
     await MarkdownRenderer.render(
       app,
-      flake.content,
-      elContent,
-      fileRef.value.path,
+      props.flake.content,
+      elMarkdownAnchor,
+      fileRef.value!.path,
       leaf,
     )
   } catch (e) {
@@ -73,109 +81,129 @@ const renderContent = async () => {
   }
 }
 
-const editBegin = async () => {
-  isEdit.value = true
-  editContent.value = flake.content
+watch([
+  refMarkdownAnchor,
+  () => props.flake.content,
+  () => props.editing,
+], async () => {
+  if (!refMarkdownAnchor.value) return
+  if (empty()) return
+  if (props.editing) return
+  renderContent()
+}, { immediate: true })
 
-  await nextTick()
-  updateHeight()
+const editBegin = () => {
+  editContent.value = props.flake.content
+  emit('edit-begin', props.flake.id)
 }
 
 const editFinish = async () => {
-  isEdit.value = false
-  flake.content = editContent.value.trim()
-  flake.modifiedAt = moment.now()
-
-  await nextTick()
-  await renderContent()
-
-  await nextTick()
-  updateHeight()
-  await requestArrange()
+  emit('edit-finish', props.flake.id)
 }
 
-const deleteAction = async () => {
-  await requestDelete(flake.id)
-}
+const lazyContent = useThrottleFn(() => {
+  props.flake.content = editContent.value.trim()
+}, 100)
 
-const copyNotice = ref(false)
+const lazyModifiedAt = useThrottleFn(() => {
+  props.flake.modifiedAt = moment.now()
+}, 100)
 
-let copyNoticeHandler: number
+watch(() => props.flake.name, () => {
+  if (!props.editing) return
 
-const showCopyNotice = async () => {
-  copyNotice.value = true
-
-  copyNoticeHandler = setTimeout(() => {
-    copyNotice.value = false
-  }, 1000)
-}
-
-onUnmounted(() => {
-  clearTimeout(copyNoticeHandler)
+  lazyModifiedAt()
+  actions.saveLazy()
 })
 
-const copyToClipboard = async () => {
+watch(editContent, () => {
+  if (!props.editing) return
+
+  lazyContent()
+  lazyModifiedAt()
+  actions.saveLazy()
+})
+
+watch(() => props.editing, (next, prev) => {
+  if (prev && !next) {
+    props.flake.content = editContent.value.trim()
+    props.flake.modifiedAt = moment.now()
+    actions.save()
+  }
+})
+
+const deleteThis = () => {
+  actions.deleteFlake(props.flake.id)
+}
+
+const copy = async () => {
   try {
-    await navigator.clipboard.writeText(flake.content)
-    showCopyNotice()
+    await navigator.clipboard.writeText(props.flake.content)
+    new Notice('Copied!', 1000)
   } catch (e) {
-    console.warn(`Failed to copy the content of Flake ${flake.id}: `, e)
+    console.warn(`Failed to copy the content of Flake ${props.flake.id}: `, e)
     new Notice('Failed to copy. Check dev console for detail.', 0)
   }
 }
+
+const innerClass = computed<string[]>(() => {
+  const css = ['fp-flake-theme', `-${props.flake.theme}`]
+  if (props.editing) css.push('-editing')
+  return css
+})
 </script>
 
 <template>
-  <div class="flake-frame">
-    <div ref="el-flake"
-      :class="['flake-view', `-${flake.theme}`]"
-      :style="viewStyle">
-      <div v-if="isView" class="name">{{ flake.name }}</div>
-      <input v-if="isEdit" v-model="flake.name" class="nameedit" />
-
-      <div class="divider"></div>
-
-      <div v-if="isView && isEmpty()" class="nocontent">
-        No Content
+  <div class="flake-view">
+    <div ref="el-flake" :class="innerClass" :style="innerStyle">
+      <div ref="el-name">
+        <div v-if="viewing" class="name">{{ flake.name }}</div>
+        <input v-if="editing" v-model="flake.name" class="nameedit" />
       </div>
-      <div class="flake-content">
-        <div v-if="isView && !isEmpty()"
-          ref="el-content"
-          class="view fp-markdown">
-        </div>
-        <textarea
-          v-if="isEdit"
-          ref="editArea"
-          v-model="editContent"
-          class="edit"
-          rows="3"
-          placeholder="Note here...">
+
+      <div class="content">
+        <div ref="el-content" class="content-scroll">
+          <div v-if="viewing && empty()" class="none">
+            No Content
+          </div>
+          <div v-if="viewing && !empty()"
+            ref="el-markdown-anchor"
+            class="view fp-markdown">
+          </div>
+          <textarea v-if="editing"
+            ref="editArea"
+            v-model="editContent"
+            class="edit"
+            rows="3"
+            placeholder="Note here...">
         </textarea>
+        </div>
       </div>
     </div>
 
     <div class="flake-menu">
-      <button v-if="isView" class="fp-btn-icon" @click="deleteAction">
-        <ObIcon name="trash-2" css-color="var(--color-red)" />
+      <button v-if="viewing" class="fp-btn-icon -red" @click="deleteThis">
+        <ObIcon name="trash-2" />
       </button>
-      <button v-if="isView" class="fp-btn-icon" @click="editBegin">
+      <button v-if="viewing" class="fp-btn-icon" @click="editBegin">
         <ObIcon name="pencil-line" />
       </button>
-      <button v-if="isView" class="fp-btn-icon copy-button" @click="copyToClipboard">
+      <button v-if="viewing" class="fp-btn-icon" @click="copy">
         <ObIcon name="copy" />
-        <div v-show="copyNotice" class="tooltip copynotice">Copied</div>
       </button>
-      <button v-if="isEdit" class="fp-btn-icon" @click="editFinish">
+      <button v-if="editing" class="fp-btn-icon" @click="editFinish">
         <ObIcon name="check" />
       </button>
     </div>
   </div>
 </template>
 
+<style lang="scss" src="./FlakeViewThemes.scss" />
+
 <style lang="scss" scoped>
 @use '@/globals.scss' as *;
 
-.flake-frame {
+.flake-view {
   display: grid;
   min-height: 0;
   max-height: 100%;
@@ -186,90 +214,35 @@ const copyToClipboard = async () => {
   }
 }
 
-.flake-view {
-  min-height: 0;
-  max-height: 100%;
-  overflow: hidden;
+.content-scroll {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
 
-  display: grid;
-  grid-template-rows: min-content min-content auto;
-
-  color: var(--flake-text);
-  background-color: var(--flake-text-bg);
-
-  border: var(--border-width) solid var(--flake-border);
-  border-radius: var(--radius-s);
-  box-shadow:
-    0 0 4px var(--flake-shadow),
-    1px 1px 2px var(--flake-shadow);
-
-  %flake-name {
-    padding: 0.375em 0.5em 0.25em 0.5em;
-    line-height: 1.5;
-
-    font-family: var(--font-default);
-    font-size: var(--font-text-size);
-    font-weight: var(--font-bold);
-
-    color: var(--flake-name);
-    background-color: var(--flake-name-bg);
-  }
-
-  >.name {
-    @extend %flake-name;
-    word-break: break-word;
-    user-select: text;
-  }
-
-  >.nameedit {
-    @extend %flake-name;
-    border: none;
-  }
-
-  >.divider {
-    border-bottom: var(--border-width) solid var(--flake-border);
-  }
-
-  >.nocontent {
-    padding: 0.5em;
+  >%content-common {
+    width: 100%;
     font-size: var(--font-small);
+  }
+
+  >.none {
+    @extend %content-common;
+    padding: 0.5em;
     font-style: italic;
     color: var(--text-faint);
   }
 
-  &.-default {
-    --system-hsl: var(--accent-h) var(--accent-s) var(--accent-l);
-    --flake-border: hsla(var(--system-hsl) / 0.25);
-    --flake-shadow: hsla(var(--system-hsl) / 0.25);
-    --flake-name: var(--text-accent);
-    --flake-name-bg: var(--background-primary-alt);
-    --flake-text: var(--text-normal);
-    --flake-text-bg: var(--background-primary);
-  }
-}
-
-.flake-content {
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-  overflow-y: auto;
-
   >.view {
-    width: 100%;
+    @extend %content-common;
     padding: 0 0.5em;
-    font-size: var(--font-small);
     overflow-wrap: break-word;
-
     user-select: text;
   }
 
   >.edit {
-    width: 100%;
+    @extend %content-common;
     padding: 0.5em;
-    font-size: var(--font-small);
-    overflow-wrap: break-word;
-
     overflow: hidden;
+    overflow-wrap: break-word;
     resize: none;
     border: none;
   }
@@ -284,15 +257,5 @@ const copyToClipboard = async () => {
   display: none; // flex when hovered
   flex-direction: row;
   row-gap: 0.25em;
-}
-
-.copy-button {
-  position: relative;
-
-  .copynotice {
-    position: absolute;
-    bottom: -2.5em;
-    overflow-wrap: break-word;
-  }
 }
 </style>
