@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, useTemplateRef, watch, type StyleValue } from 'vue'
+import { computed, inject, useTemplateRef, watch, type StyleValue } from 'vue'
 import { MarkdownRenderer, moment, Notice, type App, type Component } from 'obsidian'
-import { useResizeObserver, useTextareaAutosize, useThrottleFn, watchDebounced } from '@vueuse/core'
+import { useElementSize, useTextareaAutosize, useThrottleFn, watchDebounced } from '@vueuse/core'
 import type { Flake } from '@/data'
 import type { FileRef, PileActions } from '@/app'
 import { ObIcon } from '@/components'
@@ -43,26 +43,18 @@ const getFrameBorderHeight = (): number => {
   return top + bottom
 }
 
-const heightRecord = ref(0)
+const nameSize = useElementSize(refName)
+const contentSize = useElementSize(refContent)
+const height = computed(() => {
+  return getFrameBorderHeight()
+    + nameSize.height.value
+    + contentSize.height.value
+})
 
-watchDebounced(heightRecord, (next, prev) => {
+watchDebounced(height, (next, prev) => {
   if (Math.abs(next - prev) < 1) return
   emit('height-update', props.flake.id, next)
 }, { debounce: 10 })
-
-onMounted(() => {
-  useResizeObserver([refName, refContent], (entries) => {
-    let height = 0
-    for (const entry of entries) {
-      const sizes = entry.borderBoxSize
-      for (const size of sizes) {
-        height += size.blockSize
-      }
-    }
-    height += getFrameBorderHeight()
-    heightRecord.value = height
-  })
-})
 
 const renderContent = async () => {
   try {
@@ -252,10 +244,10 @@ const innerClass = computed<string[]>(() => {
   position: absolute;
   top: 0.25em;
   right: 0.25em;
-  z-index: 4;
+  z-index: 20;
 
   display: none; // flex when hovered
   flex-direction: row;
-  row-gap: 0.25em;
+  column-gap: 0.25em;
 }
 </style>

@@ -1,7 +1,6 @@
 import { moment } from 'obsidian'
 import { faker } from '@faker-js/faker'
 import { nanoid } from 'nanoid'
-import type { CSSProperties} from 'vue'
 
 export interface Flake {
   id: string
@@ -79,33 +78,5 @@ export const createFlakepile = (): Flakepile => {
     elasticHeight: false,
     flakes: [],
     labels: [],
-  }
-}
-
-export const FLAKE_WIDTH = 320
-
-export interface MasonryOptions {
-  width: number
-  elasticWidth: boolean
-  enableMaxHeight: boolean
-  maxHeight: number
-  elasticHeight: boolean
-}
-
-export interface ResolveMasonryOptions extends MasonryOptions {
-  masonryWidth: number
-  masonryHeight: number
-  editing: string | null
-}
-
-export interface StyledMasonry {
-  outer: Map<string, CSSProperties>
-  inner: Map<string, CSSProperties>
-}
-
-export const createStyledMasonry = (): StyledMasonry => {
-  return {
-    outer: new Map(),
-    inner: new Map(),
   }
 }

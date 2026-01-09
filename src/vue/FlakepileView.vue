@@ -19,8 +19,16 @@ const pile = props.pile
 const fileRef = inject('fileRef') as FileRef
 const actions = inject('actions') as PileActions
 
-// Only watch shallow properties.
-watch(pile, () => {
+watch([
+  () => pile.value.flow,
+  () => pile.value.sortBy,
+  () => pile.value.sortOrder,
+  () => pile.value.width,
+  () => pile.value.elasticWidth,
+  () => pile.value.enableMaxHeight,
+  () => pile.value.maxHeight,
+  () => pile.value.elasticHeight,
+], () => {
   actions.save()
 })
 
@@ -47,6 +55,9 @@ const placeFlowOptions = computed(() => {
 const adaptiveMenuItemClass = computed<string[]>(() => {
   return ['fp-menu-item', isViewportLarge.value ? '-withlabel' : '-nolabel']
 })
+
+const refMasonryWrapper = useTemplateRef('el-masonry-wrapper')
+const masonrySize = useElementSize(refMasonryWrapper, { width: 0, height: 0 }, { box: 'content-box' })
 
 const isMenuExpanded = ref(false)
 
@@ -201,7 +212,7 @@ const sortedFlakes = computed<Flake[]>(() => {
     </div>
 
     <div class="content">
-      <div :class="['sub-layout', `-${adaptiveFlow}`]">
+      <div ref="el-masonry-wrapper" :class="['sub-layout', `-${adaptiveFlow}`]">
         <div v-if="!pile.flakes.length" class="no-flakes">No Flakes</div>
 
         <template v-else>
@@ -215,6 +226,8 @@ const sortedFlakes = computed<Flake[]>(() => {
               enableMaxHeight: pile.enableMaxHeight,
               maxHeight: pile.maxHeight,
               elasticHeight: pile.elasticHeight,
+              masonryWidth: masonrySize.width.value,
+              masonryHeight: masonrySize.height.value,
             }" />
         </template>
       </div>
@@ -320,10 +333,6 @@ const sortedFlakes = computed<Flake[]>(() => {
   margin-bottom: 0.375em;
   user-select: text;
 
-  &.-faint {
-    opacity: 0.1
-  }
-
   .is-mobile & {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
@@ -409,9 +418,14 @@ const sortedFlakes = computed<Flake[]>(() => {
     margin-inline-end: 0;
   }
 
+  & input[type=checkbox]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
   &.-disabled>.label {
     color: var(--text-faint);
   }
+}
 
 }
 </style>

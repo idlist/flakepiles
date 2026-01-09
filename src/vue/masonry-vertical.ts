@@ -1,21 +1,16 @@
-import {
-  createStyledMasonry, FLAKE_WIDTH as FLAKE_UNIT,
-  type Flake, type ResolveMasonryOptions, type StyledMasonry,
-} from '@/data'
 import { createArray } from '@rewl/kit'
+import {
+  createStyledMasonry, FLAKE_UNIT, GAP_X, GAP_Y, px,
+  type ResolveMasonryOptions, type StyledMasonry,
+} from './masonry-common'
+import type { Flake } from '@/data'
 
-export const GAP_X = 12
-export const GAP_Y = 12
-
-const px = (value: number) => `${value}px`
-
-const calculateBasis = (options: ResolveMasonryOptions) => {
+const getBasis = (options: ResolveMasonryOptions) => {
   let width = FLAKE_UNIT * options.width
-  let column: number
+  let column: number = 1
 
   if (width >= options.masonryWidth) {
     width = options.masonryWidth
-    column = 1
   }
   else if (options.elasticWidth) {
     column = (options.masonryWidth + GAP_X) / (width + GAP_X)
@@ -23,19 +18,21 @@ const calculateBasis = (options: ResolveMasonryOptions) => {
     width = (options.masonryWidth - GAP_X * (column - 1)) / column
   }
   else {
-    column = Math.max(Math.floor(options.masonryWidth / width), 1)
+    column = (options.masonryWidth + GAP_X) / (width + GAP_X)
+    column = Math.max(Math.floor(column), 1)
   }
 
   return { width, column }
 }
 
-export const resolveVerticalMasonry = (
-  flakes: Flake[], // Get the order of the flakes.
+export const resolveMasonryVertical = (
+  flakes: Flake[], // For the ID order of the flakes.
   heightMap: Map<string, number>,
   options: ResolveMasonryOptions,
 ): StyledMasonry => {
   const styled = createStyledMasonry()
-  const { width, column } = calculateBasis(options)
+
+  const { width, column } = getBasis(options)
   const columns = createArray(column, 0)
   const maxHeight = FLAKE_UNIT * options.maxHeight
 
@@ -48,23 +45,41 @@ export const resolveVerticalMasonry = (
       + (column - columnCenter + 0.5) * GAP_X
   }
 
+  const findColumn = (type: 'shortest' | 'longest') => {
+    let foundHeight = 0
+    let foundColumn = 0
+
+    if (type == 'shortest') {
+      foundHeight = Number.MAX_VALUE
+    }
+    else if (type == 'longest') {
+      foundHeight = Number.MIN_VALUE
+    }
+
+    for (let i = 0; i < columns.length; i++) {
+      if (type == 'shortest' && columns[i]! < foundHeight) {
+        foundHeight = columns[i]!
+        foundColumn = i
+      }
+      else if (type == 'longest' && columns[i]! > foundHeight) {
+
+        foundHeight = columns[i]!
+        foundColumn = i
+      }
+    }
+
+    return { foundColumn, foundHeight }
+  }
+
   for (const flake of flakes) {
     const id = flake.id
     const height = heightMap.get(id)!
 
-    let shortestHeight = Number.MAX_VALUE
-    let shortestColumn = 0
-
-    for (let i = 0; i < columns.length; i++) {
-      if (columns[i]! < shortestHeight) {
-        shortestHeight = columns[i]!
-        shortestColumn = i
-      }
-    }
+    const { foundColumn, foundHeight } = findColumn('shortest')
 
     styled.outer.set(id, {
-      top: px(shortestHeight),
-      left: px(getLeft(shortestColumn)),
+      top: px(foundHeight),
+      left: px(getLeft(foundColumn)),
       width: px(width),
     })
 
@@ -74,17 +89,21 @@ export const resolveVerticalMasonry = (
       })
 
       if (height > maxHeight) {
-        columns[shortestColumn]! += maxHeight
+        columns[foundColumn]! += maxHeight
       } else {
-        columns[shortestColumn]! += height
+        columns[foundColumn]! += height
       }
     }
     else {
-      columns[shortestColumn]! += height
+      columns[foundColumn]! += height
     }
 
-    columns[shortestColumn]! += GAP_Y
+    columns[foundColumn]! += GAP_Y
   }
+
+  const { foundHeight } = findColumn('longest')
+  styled.mansory.width = px(options.masonryWidth)
+  styled.mansory.height = px(foundHeight - GAP_Y)
 
   return styled
 }

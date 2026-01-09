@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, reactive, ref, useTemplateRef, watch, type CSSProperties } from 'vue'
-import type { Flake, MasonryOptions, ResolveMasonryOptions, StyledMasonry } from '@/data'
+import { computed, reactive, ref, watch, type CSSProperties } from 'vue'
+import { useThrottleFn } from '@vueuse/core'
+import type { Flake } from '@/data'
+import type { MasonryOptions, ResolveMasonryOptions, StyledMasonry } from './masonry-common'
+import { resolveMasonryVertical } from './masonry-vertical'
+import { resolveMasonryHorizontal } from './masonry-horizontal'
 import FlakeView from './FlakeView.vue'
-import { resolveVerticalMasonry } from './masonry-vertical'
-import { useElementSize, useThrottleFn } from '@vueuse/core'
 
 const props = defineProps<{
   id: string
@@ -29,22 +31,22 @@ const onHeightUpdate = (id: string, height: number) => {
 }
 
 const validateHeightMap = () => {
-  const ids = new Set(props.flakes.map((f) => f.id))
+  const flakeIds = new Set(props.flakes.map((f) => f.id))
 
   for (const id of heightMap.keys()) {
-    if (!ids.has(id)) {
-      ids.delete(id)
+    if (!flakeIds.has(id)) {
+      heightMap.delete(id)
     }
   }
+
 }
 
-const refMasonry = useTemplateRef('el-masonry')
-const masonrySize = useElementSize(refMasonry)
-
+const masonryStyles = ref<CSSProperties>({})
 const outerStyles = ref<Map<string, CSSProperties>>(new Map())
 const innerStyles = ref<Map<string, CSSProperties>>(new Map())
 
-const applyStyles = (styles: StyledMasonry) => {
+const updateStyles = (styles: StyledMasonry) => {
+  masonryStyles.value = styles.mansory
   outerStyles.value = styles.outer
   innerStyles.value = styles.inner
 }
@@ -52,16 +54,26 @@ const applyStyles = (styles: StyledMasonry) => {
 const resolveOptions = computed<ResolveMasonryOptions>(() => {
   return {
     ...props.options,
-    masonryWidth: masonrySize.width.value,
-    masonryHeight: masonrySize.height.value,
     editing: editing.value,
   }
 })
 
 const resolveMasonry = () => {
   if (props.flow == 'vertical') {
-    const styles = resolveVerticalMasonry(props.flakes, heightMap, resolveOptions.value)
-    applyStyles(styles)
+    const styles = resolveMasonryVertical(
+      props.flakes,
+      heightMap,
+      resolveOptions.value,
+    )
+    updateStyles(styles)
+  }
+  if (props.flow == 'horizontal') {
+    const styles = resolveMasonryHorizontal(
+      props.flakes,
+      heightMap,
+      resolveOptions.value,
+    )
+    updateStyles(styles)
   }
 }
 
@@ -78,7 +90,9 @@ watch(() => props.id, () => {
   heightMap.clear()
 })
 
-watch(() => props.flakes, () => {
+watch([
+  () => props.flakes,
+], () => {
   validateHeightMap()
 })
 
@@ -93,10 +107,10 @@ watch([
 </script>
 
 <template>
-  <div ref="el-masonry" class="unified-masonry">
+  <div ref="el-masonry" class="mansory-unified" :style="masonryStyles">
     <FlakeView v-for="flake of flakes"
       :key="flake.id"
-      class="unified-element"
+      class="mansory-element"
       :flake="flake"
       :editing="editing == flake.id"
       :style="outerStyles.get(flake.id)"
@@ -108,11 +122,11 @@ watch([
 </template>
 
 <style lang="scss" scoped>
-.unified-masonry {
+.mansory-unified {
   position: relative;
 }
 
-.unified-element {
+.mansory-element {
   position: absolute;
 }
 </style>
