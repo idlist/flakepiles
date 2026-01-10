@@ -2,7 +2,7 @@
 import { computed, reactive, ref, shallowRef, watch, type StyleValue } from 'vue'
 import { until, useThrottleFn } from '@vueuse/core'
 import type { Flake } from '@/data'
-import { px, pxy, type MasonryOptions, type ResolvedMasonry, type ResolvedRect, type ResolvedSize } from './masonry-common'
+import { px, pxy, PAD_Y, type MasonryOptions, type ResolvedMasonry, type ResolvedRect, type ResolvedMasonrySize } from './masonry-common'
 import { resolveMasonryVertical } from './masonry-vertical'
 import { resolveMasonryHorizontal } from './masonry-horizontal'
 import { resolveMasonryMobile } from './masonry-mobile'
@@ -11,6 +11,7 @@ import FlakeView from './FlakeView.vue'
 const props = defineProps<{
   id: string
   flakes: Flake[]
+  scrollY: number
   flow: 'vertical' | 'horizontal' | 'mobile'
   options: MasonryOptions
 }>()
@@ -18,11 +19,11 @@ const props = defineProps<{
 const flakeIds = computed(() => new Set(props.flakes.map((f) => f.id)))
 
 const editing = ref<string | null>(null)
-let editingHeightCache: number = 0
+const editingHeightCache = ref<number>(0)
 
 const onEditBegin = (id: string) => {
   editing.value = id
-  editingHeightCache = 0
+  editingHeightCache.value = 0
 }
 
 const onEditFinish = () => {
@@ -33,7 +34,7 @@ const heightMap = reactive<Map<string, number>>(new Map())
 
 const onHeightUpdate = (id: string, height: number) => {
   if (editing.value == id) {
-    editingHeightCache = height
+    editingHeightCache.value = height
   }
   else {
     heightMap.set(id, height)
@@ -42,8 +43,8 @@ const onHeightUpdate = (id: string, height: number) => {
 
 watch(editing, (_, prev) => {
   if (!prev) return
-  if (!editingHeightCache) return
-  heightMap.set(prev, editingHeightCache)
+  if (!editingHeightCache.value) return
+  heightMap.set(prev, editingHeightCache.value)
 })
 
 const validateHeightMap = () => {
@@ -72,7 +73,7 @@ const requestHighlight = async (id: string) => {
   try {
     await until(() => flakeRefs.value.has(id))
       .toBe(true, requestTimeout)
-    flakeRefs.value.get(id)!.highlight()
+    flakeRefs.value.get(id)!.highlight('long')
   } catch (e) {
     console.warn('Failed to show highlight:', e)
   }
@@ -89,33 +90,84 @@ const requestScrollTo = async (id: string) => {
 }
 
 const resolvedFlakes = shallowRef<Set<string>>(new Set())
-const resolvedRect = shallowRef<Map<string, ResolvedRect>>(new Map())
-const resolvedMasonry = shallowRef<ResolvedSize>()
+const resolvedRects = shallowRef<Map<string, ResolvedRect>>(new Map())
+const resolvedMasonry = shallowRef<ResolvedMasonrySize>()
 
 const updateStyles = (resolved: ResolvedMasonry) => {
   resolvedFlakes.value = resolved.flakes
-  resolvedRect.value = resolved.rect
+  resolvedRects.value = resolved.rects
   resolvedMasonry.value = resolved.masonry
 }
 
-const outerStyle = (id: string): StyleValue => {
-  const rect = resolvedRect.value.get(id)
-  if (!rect) return
+const outerStyles = computed<Map<string, StyleValue>>(() => {
+  const styles = new Map<string, StyleValue>()
+  for (const [id, rect] of resolvedRects.value) {
+    styles.set(id, {
+      translate: pxy(rect.x, rect.y),
+      width: px(rect.width),
+    })
+  }
+  return styles
+})
+
+const innerStyles = computed<Map<string, StyleValue>>(() => {
+  const styles = new Map<string, StyleValue>()
+  for (const [id, rect] of resolvedRects.value) {
+    styles.set(id, {
+      height: px(rect.height),
+    })
+  }
+  return styles
+})
+
+const editingActualHeight = computed(() => {
+  const rect = resolvedRects.value.get(editing.value!)!
+
+  let cachedHeight = editingHeightCache.value
+  if (!cachedHeight) {
+    cachedHeight = rect.height
+  }
+
+  const contentHeight = props.options.canvasHeight - PAD_Y * 2
+
+  let actualHeight = cachedHeight
+  if (actualHeight > contentHeight) {
+    actualHeight = contentHeight
+  }
+
+  return actualHeight
+})
+
+const outerStyleEditing = computed<StyleValue>(() => {
+  const rect = resolvedRects.value.get(editing.value!)!
+
+  const actualHeight = editingActualHeight.value
+  const contentHeight = props.options.canvasHeight - PAD_Y * 2
+
+  let y: number
+  const spaceBelow = contentHeight - (rect.y - props.scrollY)
+
+  if (rect.y < props.scrollY || actualHeight > contentHeight) {
+    y = props.scrollY + PAD_Y
+  }
+  else if (actualHeight > spaceBelow) {
+    y = props.scrollY + PAD_Y + (contentHeight - actualHeight)
+  }
+  else {
+    y = rect.y
+  }
 
   return {
-    translate: pxy(rect.x, rect.y),
+    translate: pxy(rect.x, y),
     width: px(rect.width),
   }
-}
+})
 
-const innerStyle = (id: string): StyleValue => {
-  const rect = resolvedRect.value.get(id)
-  if (!rect) return
-
+const innerStyleEditing = computed<StyleValue>(() => {
   return {
-    height: px(rect.height),
+    height: px(editingActualHeight.value),
   }
-}
+})
 
 const masonryStyle = computed<StyleValue>(() => {
   const size = resolvedMasonry.value
@@ -196,8 +248,8 @@ defineExpose({
       :class="{ '-preparing': !resolvedFlakes.has(flake.id) }"
       :flake="flake"
       :editing="editing == flake.id"
-      :style="outerStyle(flake.id)"
-      :inner-style="innerStyle(flake.id)"
+      :style="editing == flake.id ? outerStyleEditing : outerStyles.get(flake.id)"
+      :inner-style="editing == flake.id ? innerStyleEditing : innerStyles.get(flake.id)"
       @edit-begin="onEditBegin"
       @edit-finish="onEditFinish"
       @height-update="onHeightUpdate" />

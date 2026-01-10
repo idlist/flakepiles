@@ -7,7 +7,7 @@ import type { Flake } from '@/data'
 
 const getBasis = (options: MasonryOptions) => {
   let width = FLAKE_UNIT * options.width
-  const usableWidth = options.masonryWidth - PAD_X * 2
+  const usableWidth = options.canvasWidth - PAD_X * 2
   let column: number = 1
 
   if (width >= usableWidth) {
@@ -38,7 +38,7 @@ export const resolveMasonryVertical = (
   const maxHeight = FLAKE_UNIT * options.maxHeight
 
   const columnCenter = column / 2
-  const masonryCenter = options.masonryWidth / 2
+  const masonryCenter = options.canvasWidth / 2
 
   const findColumn = (type: 'shortest' | 'longest') => {
     let foundHeight = 0
@@ -83,7 +83,7 @@ export const resolveMasonryVertical = (
       actualHeight = maxHeight
     }
 
-    styled.rect.set(id, {
+    styled.rects.set(id, {
       x,
       y,
       width,
@@ -94,7 +94,7 @@ export const resolveMasonryVertical = (
   }
 
   const { foundHeight } = findColumn('longest')
-  styled.masonry.width = options.masonryWidth
+  styled.masonry.width = options.canvasWidth
   styled.masonry.height = foundHeight + GAP_Y + 2 * PAD_Y
 
   return styled

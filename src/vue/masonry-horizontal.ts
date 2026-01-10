@@ -12,7 +12,7 @@ export const resolveMasonryHorizontal = (
   const styled = createStyledMasonry()
 
   const width = FLAKE_UNIT * options.width
-  const usableHeight = options.masonryHeight - 2 * PAD_Y
+  const usableHeight = options.canvasHeight - 2 * PAD_Y
   let maxHeight = usableHeight
 
   if (options.enableMaxHeight) {
@@ -94,7 +94,7 @@ export const resolveMasonryHorizontal = (
       const stashId = stashes[i]!.id
       const allocated = stashes[i]!.allocated
 
-      styled.rect.set(stashId, {
+      styled.rects.set(stashId, {
         x,
         y,
         width,
@@ -136,7 +136,7 @@ export const resolveMasonryHorizontal = (
       const x = PAD_X + (width + GAP_X) * column
       const y = PAD_Y + columnHeight
 
-      styled.rect.set(id, {
+      styled.rects.set(id, {
         x,
         y,
         width,
@@ -153,7 +153,7 @@ export const resolveMasonryHorizontal = (
 
   const expandedWidth = PAD_X * 2 + width * (column + 1) + GAP_X * (column + 2)
   styled.masonry.width = expandedWidth
-  styled.masonry.height = options.masonryHeight
+  styled.masonry.height = options.canvasHeight
 
   return styled
 }

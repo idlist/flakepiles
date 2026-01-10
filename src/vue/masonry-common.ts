@@ -13,8 +13,8 @@ export interface MasonryOptions {
   enableMaxHeight: boolean
   maxHeight: number
   elasticHeight: boolean
-  masonryWidth: number
-  masonryHeight: number
+  canvasWidth: number
+  canvasHeight: number
 }
 
 export interface ResolvedRect {
@@ -24,21 +24,28 @@ export interface ResolvedRect {
   height: number
 }
 
-export interface ResolvedSize {
+export interface ResolvedMasonrySize {
   width: number
   height: number
 }
 
+const createResolvedMasonrySize = (): ResolvedMasonrySize => {
+  return {
+    width: 0,
+    height: 0,
+  }
+}
+
 export interface ResolvedMasonry {
   flakes: Set<string>
-  rect: Map<string, ResolvedRect>
-  masonry: ResolvedSize
+  rects: Map<string, ResolvedRect>
+  masonry: ResolvedMasonrySize
 }
 
 export const createStyledMasonry = (): ResolvedMasonry => {
   return {
     flakes: new Set(),
-    rect: new Map(),
-    masonry: { width: 0, height: 0 },
+    rects: new Map(),
+    masonry: createResolvedMasonrySize(),
   }
 }

@@ -147,29 +147,37 @@ const copy = async () => {
   }
 }
 
-const highlight = ref(false)
-let highlightHandle: number | undefined
+type LightType = 'short' | 'long'
 
-const playHighlight = async () => {
-  clearTimeout(highlightHandle)
-
-  highlight.value = true
-  highlightHandle = setTimeout(() => {
-    clearHighlight()
-  }, 1000)
+const light = ref<LightType | null>(null)
+const lightDuration: Record<LightType, number> = {
+  short: 500,
+  long: 1000,
 }
+let lightHandle: number | undefined
 
-const clearHighlight = () => {
-  highlight.value = false
-  clearTimeout(highlightHandle)
+const highlight = async (type: LightType)=> {
+  clearTimeout(lightHandle)
+
+  light.value = type
+  lightHandle = setTimeout(() => {
+    light.value = null
+    clearTimeout(lightHandle)
+  }, lightDuration[type])
 }
 
 watch(() => props.editing, () => {
-  clearHighlight()
+  if (props.editing) {
+    light.value = null
+    clearTimeout(lightHandle)
+  }
+  else {
+    highlight('short')
+  }
 })
 
 onUnmounted(() => {
-  clearHighlight()
+  clearTimeout(lightHandle)
 })
 
 const scrollIntoView = () => {
@@ -180,7 +188,7 @@ const scrollIntoView = () => {
 }
 
 defineExpose({
-  highlight: playHighlight,
+  highlight,
   scrollIntoView,
 })
 
@@ -188,7 +196,7 @@ const outerClass = computed<Record<string, boolean>>(() => {
   return {
     [`-${props.flake.theme}`]: true,
     '-editing': props.editing,
-    '-highlight': highlight.value,
+    [`-light${light.value}`]: light.value != null,
   }
 })
 </script>
@@ -257,14 +265,7 @@ const outerClass = computed<Record<string, boolean>>(() => {
   max-height: 100%;
   position: relative;
 
-  &.-editing {
-    box-shadow:
-      0 0 8px var(--flake-shadow-heavy),
-      1px 1px 4px var(--flake-shadow);
-    z-index: 10;
-  }
-
-  @keyframes play-highlight {
+  @keyframes lightout {
     0% {
       box-shadow:
         0 0 8px var(--flake-shadow-heavy),
@@ -272,8 +273,19 @@ const outerClass = computed<Record<string, boolean>>(() => {
     }
   }
 
-  &.-highlight {
-    animation: 1s ease-in play-highlight;
+  &.-editing {
+    box-shadow:
+      0 0 8px var(--flake-shadow-heavy),
+      1px 1px 4px var(--flake-shadow);
+    z-index: 10;
+  }
+
+  &.-lightshort {
+    animation: 0.5s ease-out lightout;
+  }
+
+  &.-lightlong {
+    animation: 1s ease-out lightout;
   }
 
   &:hover>.flake-menu {

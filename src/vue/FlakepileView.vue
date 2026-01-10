@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Platform } from 'obsidian'
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
-import { useElementSize, watchThrottled } from '@vueuse/core'
+import { useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
 import { createFlake, type Flake } from '@/data'
 import type { FileRef, PileActions, PileRef } from '@/app'
@@ -56,10 +56,16 @@ const adaptiveMenuItemClass = computed<string[]>(() => {
   return ['fp-menu-item', isViewportLarge.value ? '-withlabel' : '-nolabel']
 })
 
-const masonryContainerRef = useTemplateRef('el-masonry-container')
-const masonrySize = useElementSize(masonryContainerRef)
+const canvasRef = useTemplateRef('el-canvas')
+const canvasSize = useElementSize(canvasRef)
+const canvasBounding = useElementBounding(canvasRef)
 
 const masonryRef = useTemplateRef('el-mansory')
+const masonryBounding = useElementBounding(masonryRef)
+
+const scrollY = computed(() => {
+  return canvasBounding.top.value - masonryBounding.top.value
+})
 
 const isMenuExpanded = ref(false)
 
@@ -217,7 +223,7 @@ const sortedFlakes = computed<Flake[]>(() => {
     </div>
 
     <div class="content">
-      <div ref="el-masonry-container" :class="['sub-layout', `-${adaptiveFlow}`]">
+      <div ref="el-canvas" :class="['sub-layout', `-${adaptiveFlow}`]">
         <div v-if="!pile.flakes.length" class="no-flakes">No Flakes</div>
 
         <template v-else>
@@ -226,14 +232,15 @@ const sortedFlakes = computed<Flake[]>(() => {
             ref="el-mansory"
             :flakes="sortedFlakes"
             :flow="adaptiveFlow"
+            :scroll-y="scrollY"
             :options="{
               width: pile.width,
               elasticWidth: pile.elasticWidth,
               enableMaxHeight: pile.enableMaxHeight,
               maxHeight: pile.maxHeight,
               elasticHeight: pile.elasticHeight,
-              masonryWidth: masonrySize.width.value,
-              masonryHeight: masonrySize.height.value,
+              canvasWidth: canvasSize.width.value,
+              canvasHeight: canvasSize.height.value,
             }" />
         </template>
       </div>
