@@ -7,10 +7,10 @@ const props = defineProps<{
   cssColor?: string
 }>()
 
-const elIcon = useTemplateRef('el-icon')
+const iconRef = useTemplateRef('el-icon')
 
 onMounted(() => {
-  setIcon(elIcon.value!, props.name)
+  setIcon(iconRef.value!, props.name)
 })
 
 const styles = computed(() => {

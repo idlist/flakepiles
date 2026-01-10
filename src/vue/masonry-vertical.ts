@@ -1,11 +1,11 @@
 import { createArray } from '@rewl/kit'
 import {
-  createStyledMasonry, FLAKE_UNIT, GAP_X, GAP_Y, PAD_X, PAD_Y, px, pxy,
-  type ResolveMasonryOptions, type StyledMasonry,
+  createStyledMasonry, FLAKE_UNIT, GAP_X, GAP_Y, PAD_X, PAD_Y,
+  type MasonryOptions, type ResolvedMasonry,
 } from './masonry-common'
 import type { Flake } from '@/data'
 
-const getBasis = (options: ResolveMasonryOptions) => {
+const getBasis = (options: MasonryOptions) => {
   let width = FLAKE_UNIT * options.width
   const usableWidth = options.masonryWidth - PAD_X * 2
   let column: number = 1
@@ -29,8 +29,8 @@ const getBasis = (options: ResolveMasonryOptions) => {
 export const resolveMasonryVertical = (
   flakes: Flake[], // For the ID order of the flakes.
   heightMap: Map<string, number>,
-  options: ResolveMasonryOptions,
-): StyledMasonry => {
+  options: MasonryOptions,
+): ResolvedMasonry => {
   const styled = createStyledMasonry()
 
   const { width, column } = getBasis(options)
@@ -67,8 +67,10 @@ export const resolveMasonryVertical = (
 
   for (const flake of flakes) {
     const id = flake.id
-    const height = heightMap.get(id)!
+    const height = heightMap.get(id)
+    if (!height) continue
 
+    styled.flakes.add(id)
     const { foundColumn, foundHeight } = findColumn('shortest')
 
     const x = masonryCenter
@@ -76,32 +78,24 @@ export const resolveMasonryVertical = (
       + (foundColumn - columnCenter + 0.5) * GAP_X
     const y = PAD_Y + foundHeight
 
-    styled.outer.set(id, {
-      translate: pxy(x, y),
-      width: px(width),
+    let actualHeight = height
+    if (options.enableMaxHeight && height > maxHeight) {
+      actualHeight = maxHeight
+    }
+
+    styled.rect.set(id, {
+      x,
+      y,
+      width,
+      height: actualHeight,
     })
 
-    if (options.enableMaxHeight) {
-      styled.inner.set(id, {
-        maxHeight: px(maxHeight),
-      })
-
-      if (height > maxHeight) {
-        columns[foundColumn]! += maxHeight
-      } else {
-        columns[foundColumn]! += height
-      }
-    }
-    else {
-      columns[foundColumn]! += height
-    }
-
-    columns[foundColumn]! += GAP_Y
+    columns[foundColumn]! += actualHeight + GAP_Y
   }
 
   const { foundHeight } = findColumn('longest')
-  styled.mansory.width = px(options.masonryWidth)
-  styled.mansory.height = px(foundHeight + GAP_Y + 2 * PAD_Y)
+  styled.masonry.width = options.masonryWidth
+  styled.masonry.height = foundHeight + GAP_Y + 2 * PAD_Y
 
   return styled
 }

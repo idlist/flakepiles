@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUpdate, reactive, ref, shallowRef, watch, type CSSProperties, type WatchHandle } from 'vue'
-import { useThrottleFn } from '@vueuse/core'
+import { computed, reactive, ref, shallowRef, watch, type StyleValue } from 'vue'
+import { until, useThrottleFn } from '@vueuse/core'
 import type { Flake } from '@/data'
-import type { MasonryOptions, ResolveMasonryOptions, StyledMasonry } from './masonry-common'
+import { px, pxy, type MasonryOptions, type ResolvedMasonry, type ResolvedRect, type ResolvedSize } from './masonry-common'
 import { resolveMasonryVertical } from './masonry-vertical'
 import { resolveMasonryHorizontal } from './masonry-horizontal'
 import { resolveMasonryMobile } from './masonry-mobile'
 import FlakeView from './FlakeView.vue'
-import { delay } from '@rewl/kit'
 
 const props = defineProps<{
   id: string
@@ -19,9 +18,11 @@ const props = defineProps<{
 const flakeIds = computed(() => new Set(props.flakes.map((f) => f.id)))
 
 const editing = ref<string | null>(null)
+let editingHeightCache: number = 0
 
 const onEditBegin = (id: string) => {
   editing.value = id
+  editingHeightCache = 0
 }
 
 const onEditFinish = () => {
@@ -31,9 +32,19 @@ const onEditFinish = () => {
 const heightMap = reactive<Map<string, number>>(new Map())
 
 const onHeightUpdate = (id: string, height: number) => {
-  if (editing.value == id) return
-  heightMap.set(id, height)
+  if (editing.value == id) {
+    editingHeightCache = height
+  }
+  else {
+    heightMap.set(id, height)
+  }
 }
+
+watch(editing, (_, prev) => {
+  if (!prev) return
+  if (!editingHeightCache) return
+  heightMap.set(prev, editingHeightCache)
+})
 
 const validateHeightMap = () => {
   for (const id of heightMap.keys()) {
@@ -43,45 +54,76 @@ const validateHeightMap = () => {
   }
 }
 
-type FlakeInstance = InstanceType<typeof FlakeView> | null
+type MaybeFlakeRef = InstanceType<typeof FlakeView> | null
 
-const refsFlake = ref<Record<string, FlakeInstance>>({})
+const flakeRefs = ref<Map<string, MaybeFlakeRef>>(new Map())
 
-onBeforeUpdate(() => {
-  refsFlake.value = {}
-})
+const setFlakeRef = (id: string, el: MaybeFlakeRef) => {
+  if (el) {
+    flakeRefs.value.set(id, el)
+  } else {
+    flakeRefs.value.delete(id)
+  }
+}
+
+const requestTimeout = { timeout: 1000, throwOnTimeout: true }
 
 const requestHighlight = async (id: string) => {
-  watch(() => refsFlake.value[id], (elFlake) => {
-    elFlake?.highlight()
-  }, { once: true })
+  try {
+    await until(() => flakeRefs.value.has(id))
+      .toBe(true, requestTimeout)
+    flakeRefs.value.get(id)!.highlight()
+  } catch (e) {
+    console.warn('Failed to show highlight:', e)
+  }
 }
 
-const scrollTo = (id: string) => {
-  watch(() => refsFlake.value[id], async (elFlake) => {
-    await delay(100)
-    elFlake?.$el.scrollIntoView()
-  }, { once: true })
+const requestScrollTo = async (id: string) => {
+  try {
+    await until(() => flakeRefs.value.has(id) && resolvedFlakes.value.has(id))
+      .toBe(true, requestTimeout)
+    flakeRefs.value.get(id)!.scrollIntoView()
+  } catch (e) {
+    console.warn('Failed to scroll into view:', e)
+  }
 }
 
-const requestScrollTo = (id: string) => {
-  scrollTo(id)
+const resolvedFlakes = shallowRef<Set<string>>(new Set())
+const resolvedRect = shallowRef<Map<string, ResolvedRect>>(new Map())
+const resolvedMasonry = shallowRef<ResolvedSize>()
+
+const updateStyles = (resolved: ResolvedMasonry) => {
+  resolvedFlakes.value = resolved.flakes
+  resolvedRect.value = resolved.rect
+  resolvedMasonry.value = resolved.masonry
 }
 
-const masonryStyles = shallowRef<CSSProperties>({})
-const outerStyles = shallowRef<Map<string, CSSProperties>>(new Map())
-const innerStyles = shallowRef<Map<string, CSSProperties>>(new Map())
+const outerStyle = (id: string): StyleValue => {
+  const rect = resolvedRect.value.get(id)
+  if (!rect) return
 
-const updateStyles = (styles: StyledMasonry) => {
-  masonryStyles.value = styles.mansory
-  outerStyles.value = styles.outer
-  innerStyles.value = styles.inner
-}
-
-const resolveOptions = computed<ResolveMasonryOptions>(() => {
   return {
-    ...props.options,
-    editing: editing.value,
+    translate: pxy(rect.x, rect.y),
+    width: px(rect.width),
+  }
+}
+
+const innerStyle = (id: string): StyleValue => {
+  const rect = resolvedRect.value.get(id)
+  if (!rect) return
+
+  return {
+    height: px(rect.height),
+  }
+}
+
+const masonryStyle = computed<StyleValue>(() => {
+  const size = resolvedMasonry.value
+  if (!size) return
+
+  return {
+    width: px(size.width),
+    height: px(size.height),
   }
 })
 
@@ -90,7 +132,7 @@ const resolveMasonry = () => {
     const styles = resolveMasonryVertical(
       props.flakes,
       heightMap,
-      resolveOptions.value,
+      props.options,
     )
     updateStyles(styles)
   }
@@ -98,7 +140,7 @@ const resolveMasonry = () => {
     const styles = resolveMasonryHorizontal(
       props.flakes,
       heightMap,
-      resolveOptions.value,
+      props.options,
     )
     updateStyles(styles)
   }
@@ -106,7 +148,7 @@ const resolveMasonry = () => {
     const styles = resolveMasonryMobile(
       props.flakes,
       heightMap,
-      resolveOptions.value,
+      props.options,
     )
     updateStyles(styles)
   }
@@ -133,8 +175,8 @@ watch([
 watch([
   () => props.flakes,
   () => props.flow,
+  () => props.options,
   heightMap,
-  resolveOptions,
 ], () => {
   requestResolveMasonry()
 }, { immediate: true })
@@ -146,16 +188,16 @@ defineExpose({
 </script>
 
 <template>
-  <div class="masonry-unified" :style="masonryStyles">
+  <div class="masonry-unified" :style="masonryStyle">
     <FlakeView v-for="flake of flakes"
       :key="flake.id"
-      :ref="(el) => { refsFlake[flake.id] = el as FlakeInstance }"
+      :ref="(el) => { setFlakeRef(flake.id, el as MaybeFlakeRef) }"
       class="masonry-element"
-      :class="{ '-preparing': !heightMap.has(flake.id) }"
+      :class="{ '-preparing': !resolvedFlakes.has(flake.id) }"
       :flake="flake"
       :editing="editing == flake.id"
-      :style="outerStyles.get(flake.id)"
-      :inner-style="innerStyles.get(flake.id)"
+      :style="outerStyle(flake.id)"
+      :inner-style="innerStyle(flake.id)"
       @edit-begin="onEditBegin"
       @edit-finish="onEditFinish"
       @height-update="onHeightUpdate" />

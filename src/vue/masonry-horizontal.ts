@@ -1,14 +1,14 @@
 import {
-  createStyledMasonry, FLAKE_UNIT, GAP_X, GAP_Y, PAD_X, PAD_Y, px, pxy,
-  type ResolveMasonryOptions, type StyledMasonry,
+  createStyledMasonry, FLAKE_UNIT, GAP_X, GAP_Y, PAD_X, PAD_Y,
+  type MasonryOptions, type ResolvedMasonry,
 } from './masonry-common'
 import type { Flake } from '@/data'
 
 export const resolveMasonryHorizontal = (
   flakes: Flake[], // For the ID order of the flakes.
   heightMap: Map<string, number>,
-  options: ResolveMasonryOptions,
-): StyledMasonry => {
+  options: MasonryOptions,
+): ResolvedMasonry => {
   const styled = createStyledMasonry()
 
   const width = FLAKE_UNIT * options.width
@@ -94,13 +94,11 @@ export const resolveMasonryHorizontal = (
       const stashId = stashes[i]!.id
       const allocated = stashes[i]!.allocated
 
-      styled.outer.set(stashId, {
-        translate: pxy(x, y),
-        width: px(width),
-      })
-
-      styled.inner.set(stashId, {
-        maxHeight: px(allocated),
+      styled.rect.set(stashId, {
+        x,
+        y,
+        width,
+        height: allocated,
       })
 
       accumulatedHeight += allocated + GAP_Y
@@ -111,7 +109,10 @@ export const resolveMasonryHorizontal = (
 
   for (const flake of flakes) {
     const id = flake.id
-    const height = heightMap.get(id)!
+    const height = heightMap.get(id)
+    if (!height) continue
+
+    styled.flakes.add(id)
     const actualHeight = height > maxHeight ? maxHeight : height
 
     if (columnHeight > 0 && columnHeight + actualHeight > usableHeight) {
@@ -135,13 +136,11 @@ export const resolveMasonryHorizontal = (
       const x = PAD_X + (width + GAP_X) * column
       const y = PAD_Y + columnHeight
 
-      styled.outer.set(id, {
-        translate: pxy(x, y),
-        width: px(width),
-      })
-
-      styled.inner.set(id, {
-        maxHeight: px(maxHeight),
+      styled.rect.set(id, {
+        x,
+        y,
+        width,
+        height: actualHeight,
       })
     }
 
@@ -153,8 +152,8 @@ export const resolveMasonryHorizontal = (
   }
 
   const expandedWidth = PAD_X * 2 + width * (column + 1) + GAP_X * (column + 2)
-  styled.mansory.width = px(expandedWidth)
-  styled.mansory.height = px(options.masonryHeight)
+  styled.masonry.width = expandedWidth
+  styled.masonry.height = options.masonryHeight
 
   return styled
 }

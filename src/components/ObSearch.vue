@@ -11,13 +11,13 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
 }>()
 
-const refSearch = useTemplateRef('el-search')
+const searchRef = useTemplateRef('el-search')
 let component: SearchComponent | null = null
 
 onMounted(() => {
-  if (!refSearch.value) return
+  if (!searchRef.value) return
 
-  component = new SearchComponent(refSearch.value)
+  component = new SearchComponent(searchRef.value)
     .setPlaceholder(props.placeholder ?? 'Search...')
     .setValue(props.modelValue)
     .onChange((value: string) => {

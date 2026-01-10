@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch, type StyleValue } from 'vue'
+import { computed, inject, onUnmounted, ref, useTemplateRef, watch, type StyleValue } from 'vue'
 import { MarkdownRenderer, moment, Notice, type App, type Component } from 'obsidian'
-import { useElementSize, useTextareaAutosize, useThrottleFn, watchDebounced } from '@vueuse/core'
+import { until, useElementSize, useTextareaAutosize, useThrottleFn, watchDebounced } from '@vueuse/core'
 import type { Flake } from '@/data'
 import type { FileRef, PileActions } from '@/app'
 import { ObIcon } from '@/components'
@@ -22,29 +22,29 @@ const emit = defineEmits<{
 const empty = () => !props.flake.content
 
 const viewing = computed(() => !props.editing)
-const { textarea: editArea, input: editContent } = useTextareaAutosize()
+const { textarea: editAreaRef, input: editContent } = useTextareaAutosize()
 
 const app = inject('app') as App
 const leaf = inject('leaf') as Component
 const fileRef = inject('fileRef') as FileRef
 const actions = inject('actions') as PileActions
 
-const refFlake = useTemplateRef('el-flake')
-const refName = useTemplateRef('el-name')
-const refContent = useTemplateRef('el-content')
-const refMarkdownAnchor = useTemplateRef('el-markdown-anchor')
+const flakeRef = useTemplateRef('el-flake')
+const nameRef = useTemplateRef('el-name')
+const contentRef = useTemplateRef('el-content')
+const markdownAnchorRef = useTemplateRef('el-markdown-anchor')
 
 // Might need nextTick() to wait for rendering.
 const getFrameBorderHeight = (): number => {
-  if (!refFlake.value) return 0
-  const styles = window.getComputedStyle(refFlake.value)
+  if (!flakeRef.value) return 0
+  const styles = window.getComputedStyle(flakeRef.value)
   const top = parseFloat(styles.borderTopWidth)
   const bottom = parseFloat(styles.borderBottomWidth)
   return top + bottom
 }
 
-const nameSize = useElementSize(refName)
-const contentSize = useElementSize(refContent)
+const nameSize = useElementSize(nameRef)
+const contentSize = useElementSize(contentRef)
 const height = computed(() => {
   return getFrameBorderHeight()
     + nameSize.height.value
@@ -58,13 +58,13 @@ watchDebounced(height, (next, prev) => {
 
 const renderContent = async () => {
   try {
-    const elMarkdownAnchor = refMarkdownAnchor.value!
-    elMarkdownAnchor.innerHTML = ''
+    const markdownAnchorEl = markdownAnchorRef.value!
+    markdownAnchorEl.innerHTML = ''
 
     await MarkdownRenderer.render(
       app,
       props.flake.content,
-      elMarkdownAnchor,
+      markdownAnchorEl,
       fileRef.value!.path,
       leaf,
     )
@@ -74,11 +74,11 @@ const renderContent = async () => {
 }
 
 watch([
-  refMarkdownAnchor,
+  markdownAnchorRef,
   () => props.flake.content,
   () => props.editing,
 ], async () => {
-  if (!refMarkdownAnchor.value) return
+  if (!markdownAnchorRef.value) return
   if (empty()) return
   if (props.editing) return
   renderContent()
@@ -116,8 +116,17 @@ watch(editContent, () => {
   actions.saveLazy()
 })
 
-watch(() => props.editing, (next, prev) => {
-  if (prev && !next) {
+const requestFocusEditArea = async () => {
+  await until(editAreaRef).toBeTruthy({ timeout: 1000 })
+  const editAreaEl = editAreaRef.value!
+  editAreaEl.focus()
+}
+
+watch(() => props.editing, () => {
+  if (props.editing) {
+    requestFocusEditArea()
+  }
+  else {
     props.flake.content = editContent.value.trim()
     props.flake.modifiedAt = moment.now()
     actions.save()
@@ -138,56 +147,55 @@ const copy = async () => {
   }
 }
 
-const light = ref(false)
-const lightAfter = ref(false)
-const lightTime = ref(1000)
-let lightAfterHandle: number
+const highlight = ref(false)
+let highlightHandle: number | undefined
 
-const highlight = async () => {
-  light.value = true
-  await nextTick()
-  light.value = false
+const playHighlight = async () => {
+  clearTimeout(highlightHandle)
+
+  highlight.value = true
+  highlightHandle = setTimeout(() => {
+    clearHighlight()
+  }, 1000)
 }
 
-watch(() => light.value, (value) => {
-  clearTimeout(lightAfterHandle)
-
-  if (value) {
-    lightAfter.value = false
-  } else {
-    lightAfter.value = true
-    lightAfterHandle = setTimeout(() => {
-      lightAfter.value = false
-    }, lightTime.value)
-  }
-})
+const clearHighlight = () => {
+  highlight.value = false
+  clearTimeout(highlightHandle)
+}
 
 watch(() => props.editing, () => {
-  clearTimeout(lightAfterHandle)
-  lightAfter.value = false
+  clearHighlight()
 })
 
 onUnmounted(() => {
-  clearTimeout(lightAfterHandle)
+  clearHighlight()
 })
 
+const scrollIntoView = () => {
+  return flakeRef.value?.scrollIntoView({
+    block: 'nearest',
+    inline: 'nearest',
+  })
+}
+
 defineExpose({
-  highlight,
+  highlight: playHighlight,
+  scrollIntoView,
 })
 
 const outerClass = computed<Record<string, boolean>>(() => {
   return {
     [`-${props.flake.theme}`]: true,
     '-editing': props.editing,
-    '-light': light.value,
-    '-light-after': lightAfter.value,
+    '-highlight': highlight.value,
   }
 })
 </script>
 
 <template>
-  <div class="flake-view fp-flake-theme" :class="outerClass">
-    <div ref="el-flake" class="flake-card" :style="innerStyle">
+  <div ref="el-flake" class="flake-view fp-flake-theme" :class="outerClass">
+    <div class="flake-card" :style="innerStyle">
       <div ref="el-name">
         <div v-if="viewing" class="name">{{ flake.name }}</div>
         <input v-if="editing" v-model="flake.name" class="nameedit" />
@@ -203,7 +211,7 @@ const outerClass = computed<Record<string, boolean>>(() => {
             class="view fp-markdown">
           </div>
           <textarea v-if="editing"
-            ref="editArea"
+            ref="editAreaRef"
             v-model="editContent"
             class="edit"
             rows="3"
@@ -256,14 +264,16 @@ const outerClass = computed<Record<string, boolean>>(() => {
     z-index: 10;
   }
 
-  &.-light {
-    box-shadow:
-      0 0 8px var(--flake-shadow-heavy),
-      1px 1px 4px var(--flake-shadow);
+  @keyframes play-highlight {
+    0% {
+      box-shadow:
+        0 0 8px var(--flake-shadow-heavy),
+        1px 1px 4px var(--flake-shadow);
+    }
   }
 
-  &.-light-after {
-    transition: box-shadow v-bind('`${lightTime / 1000}s`') ease-in;
+  &.-highlight {
+    animation: 1s ease-in play-highlight;
   }
 
   &:hover>.flake-menu {

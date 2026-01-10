@@ -32,8 +32,8 @@ watch([
   actions.save()
 })
 
-const refViewport = useTemplateRef('el-viewport')
-const viewportSize = useElementSize(refViewport)
+const viewportRef = useTemplateRef('el-viewport')
+const viewportSize = useElementSize(viewportRef)
 const vw = ref(0)
 
 onMounted(() => {
@@ -56,10 +56,10 @@ const adaptiveMenuItemClass = computed<string[]>(() => {
   return ['fp-menu-item', isViewportLarge.value ? '-withlabel' : '-nolabel']
 })
 
-const refMasonryContainer = useTemplateRef('el-masonry-container')
-const masonrySize = useElementSize(refMasonryContainer)
+const masonryContainerRef = useTemplateRef('el-masonry-container')
+const masonrySize = useElementSize(masonryContainerRef)
 
-const refMansory = useTemplateRef('el-mansory')
+const masonryRef = useTemplateRef('el-mansory')
 
 const isMenuExpanded = ref(false)
 
@@ -83,8 +83,8 @@ const addFlake = () => {
   pile.value.flakes.push(flake)
   actions.save()
 
-  refMansory.value?.requestHighlight(flake.id)
-  refMansory.value?.requestScrollTo(flake.id)
+  masonryRef.value!.requestHighlight(flake.id)
+  masonryRef.value!.requestScrollTo(flake.id)
 }
 
 const searchQueue = ref<string>('')
@@ -95,11 +95,11 @@ const toggleSizeOptions = () => {
   showSizeOptions.value = !showSizeOptions.value
 }
 
-const sizeOptionsButton = useTemplateRef('el-size-options-button')
-const sizeOptionsPanel = useTemplateRef('el-size-options-panel')
+const sizeOptionsButtonRef = useTemplateRef('el-size-options-button')
+const sizeOptionsPanelRef = useTemplateRef('el-size-options-panel')
 const {
   floatingStyles: sizeOptionsPanelStyles,
-} = useFloating(sizeOptionsButton, sizeOptionsPanel, {
+} = useFloating(sizeOptionsButtonRef, sizeOptionsPanelRef, {
   placement: 'bottom-end',
   middleware: [offset(4), shift({ padding: 4 })],
   whileElementsMounted: autoUpdate,
@@ -271,9 +271,9 @@ const sortedFlakes = computed<Flake[]>(() => {
         <span class="label">Height</span>
         <ObSlider v-model="pile.maxHeight"
           :default="1"
-          :min="0.5"
-          :max="4"
-          :step="0.1"
+          :min="0.25"
+          :max="2.5"
+          :step="0.05"
           :disabled="!pile.enableMaxHeight"
           class="slider" />
       </div>

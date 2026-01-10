@@ -22,12 +22,12 @@ const props = withDefaults(defineProps<{
 
 const model = defineModel<number>({ required: true })
 
-const refSlider = useTemplateRef('el-slider')
+const sliderRef = useTemplateRef('el-slider')
 let component: SliderComponent | null = null
 
 onMounted(() => {
-  if (refSlider.value) {
-    component = new SliderComponent(refSlider.value)
+  if (sliderRef.value) {
+    component = new SliderComponent(sliderRef.value)
       .setLimits(props.min, props.max, props.step)
       .setValue(model.value)
       .setDisabled(props.disabled)
