@@ -3,8 +3,12 @@ import type { CSSProperties } from 'vue'
 export const FLAKE_UNIT = 320
 export const GAP_X = 12
 export const GAP_Y = 12
+export const PAD_X = 16
+export const PAD_Y = 8
 
 export const px = (value: number) => `${value}px`
+
+export const pxy = (x: number, y: number) => `${x}px ${y}px`
 
 export interface MasonryOptions {
   width: number

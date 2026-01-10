@@ -40,7 +40,6 @@ export const createDummyFlake = (): Flake => {
 }
 
 export interface FlakeLabel {
-  id: string
   name: string
   color: string
 }
@@ -61,8 +60,8 @@ export interface Flakepile {
   enableMaxHeight: boolean
   maxHeight: number
   elasticHeight: boolean
-  flakes: Flake[]
   labels: FlakeLabel[]
+  flakes: Flake[]
 }
 
 export const createFlakepile = (): Flakepile => {
@@ -76,7 +75,7 @@ export const createFlakepile = (): Flakepile => {
     enableMaxHeight: false,
     maxHeight: 1,
     elasticHeight: false,
-    flakes: [],
     labels: [],
+    flakes: [],
   }
 }

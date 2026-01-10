@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, useTemplateRef, watch, type StyleValue } from 'vue'
+import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch, type StyleValue } from 'vue'
 import { MarkdownRenderer, moment, Notice, type App, type Component } from 'obsidian'
 import { useElementSize, useTextareaAutosize, useThrottleFn, watchDebounced } from '@vueuse/core'
 import type { Flake } from '@/data'
@@ -8,7 +8,7 @@ import { ObIcon } from '@/components'
 
 const props = defineProps<{
   flake: Flake
-  editing: boolean
+  editing?: boolean
   innerStyle?: StyleValue
 }>()
 
@@ -138,16 +138,56 @@ const copy = async () => {
   }
 }
 
-const innerClass = computed<string[]>(() => {
-  const css = ['fp-flake-theme', `-${props.flake.theme}`]
-  if (props.editing) css.push('-editing')
-  return css
+const light = ref(false)
+const lightAfter = ref(false)
+const lightTime = ref(1000)
+let lightAfterHandle: number
+
+const highlight = async () => {
+  light.value = true
+  await nextTick()
+  light.value = false
+}
+
+watch(() => light.value, (value) => {
+  clearTimeout(lightAfterHandle)
+
+  if (value) {
+    lightAfter.value = false
+  } else {
+    lightAfter.value = true
+    lightAfterHandle = setTimeout(() => {
+      lightAfter.value = false
+    }, lightTime.value)
+  }
+})
+
+watch(() => props.editing, () => {
+  clearTimeout(lightAfterHandle)
+  lightAfter.value = false
+})
+
+onUnmounted(() => {
+  clearTimeout(lightAfterHandle)
+})
+
+defineExpose({
+  highlight,
+})
+
+const outerClass = computed<Record<string, boolean>>(() => {
+  return {
+    [`-${props.flake.theme}`]: true,
+    '-editing': props.editing,
+    '-light': light.value,
+    '-light-after': lightAfter.value,
+  }
 })
 </script>
 
 <template>
-  <div class="flake-view">
-    <div ref="el-flake" :class="innerClass" :style="innerStyle">
+  <div class="flake-view fp-flake-theme" :class="outerClass">
+    <div ref="el-flake" class="flake-card" :style="innerStyle">
       <div ref="el-name">
         <div v-if="viewing" class="name">{{ flake.name }}</div>
         <input v-if="editing" v-model="flake.name" class="nameedit" />
@@ -196,13 +236,86 @@ const innerClass = computed<string[]>(() => {
 @use '@/globals.scss' as *;
 
 .flake-view {
+  content-visibility: auto;
+
+  border: var(--border-width) solid var(--flake-border);
+  border-radius: var(--radius-s);
+  box-shadow:
+    0 0 4px var(--flake-shadow),
+    1px 1px 2px var(--flake-shadow);
+
   display: grid;
   min-height: 0;
   max-height: 100%;
   position: relative;
 
+  &.-editing {
+    box-shadow:
+      0 0 8px var(--flake-shadow-heavy),
+      1px 1px 4px var(--flake-shadow);
+    z-index: 10;
+  }
+
+  &.-light {
+    box-shadow:
+      0 0 8px var(--flake-shadow-heavy),
+      1px 1px 4px var(--flake-shadow);
+  }
+
+  &.-light-after {
+    transition: box-shadow v-bind('`${lightTime / 1000}s`') ease-in;
+  }
+
   &:hover>.flake-menu {
     display: flex;
+  }
+}
+
+.flake-card {
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+
+  display: grid;
+  grid-template-rows: min-content auto;
+
+  color: var(--flake-text);
+  background-color: var(--flake-text-bg);
+
+  border: var(--border-width) solid var(--flake-border);
+  border-radius: var(--radius-s);
+  box-shadow:
+    0 0 4px var(--flake-shadow),
+    1px 1px 2px var(--flake-shadow);
+
+  %flake-name {
+    padding: 0.375em 0.5em 0.25em 0.5em;
+    line-height: 1.5;
+
+    font-family: var(--font-default);
+    font-size: var(--font-text-size);
+    font-weight: var(--font-bold);
+
+    color: var(--flake-name);
+    background-color: var(--flake-name-bg);
+  }
+
+  & .name {
+    @extend %flake-name;
+    word-break: break-word;
+    user-select: text;
+    border-bottom: var(--border-width) solid var(--flake-border);
+  }
+
+  & .nameedit {
+    @extend %flake-name;
+    border: none;
+    border-bottom: var(--border-width) solid var(--flake-border);
+  }
+
+  & .content {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
   }
 }
 

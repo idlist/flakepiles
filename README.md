@@ -21,18 +21,18 @@ Vite + Vue 3 + Sass
 - [x] Mount Vue into Obsidian
 - [ ] Flakepile
   - [x] Flow direction (vertical / horizontal)
-  - [ ] Flake size
+  - [x] Flake size
   - [ ] Flake elastic sizing
   - [x] Flake sorting
-  - [x] Adaptive layout
+  - [x] Mobile-adaptive layout
 - [ ] Flake
   - [x] Flake markdown rendering
   - [x] Flake creation, update, deletion
   - [ ] Flake type (text / image / code)
   - [ ] Flake color (theme)
   - [ ] Flake labels
-- [ ] Searching inside a flakepile
-- [ ] Virtual scrolling
+- [ ] Searching inside a Flakepile
+- [ ] Batch loading when having many Flakes
 - [ ] Import multiple markdown files to Flakes
 - [ ] Export files to a .zip archive, each Flake as a markdown file
 

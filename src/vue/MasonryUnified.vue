@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch, type CSSProperties } from 'vue'
+import { computed, onBeforeUpdate, reactive, ref, shallowRef, watch, type CSSProperties, type WatchHandle } from 'vue'
 import { useThrottleFn } from '@vueuse/core'
 import type { Flake } from '@/data'
 import type { MasonryOptions, ResolveMasonryOptions, StyledMasonry } from './masonry-common'
 import { resolveMasonryVertical } from './masonry-vertical'
 import { resolveMasonryHorizontal } from './masonry-horizontal'
+import { resolveMasonryMobile } from './masonry-mobile'
 import FlakeView from './FlakeView.vue'
+import { delay } from '@rewl/kit'
 
 const props = defineProps<{
   id: string
@@ -13,6 +15,8 @@ const props = defineProps<{
   flow: 'vertical' | 'horizontal' | 'mobile'
   options: MasonryOptions
 }>()
+
+const flakeIds = computed(() => new Set(props.flakes.map((f) => f.id)))
 
 const editing = ref<string | null>(null)
 
@@ -27,23 +31,46 @@ const onEditFinish = () => {
 const heightMap = reactive<Map<string, number>>(new Map())
 
 const onHeightUpdate = (id: string, height: number) => {
+  if (editing.value == id) return
   heightMap.set(id, height)
 }
 
 const validateHeightMap = () => {
-  const flakeIds = new Set(props.flakes.map((f) => f.id))
-
   for (const id of heightMap.keys()) {
-    if (!flakeIds.has(id)) {
+    if (!flakeIds.value.has(id)) {
       heightMap.delete(id)
     }
   }
-
 }
 
-const masonryStyles = ref<CSSProperties>({})
-const outerStyles = ref<Map<string, CSSProperties>>(new Map())
-const innerStyles = ref<Map<string, CSSProperties>>(new Map())
+type FlakeInstance = InstanceType<typeof FlakeView> | null
+
+const refsFlake = ref<Record<string, FlakeInstance>>({})
+
+onBeforeUpdate(() => {
+  refsFlake.value = {}
+})
+
+const requestHighlight = async (id: string) => {
+  watch(() => refsFlake.value[id], (elFlake) => {
+    elFlake?.highlight()
+  }, { once: true })
+}
+
+const scrollTo = (id: string) => {
+  watch(() => refsFlake.value[id], async (elFlake) => {
+    await delay(100)
+    elFlake?.$el.scrollIntoView()
+  }, { once: true })
+}
+
+const requestScrollTo = (id: string) => {
+  scrollTo(id)
+}
+
+const masonryStyles = shallowRef<CSSProperties>({})
+const outerStyles = shallowRef<Map<string, CSSProperties>>(new Map())
+const innerStyles = shallowRef<Map<string, CSSProperties>>(new Map())
 
 const updateStyles = (styles: StyledMasonry) => {
   masonryStyles.value = styles.mansory
@@ -67,8 +94,16 @@ const resolveMasonry = () => {
     )
     updateStyles(styles)
   }
-  if (props.flow == 'horizontal') {
+  else if (props.flow == 'horizontal') {
     const styles = resolveMasonryHorizontal(
+      props.flakes,
+      heightMap,
+      resolveOptions.value,
+    )
+    updateStyles(styles)
+  }
+  else if (props.flow == 'mobile') {
+    const styles = resolveMasonryMobile(
       props.flakes,
       heightMap,
       resolveOptions.value,
@@ -77,11 +112,10 @@ const resolveMasonry = () => {
   }
 }
 
-const throttleResolveMasonry = useThrottleFn(resolveMasonry, 50, true)
+const throttleResolveMasonry = useThrottleFn(resolveMasonry, 100, true)
 
 const requestResolveMasonry = () => {
   if (heightMap.size != props.flakes.length) return
-  if (editing.value) return
 
   throttleResolveMasonry()
 }
@@ -104,13 +138,20 @@ watch([
 ], () => {
   requestResolveMasonry()
 }, { immediate: true })
+
+defineExpose({
+  requestHighlight,
+  requestScrollTo,
+})
 </script>
 
 <template>
-  <div ref="el-masonry" class="mansory-unified" :style="masonryStyles">
+  <div class="masonry-unified" :style="masonryStyles">
     <FlakeView v-for="flake of flakes"
       :key="flake.id"
-      class="mansory-element"
+      :ref="(el) => { refsFlake[flake.id] = el as FlakeInstance }"
+      class="masonry-element"
+      :class="{ '-preparing': !heightMap.has(flake.id) }"
       :flake="flake"
       :editing="editing == flake.id"
       :style="outerStyles.get(flake.id)"
@@ -122,11 +163,15 @@ watch([
 </template>
 
 <style lang="scss" scoped>
-.mansory-unified {
+.masonry-unified {
   position: relative;
 }
 
-.mansory-element {
+.masonry-element {
   position: absolute;
+
+  &.-preparing {
+    visibility: hidden;
+  }
 }
 </style>

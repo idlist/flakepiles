@@ -56,8 +56,10 @@ const adaptiveMenuItemClass = computed<string[]>(() => {
   return ['fp-menu-item', isViewportLarge.value ? '-withlabel' : '-nolabel']
 })
 
-const refMasonryWrapper = useTemplateRef('el-masonry-wrapper')
-const masonrySize = useElementSize(refMasonryWrapper, { width: 0, height: 0 }, { box: 'content-box' })
+const refMasonryContainer = useTemplateRef('el-masonry-container')
+const masonrySize = useElementSize(refMasonryContainer)
+
+const refMansory = useTemplateRef('el-mansory')
 
 const isMenuExpanded = ref(false)
 
@@ -66,7 +68,7 @@ watch(() => pile.value.id, () => {
   showSizeOptions.value = false
 })
 
-watch(() => isViewportSmall, (small) => {
+watch(isViewportSmall, (small) => {
   if (small) {
     showSizeOptions.value = false
   }
@@ -80,6 +82,9 @@ const addFlake = () => {
   var flake = createFlake()
   pile.value.flakes.push(flake)
   actions.save()
+
+  refMansory.value?.requestHighlight(flake.id)
+  refMansory.value?.requestScrollTo(flake.id)
 }
 
 const searchQueue = ref<string>('')
@@ -212,12 +217,13 @@ const sortedFlakes = computed<Flake[]>(() => {
     </div>
 
     <div class="content">
-      <div ref="el-masonry-wrapper" :class="['sub-layout', `-${adaptiveFlow}`]">
+      <div ref="el-masonry-container" :class="['sub-layout', `-${adaptiveFlow}`]">
         <div v-if="!pile.flakes.length" class="no-flakes">No Flakes</div>
 
         <template v-else>
           <MasonryUnified
             :id="pile.id"
+            ref="el-mansory"
             :flakes="sortedFlakes"
             :flow="adaptiveFlow"
             :options="{
@@ -311,21 +317,9 @@ const sortedFlakes = computed<Flake[]>(() => {
 .sub-layout {
   @extend %fp-inset;
   position: absolute;
-  overflow-x: auto;
+  overflow-x: scroll;
   overflow-y: auto;
   scrollbar-gutter: stable;
-
-  &.-vertical {
-    padding: 0.5em 1em 2em 1em;
-  }
-
-  &.-horizontal {
-    padding: 0.5em 2em 0.5em 1em;
-  }
-
-  &.-mobile {
-    padding: 0.5em 1em 2em 1em;
-  }
 }
 
 .file-name {
@@ -421,12 +415,11 @@ const sortedFlakes = computed<Flake[]>(() => {
   & input[type=checkbox]:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
 
   &.-disabled>.label {
     color: var(--text-faint);
   }
-}
-
 }
 </style>
 
