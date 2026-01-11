@@ -4,7 +4,7 @@ import { moment, Notice } from 'obsidian'
 import { until, useDebounceFn, useElementSize, useTextareaAutosize } from '@vueuse/core'
 import type { Flake, FlakeType } from '@/data'
 import type { PileActions } from '@/app'
-import { ObIcon, ObText } from '@/components'
+import { ObIcon } from '@/components'
 
 const props = defineProps<{
   flake: Flake
@@ -50,6 +50,7 @@ const height = computed(() => {
     + nameSize.height.value
     + contentSize.height.value
     + footerSize.height.value
+  // TODO: add the height of horizontal scroll bar when overflows.
 })
 
 const requestReportHeight = useDebounceFn((height: number) => {
@@ -191,19 +192,22 @@ const typeButtonClass = (type: FlakeType) => {
           class="flake-name -edit" />
       </div>
 
-      <div class="content">
+      <div class="scrollable">
         <div ref="el-content" class="flake-content">
           <div v-if="viewing && isEmpty" class="none">
             No Content
           </div>
+
           <div v-if="viewing && isTextlike"
             ref="el-markdown"
             class="fp-markdown view"
             :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']">
           </div>
+
           <div v-if="viewing && isImage">
             <!-- TODO -->
           </div>
+
           <textarea v-if="editing"
             ref="editAreaRef"
             v-model="editContent"
@@ -244,7 +248,8 @@ const typeButtonClass = (type: FlakeType) => {
           </div>
 
           <div v-if="flake.type == 'code'" class="edit-options">
-            <ObText v-model="flake.codeLang"
+            <input v-model="flake.codeLang"
+              type="text"
               class="expand codelang"
               placeholder="Language..." />
 
@@ -351,7 +356,7 @@ const typeButtonClass = (type: FlakeType) => {
   color: var(--flake-text);
   background-color: var(--flake-text-bg);
 
-  & .content {
+  & .scrollable {
     overflow-y: auto;
     scrollbar-gutter: stable;
   }
