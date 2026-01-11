@@ -60,9 +60,12 @@ const canvasRef = useTemplateRef('el-canvas')
 const canvasSize = useElementSize(canvasRef)
 const canvasBounding = useElementBounding(canvasRef)
 
-const masonryRef = useTemplateRef('el-mansory')
+const masonryRef = useTemplateRef('el-masonry')
 const masonryBounding = useElementBounding(masonryRef)
 
+const scrollX = computed(() => {
+  return canvasBounding.left.value - masonryBounding.left.value
+})
 const scrollY = computed(() => {
   return canvasBounding.top.value - masonryBounding.top.value
 })
@@ -229,9 +232,10 @@ const sortedFlakes = computed<Flake[]>(() => {
         <template v-else>
           <MasonryUnified
             :id="pile.id"
-            ref="el-mansory"
+            ref="el-masonry"
             :flakes="sortedFlakes"
             :flow="adaptiveFlow"
+            :scroll-x="scrollX"
             :scroll-y="scrollY"
             :options="{
               width: pile.width,
@@ -278,7 +282,7 @@ const sortedFlakes = computed<Flake[]>(() => {
         <span class="label">Height</span>
         <ObSlider v-model="pile.maxHeight"
           :default="1"
-          :min="0.25"
+          :min="0.4"
           :max="2.5"
           :step="0.05"
           :disabled="!pile.enableMaxHeight"
@@ -413,10 +417,6 @@ const sortedFlakes = computed<Flake[]>(() => {
   & .slider {
     width: auto;
     min-width: 120px;
-  }
-
-  & input[type=checkbox] {
-    margin-inline-end: 0;
   }
 
   & input[type=checkbox]:disabled {

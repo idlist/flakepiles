@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref, shallowRef, watch, type StyleValue } from 'vue'
+import { computed, reactive, ref, shallowRef, useTemplateRef, watch, type StyleValue } from 'vue'
 import { until, useThrottleFn } from '@vueuse/core'
 import type { Flake } from '@/data'
 import { px, pxy, PAD_Y, type MasonryOptions, type ResolvedMasonry, type ResolvedRect, type ResolvedMasonrySize } from './masonry-common'
@@ -8,14 +8,19 @@ import { resolveMasonryHorizontal } from './masonry-horizontal'
 import { resolveMasonryMobile } from './masonry-mobile'
 import FlakeView from './FlakeView.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   id: string
   flakes: Flake[]
-  scrollY: number
   flow: 'vertical' | 'horizontal' | 'mobile'
+  scrollX?: number
+  scrollY?: number
   options: MasonryOptions
-}>()
+}>(), {
+  scrollX: 0,
+  scrollY: 0,
+})
 
+const masonryRef = useTemplateRef('el-masonry')
 const flakeIds = computed(() => new Set(props.flakes.map((f) => f.id)))
 
 const editing = ref<string | null>(null)
@@ -83,7 +88,11 @@ const requestScrollTo = async (id: string) => {
   try {
     await until(() => flakeRefs.value.has(id) && resolvedFlakes.value.has(id))
       .toBe(true, requestTimeout)
-    flakeRefs.value.get(id)!.scrollIntoView()
+    flakeRefs.value.get(id)!.root!.scrollIntoView({
+      behavior: 'instant',
+      block: 'nearest',
+      inline: 'nearest',
+    })
   } catch (e) {
     console.warn('Failed to scroll into view:', e)
   }
@@ -234,13 +243,14 @@ watch([
 }, { immediate: true })
 
 defineExpose({
+  root: masonryRef,
   requestHighlight,
   requestScrollTo,
 })
 </script>
 
 <template>
-  <div class="masonry-unified" :style="masonryStyle">
+  <div ref="el-masonry" class="masonry-unified" :style="masonryStyle">
     <FlakeView v-for="flake of flakes"
       :key="flake.id"
       :ref="(el) => { setFlakeRef(flake.id, el as MaybeFlakeRef) }"

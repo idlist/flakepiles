@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, inject, onUnmounted, ref, useTemplateRef, watch, type StyleValue } from 'vue'
-import { MarkdownRenderer, moment, Notice, type App, type Component } from 'obsidian'
+import { moment, Notice } from 'obsidian'
 import { until, useElementSize, useTextareaAutosize, useThrottleFn, watchDebounced } from '@vueuse/core'
 import type { Flake } from '@/data'
-import type { FileRef, PileActions } from '@/app'
+import type { PileActions } from '@/app'
 import { ObIcon } from '@/components'
 
 const props = defineProps<{
@@ -24,15 +24,11 @@ const empty = () => !props.flake.content
 const viewing = computed(() => !props.editing)
 const { textarea: editAreaRef, input: editContent } = useTextareaAutosize()
 
-const app = inject('app') as App
-const leaf = inject('leaf') as Component
-const fileRef = inject('fileRef') as FileRef
 const actions = inject('actions') as PileActions
-
 const flakeRef = useTemplateRef('el-flake')
 const nameRef = useTemplateRef('el-name')
 const contentRef = useTemplateRef('el-content')
-const markdownAnchorRef = useTemplateRef('el-markdown-anchor')
+const markdownRef = useTemplateRef('el-markdown')
 
 // Might need nextTick() to wait for rendering.
 const getFrameBorderHeight = (): number => {
@@ -56,32 +52,15 @@ watchDebounced(height, (next, prev) => {
   emit('height-update', props.flake.id, next)
 }, { debounce: 10 })
 
-const renderContent = async () => {
-  try {
-    const markdownAnchorEl = markdownAnchorRef.value!
-    markdownAnchorEl.innerHTML = ''
-
-    await MarkdownRenderer.render(
-      app,
-      props.flake.content,
-      markdownAnchorEl,
-      fileRef.value!.path,
-      leaf,
-    )
-  } catch (e) {
-    console.warn('Error rendering Flake content: ', e)
-  }
-}
-
 watch([
-  markdownAnchorRef,
+  markdownRef,
   () => props.flake.content,
   () => props.editing,
 ], async () => {
-  if (!markdownAnchorRef.value) return
+  if (!markdownRef.value) return
   if (empty()) return
   if (props.editing) return
-  renderContent()
+  actions.injectMarkdown(markdownRef.value, props.flake.content)
 }, { immediate: true })
 
 const editBegin = () => {
@@ -152,11 +131,11 @@ type LightType = 'short' | 'long'
 const light = ref<LightType | null>(null)
 const lightDuration: Record<LightType, number> = {
   short: 500,
-  long: 1000,
+  long: 2000,
 }
 let lightHandle: number | undefined
 
-const highlight = async (type: LightType)=> {
+const highlight = async (type: LightType) => {
   clearTimeout(lightHandle)
 
   light.value = type
@@ -180,16 +159,9 @@ onUnmounted(() => {
   clearTimeout(lightHandle)
 })
 
-const scrollIntoView = () => {
-  return flakeRef.value?.scrollIntoView({
-    block: 'nearest',
-    inline: 'nearest',
-  })
-}
-
 defineExpose({
+  root: flakeRef,
   highlight,
-  scrollIntoView,
 })
 
 const outerClass = computed<Record<string, boolean>>(() => {
@@ -215,7 +187,7 @@ const outerClass = computed<Record<string, boolean>>(() => {
             No Content
           </div>
           <div v-if="viewing && !empty()"
-            ref="el-markdown-anchor"
+            ref="el-markdown"
             class="view fp-markdown">
           </div>
           <textarea v-if="editing"
@@ -254,38 +226,49 @@ const outerClass = computed<Record<string, boolean>>(() => {
 .flake-view {
   content-visibility: auto;
 
-  border: var(--border-width) solid var(--flake-border);
-  border-radius: var(--radius-s);
-  box-shadow:
+  --box-shadow:
     0 0 4px var(--flake-shadow),
     1px 1px 2px var(--flake-shadow);
+  --box-shadow-heavy:
+    0 0 8px var(--flake-shadow-heavy),
+    1px 1px 4px var(--flake-shadow);
+
+  border: var(--border-width) solid var(--flake-border);
+  border-radius: var(--radius-s);
+  box-shadow: var(--box-shadow);
 
   display: grid;
   min-height: 0;
   max-height: 100%;
   position: relative;
 
-  @keyframes lightout {
-    0% {
-      box-shadow:
-        0 0 8px var(--flake-shadow-heavy),
-        1px 1px 4px var(--flake-shadow);
-    }
-  }
-
   &.-editing {
-    box-shadow:
-      0 0 8px var(--flake-shadow-heavy),
-      1px 1px 4px var(--flake-shadow);
+    box-shadow: var(--box-shadow-heavy);
     z-index: 10;
   }
 
+  @keyframes light-short {
+    0% {
+      box-shadow: var(--box-shadow-heavy)
+    }
+  }
+
   &.-lightshort {
-    animation: 0.5s ease-out lightout;
+    animation: 0.5s linear light-short;
+  }
+
+  @keyframes light-long {
+    0% {
+      box-shadow: var(--box-shadow-heavy)
+    }
+
+    25% {
+      box-shadow: var(--box-shadow-heavy)
+    }
   }
 
   &.-lightlong {
-    animation: 1s ease-out lightout;
+    animation: 2s linear light-long;
   }
 
   &:hover>.flake-menu {

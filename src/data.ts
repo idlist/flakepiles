@@ -40,6 +40,7 @@ export const createDummyFlake = (): Flake => {
 }
 
 export interface FlakeLabel {
+  id: string
   name: string
   color: string
 }

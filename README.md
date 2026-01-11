@@ -19,10 +19,10 @@ Vite + Vue 3 + Sass
 ## Goals
 
 - [x] Mount Vue into Obsidian
-- [ ] Flakepile
+- [x] Flakepile
   - [x] Flow direction (vertical / horizontal)
   - [x] Flake size
-  - [ ] Flake elastic sizing
+  - [x] Flake elastic sizing
   - [x] Flake sorting
   - [x] Mobile-adaptive layout
 - [ ] Flake
@@ -30,16 +30,21 @@ Vite + Vue 3 + Sass
   - [x] Flake creation, update, deletion
   - [ ] Flake type (text / image / code)
   - [ ] Flake color (theme)
-  - [ ] Flake labels
-- [ ] Searching inside a Flakepile
-- [ ] Batch loading when having many Flakes
+- [ ] Flake labels
+  - [ ] Label creation, update, deletion
+  - [ ] Label color
+  - [ ] Hide specific label (display as `+N`)
+  - [ ] Label filtering
+- [ ] Search inside a Flakepile
+  - [ ] Search title
+  - [ ] Search content
 - [ ] Import multiple markdown files to Flakes
 - [ ] Export files to a .zip archive, each Flake as a markdown file
 
 ## Non-goals
 
 - Live editing of Flake (too complex)
-- Cross-file searching or Obsidian-wise searching (restricted by API)
+- Cross-file searching / Obsidian-wise searching (restricted by API)
 - File linking (tags, wiki links) (restricted by API)
 
 ## License

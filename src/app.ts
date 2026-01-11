@@ -1,4 +1,7 @@
-import { Notice, TextFileView, type TFile, type WorkspaceLeaf } from 'obsidian'
+import {
+  Keymap, MarkdownRenderer, Notice, TextFileView,
+  type TFile, type WorkspaceLeaf,
+} from 'obsidian'
 import {
   createApp, shallowRef, triggerRef, ref,
   type App as VueApp, type Component, type ShallowRef, type Ref,
@@ -15,6 +18,7 @@ export type PileRef = Ref<Flakepile>
 export interface PileActions {
   save: () => void
   saveLazy: () => void
+  injectMarkdown: (elementToInject: HTMLElement, content: string) => Promise<void>
   deleteFlake: (id: string) => void
 }
 
@@ -50,6 +54,23 @@ export class FlakepileApp extends TextFileView {
         if (!this.parsed) return
         this.requestSave()
       },
+      injectMarkdown: async (elementToInject, content) => {
+        try {
+          elementToInject.innerHTML = ''
+
+          await MarkdownRenderer.render(
+            this.app,
+            content,
+            elementToInject,
+            this.file!.path,
+            this,
+          )
+
+          this.hydrateMarkdown(elementToInject)
+        } catch (e) {
+          console.warn('Error rendering Flake content: ', e)
+        }
+      },
       deleteFlake: (id) => {
         const index = this.pile.value.flakes.findIndex((f) => f.id == id)
         if (index == -1) return
@@ -62,8 +83,6 @@ export class FlakepileApp extends TextFileView {
       pile: this.pile,
     })
 
-    this.view.provide('app', this.app)
-    this.view.provide('leaf', this)
     this.view.provide('parsed', this.parsed)
     this.view.provide('fileRef', this.fileRef)
     this.view.provide('actions', actions)
@@ -72,6 +91,14 @@ export class FlakepileApp extends TextFileView {
     this.registerEvent(this.app.vault.on('rename', () => {
       triggerRef(this.fileRef)
     }))
+  }
+
+  hydrateMarkdown(rendered: HTMLElement) {
+    // Support internal links.
+    rendered.on('click', 'a.internal-link', (e, target) => {
+      const link = target.getAttribute('data-href')
+      void this.app.workspace.openLinkText(link!, this.file!.path, Keymap.isModEvent(e))
+    })
   }
 
   async onClose() {

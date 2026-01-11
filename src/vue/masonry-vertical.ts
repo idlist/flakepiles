@@ -7,7 +7,7 @@ import type { Flake } from '@/data'
 
 const getBasis = (options: MasonryOptions) => {
   let width = FLAKE_UNIT * options.width
-  const usableWidth = options.canvasWidth - PAD_X * 2
+  const usableWidth = options.canvasWidth - 2 * PAD_X
   let column: number = 1
 
   if (width >= usableWidth) {
