@@ -9,7 +9,7 @@ import {
 import { createFlakepile, type Flakepile } from './data'
 import FlakepileView from './vue/FlakepileView.vue'
 
-export const VIEW_TYPE = 'flakepile-view'
+export const VIEW_TYPE = 'flakepile'
 
 export type FileRef = ShallowRef<TFile | null>
 
@@ -94,10 +94,40 @@ export class FlakepileApp extends TextFileView {
   }
 
   hydrateMarkdown(rendered: HTMLElement) {
+    const sourcePath = this.file!.path
+
     // Support internal links.
     rendered.on('click', 'a.internal-link', (e, target) => {
-      const link = target.getAttribute('data-href')
-      void this.app.workspace.openLinkText(link!, this.file!.path, Keymap.isModEvent(e))
+      const linktext = target.getAttribute('data-href')
+      if (!linktext) return
+
+      void this.app.workspace.openLinkText(linktext, sourcePath, Keymap.isModEvent(e))
+    })
+
+    // Support page preview.
+    // Reference: https://gist.github.com/Quorafind/16202a6b07319a63846e7e534e64d8b2
+    rendered.on('mouseover', 'a.internal-link', (e, target) => {
+      const linktext = target.getAttribute('data-href')
+      if (!linktext) return
+
+      this.app.workspace.trigger('hover-link', {
+        event: e,
+        source: 'preview',
+        hoverParent: rendered,
+        targetEl: e.currentTarget,
+        linktext,
+        sourcePath,
+      })
+    })
+
+    // Support jumping to global search when clicking on a tag.
+    // Currently not possible to register tags in custom file type to global search.
+    rendered.on('click', 'a.tag', (_, target) => {
+      const searchPlugin = this.app.internalPlugins.getEnabledPluginById('global-search')
+      if (!searchPlugin) return
+
+      const tagname = target.innerText.trim()
+      searchPlugin.openGlobalSearch(`tag:${tagname}`)
     })
   }
 

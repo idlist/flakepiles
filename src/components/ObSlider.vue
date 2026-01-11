@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, watch, useTemplateRef } from 'vue'
 import { SliderComponent } from 'obsidian'
+import { exists } from '@rewl/kit'
 import ObIcon from './ObIcon.vue'
 
 const props = withDefaults(defineProps<{
@@ -20,12 +21,14 @@ const props = withDefaults(defineProps<{
   showTooltip: true,
 })
 
-const model = defineModel<number>({ required: true })
+const model = defineModel<number>()
 
 const sliderRef = useTemplateRef('el-slider')
 let component: SliderComponent | null = null
 
 onMounted(() => {
+  model.value = props.default
+
   if (sliderRef.value) {
     component = new SliderComponent(sliderRef.value)
       .setLimits(props.min, props.max, props.step)
@@ -43,7 +46,7 @@ onMounted(() => {
 })
 
 watch(() => model.value, (next) => {
-  if (component && component.getValue() !== next) {
+  if (exists(next) && component && component.getValue() !== next) {
     component.setValue(next)
   }
 })

@@ -26,9 +26,11 @@ Vite + Vue 3 + Sass
   - [x] Flake sorting
   - [x] Mobile-adaptive layout
 - [ ] Flake
-  - [x] Flake markdown rendering
   - [x] Flake creation, update, deletion
-  - [ ] Flake type (text / image / code)
+  - [x] Flake markdown rendering
+  - [x] Text Flake
+  - [ ] Code Flake
+  - [ ] Image Flake
   - [ ] Flake color (theme)
 - [ ] Flake labels
   - [ ] Label creation, update, deletion

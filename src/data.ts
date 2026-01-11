@@ -1,5 +1,4 @@
 import { moment } from 'obsidian'
-import { faker } from '@faker-js/faker'
 import { nanoid } from 'nanoid'
 
 export interface Flake {
@@ -10,6 +9,10 @@ export interface Flake {
   name: string
   type: 'text' | 'image' | 'code'
   content: string
+  /** When `type` is `image`, hide title bar. */
+  imageOnly: boolean
+  /** When `type` is `code`, the highlight of the code  */
+  codeLang: string
   labels: string[]
 }
 
@@ -22,19 +25,8 @@ export const createFlake = (): Flake => {
     name: 'New Flake',
     type: 'text',
     content: '',
-    labels: [],
-  }
-}
-
-export const createDummyFlake = (): Flake => {
-  return {
-    id: nanoid(16),
-    createdAt: moment.now(),
-    modifiedAt: moment.now(),
-    theme: 'default',
-    name: faker.lorem.words(),
-    type: 'text',
-    content: faker.lorem.lines(),
+    imageOnly: false,
+    codeLang: '',
     labels: [],
   }
 }
@@ -51,9 +43,13 @@ export interface FlakeTheme {
   colorText: string
 }
 
+export type PileFlow = 'vertical' | 'horizontal'
+
+export type PileAdaptiveFlow = PileFlow | 'mobile'
+
 export interface Flakepile {
   id: string
-  flow: 'vertical' | 'horizontal'
+  flow: PileFlow
   sortBy: 'name' | 'createdAt' | 'modifiedAt'
   sortOrder: 'asc' | 'desc'
   width: number

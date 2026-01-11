@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, onUnmounted, ref, useTemplateRef, watch, type StyleValue } from 'vue'
 import { moment, Notice } from 'obsidian'
-import { until, useElementSize, useTextareaAutosize, useThrottleFn, watchDebounced } from '@vueuse/core'
+import { until, useElementSize, useTextareaAutosize, watchDebounced } from '@vueuse/core'
 import type { Flake } from '@/data'
 import type { PileActions } from '@/app'
 import { ObIcon } from '@/components'
@@ -23,6 +23,7 @@ const empty = () => !props.flake.content
 
 const viewing = computed(() => !props.editing)
 const { textarea: editAreaRef, input: editContent } = useTextareaAutosize()
+const editName = ref<string>('')
 
 const actions = inject('actions') as PileActions
 const flakeRef = useTemplateRef('el-flake')
@@ -60,10 +61,12 @@ watch([
   if (!markdownRef.value) return
   if (empty()) return
   if (props.editing) return
+
   actions.injectMarkdown(markdownRef.value, props.flake.content)
 }, { immediate: true })
 
 const editBegin = () => {
+  editName.value = props.flake.name
   editContent.value = props.flake.content
   emit('edit-begin', props.flake.id)
 }
@@ -71,29 +74,6 @@ const editBegin = () => {
 const editFinish = async () => {
   emit('edit-finish', props.flake.id)
 }
-
-const lazyContent = useThrottleFn(() => {
-  props.flake.content = editContent.value.trim()
-}, 100)
-
-const lazyModifiedAt = useThrottleFn(() => {
-  props.flake.modifiedAt = moment.now()
-}, 100)
-
-watch(() => props.flake.name, () => {
-  if (!props.editing) return
-
-  lazyModifiedAt()
-  actions.saveLazy()
-})
-
-watch(editContent, () => {
-  if (!props.editing) return
-
-  lazyContent()
-  lazyModifiedAt()
-  actions.saveLazy()
-})
 
 const requestFocusEditArea = async () => {
   await until(editAreaRef).toBeTruthy({ timeout: 1000 })
@@ -106,6 +86,7 @@ watch(() => props.editing, () => {
     requestFocusEditArea()
   }
   else {
+    props.flake.name = editName.value.trim()
     props.flake.content = editContent.value.trim()
     props.flake.modifiedAt = moment.now()
     actions.save()
@@ -116,13 +97,23 @@ const deleteThis = () => {
   actions.deleteFlake(props.flake.id)
 }
 
-const copy = async () => {
+const copyContent = async () => {
   try {
     await navigator.clipboard.writeText(props.flake.content)
-    new Notice('Copied!', 1000)
+    new Notice('Content copied.', 1000)
   } catch (e) {
     console.warn(`Failed to copy the content of Flake ${props.flake.id}: `, e)
-    new Notice('Failed to copy. Check dev console for detail.', 0)
+    new Notice('Failed to copy content. Check dev console for detail.', 0)
+  }
+}
+
+const copyJson = async () => {
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(props.flake, null, 2))
+    new Notice('Raw JSON copied.', 1000)
+  } catch (e) {
+    console.warn(`Failed to copy the raw JSON of Flake ${props.flake.id}: `, e)
+    new Notice('Failed to copy raw JSON. Check dev console for detail.', 0)
   }
 }
 
@@ -178,7 +169,7 @@ const outerClass = computed<Record<string, boolean>>(() => {
     <div class="flake-card" :style="innerStyle">
       <div ref="el-name">
         <div v-if="viewing" class="name">{{ flake.name }}</div>
-        <input v-if="editing" v-model="flake.name" class="nameedit" />
+        <input v-if="editing" v-model="editName" class="nameedit" />
       </div>
 
       <div class="content">
@@ -202,14 +193,20 @@ const outerClass = computed<Record<string, boolean>>(() => {
     </div>
 
     <div class="flake-menu">
-      <button v-if="viewing" class="fp-btn-icon -red" @click="deleteThis">
+      <button v-if="viewing" class="fp-btn-icon danger" @click="deleteThis">
         <ObIcon name="trash-2" />
+      </button>
+
+      <div class="grow"></div>
+
+      <button v-if="viewing" class="fp-btn-icon" @click="copyJson">
+        <ObIcon name="braces" />
+      </button>
+      <button v-if="viewing" class="fp-btn-icon" @click="copyContent">
+        <ObIcon name="copy" />
       </button>
       <button v-if="viewing" class="fp-btn-icon" @click="editBegin">
         <ObIcon name="pencil-line" />
-      </button>
-      <button v-if="viewing" class="fp-btn-icon" @click="copy">
-        <ObIcon name="copy" />
       </button>
       <button v-if="editing" class="fp-btn-icon" @click="editFinish">
         <ObIcon name="check" />
@@ -295,6 +292,7 @@ const outerClass = computed<Record<string, boolean>>(() => {
 
   %flake-name {
     padding: 0.375em 0.5em 0.25em 0.5em;
+    width: 100%;
     line-height: 1.5;
 
     font-family: var(--font-default);
@@ -355,17 +353,33 @@ const outerClass = computed<Record<string, boolean>>(() => {
     overflow-wrap: break-word;
     resize: none;
     border: none;
+    box-shadow: none;
   }
 }
 
 .flake-menu {
   position: absolute;
   top: 0.25em;
+  left: 0.25em;
   right: 0.25em;
   z-index: 20;
 
   display: none; // flex when hovered
   flex-direction: row;
   column-gap: 0.25em;
+  pointer-events: none;
+
+  >button {
+    pointer-events: visible;
+  }
+
+  >.grow {
+    flex-grow: 1;
+  }
+
+  >.danger {
+    color: var(--color-base-00);
+    background-color: var(--color-red);
+  }
 }
 </style>

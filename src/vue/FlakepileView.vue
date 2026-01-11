@@ -3,13 +3,15 @@ import { Platform } from 'obsidian'
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
-import { createFlake, type Flake } from '@/data'
+import { createFlake, type Flake, type PileAdaptiveFlow } from '@/data'
 import type { FileRef, PileActions, PileRef } from '@/app'
-import { ObIcon, ObSearch, ObSlider } from '@/components'
+import { ObIcon, ObSearch } from '@/components'
 
 import MenuButton from './MenuButton.vue'
 import SortOptions from './SortOptions.vue'
 import MasonryUnified from './MasonryUnified.vue'
+import SizeOptionsPanel from './SizeOptionsPanel.vue'
+import LabelsPanel from './LabelsPanel.vue'
 
 const props = defineProps<{
   pile: PileRef
@@ -18,6 +20,7 @@ const pile = props.pile
 
 const fileRef = inject('fileRef') as FileRef
 const actions = inject('actions') as PileActions
+const name = computed<string>(() => fileRef.value?.basename ?? '')
 
 watch([
   () => pile.value.flow,
@@ -46,14 +49,11 @@ const isDesktop = computed(() => Platform.isDesktop)
 const isViewportSmall = computed(() => vw.value <= 600)
 const isViewportLarge = computed(() => vw.value > 600)
 
-const adaptiveFlow = computed(() => {
+const adaptiveFlow = computed<PileAdaptiveFlow>(() => {
   return isViewportSmall.value ? 'mobile' : pile.value.flow
 })
 const placeFlowOptions = computed(() => {
   return isDesktop.value && isViewportLarge.value
-})
-const adaptiveMenuItemClass = computed<string[]>(() => {
-  return ['fp-menu-item', isViewportLarge.value ? '-withlabel' : '-nolabel']
 })
 
 const canvasRef = useTemplateRef('el-canvas')
@@ -71,20 +71,41 @@ const scrollY = computed(() => {
 })
 
 const isMenuExpanded = ref(false)
+const showSizeOptions = ref(false)
+const showLabels = ref(true)
 
+// Reset menu and panels when changing files.
 watch(() => pile.value.id, () => {
   isMenuExpanded.value = false
   showSizeOptions.value = false
+  showLabels.value = false
 })
 
+// Close *some* panels when the viewport is resized to small.
 watch(isViewportSmall, (small) => {
   if (small) {
     showSizeOptions.value = false
   }
 })
 
-const name = computed<string>(() => {
-  return fileRef.value?.basename ?? ''
+const sizeOptionsButtonRef = useTemplateRef('el-size-options-button')
+const sizeOptionsPanelRef = useTemplateRef<HTMLElement>('el-size-options-panel')
+const {
+  floatingStyles: sizeOptionsPanelStyles,
+} = useFloating(sizeOptionsButtonRef, sizeOptionsPanelRef, {
+  placement: 'bottom-end',
+  middleware: [offset(4), shift({ padding: 4 })],
+  whileElementsMounted: autoUpdate,
+})
+
+const labelsButtonRef = useTemplateRef<HTMLElement>('el-labels-button')
+const labelsPanelRef = useTemplateRef<HTMLElement>('el-labels-panel')
+const {
+  floatingStyles: labelPanelStyles,
+} = useFloating(labelsButtonRef, labelsPanelRef, {
+  placement: 'bottom-start',
+  middleware: [offset(4), shift({ padding: 4 })],
+  whileElementsMounted: autoUpdate,
 })
 
 const addFlake = () => {
@@ -97,22 +118,6 @@ const addFlake = () => {
 }
 
 const searchQueue = ref<string>('')
-
-const showSizeOptions = ref(false)
-
-const toggleSizeOptions = () => {
-  showSizeOptions.value = !showSizeOptions.value
-}
-
-const sizeOptionsButtonRef = useTemplateRef('el-size-options-button')
-const sizeOptionsPanelRef = useTemplateRef('el-size-options-panel')
-const {
-  floatingStyles: sizeOptionsPanelStyles,
-} = useFloating(sizeOptionsButtonRef, sizeOptionsPanelRef, {
-  placement: 'bottom-end',
-  middleware: [offset(4), shift({ padding: 4 })],
-  whileElementsMounted: autoUpdate,
-})
 
 const sortedFlakes = computed<Flake[]>(() => {
   const sorted = [...pile.value.flakes]
@@ -147,6 +152,12 @@ const sortedFlakes = computed<Flake[]>(() => {
 
   return sorted
 })
+
+const adaptiveToolClass = computed(() => {
+  return isViewportSmall.value
+    ? 'fp-btn-icon-label -nolabel'
+    : 'fp-btn-icon-label'
+})
 </script>
 
 <template>
@@ -156,13 +167,13 @@ const sortedFlakes = computed<Flake[]>(() => {
 
       <div class="menu-area">
         <div v-if="!isMenuExpanded" class="menu-main">
-          <div :class="adaptiveMenuItemClass">
-            <MenuButton icon="plus" label="Add Flake" @click="addFlake" />
-          </div>
+          <MenuButton
+            :class="adaptiveToolClass"
+            icon="plus"
+            label="Add Flake"
+            @click="addFlake" />
 
-          <div class="fp-menu-item -grow">
-            <ObSearch v-model="searchQueue" class="wfull" />
-          </div>
+          <ObSearch v-model="searchQueue" class="wfull" />
 
           <button
             class="fp-btn-icon"
@@ -172,17 +183,17 @@ const sortedFlakes = computed<Flake[]>(() => {
         </div>
 
         <div v-if="isMenuExpanded" class="menu-main">
-          <div :class="adaptiveMenuItemClass">
-            <MenuButton icon="tags" label="Labels" />
-          </div>
+          <MenuButton ref="el-labels-button"
+            :class="adaptiveToolClass"
+            icon="tags"
+            label="Labels"
+            @click="showLabels = !showLabels" />
 
-          <div class="fp-menu-item -grow"></div>
+          <div class="expand"></div>
 
-          <div :class="adaptiveMenuItemClass">
-            <SortOptions
-              v-model:sort-by="pile.sortBy"
-              v-model:sort-order="pile.sortOrder" />
-          </div>
+          <SortOptions
+            v-model:sort-by="pile.sortBy"
+            v-model:sort-order="pile.sortOrder" />
 
           <button
             class="fp-btn-icon"
@@ -192,19 +203,23 @@ const sortedFlakes = computed<Flake[]>(() => {
         </div>
 
         <div v-if="isMenuExpanded" class="menu-above">
-          <div v-if="isDesktop"
-            :class="adaptiveMenuItemClass">
-            <MenuButton icon="import" label="Import" />
+          <div v-if="isDesktop">
+            <MenuButton
+              :class="adaptiveToolClass"
+              icon="import"
+              label="Import..." />
           </div>
 
-          <div v-if="isDesktop"
-            :class="adaptiveMenuItemClass">
-            <MenuButton icon="archive-restore" label="Export..." />
+          <div v-if="isDesktop">
+            <MenuButton
+              :class="adaptiveToolClass"
+              icon="archive-restore"
+              label="Export..." />
           </div>
 
-          <div class="fp-menu-item -grow"></div>
+          <div class="expand"></div>
 
-          <div v-if="placeFlowOptions" class="fp-menu-item">
+          <template v-if="placeFlowOptions">
             <label>Flow</label>
             <ObIcon v-if="pile.flow == 'vertical'" name="move-vertical" />
             <ObIcon v-if="pile.flow == 'horizontal'" name="move-horizontal" />
@@ -212,15 +227,13 @@ const sortedFlakes = computed<Flake[]>(() => {
               <option value="vertical">Vertical</option>
               <option value="horizontal">Horizontal</option>
             </select>
-          </div>
 
-          <div v-if="placeFlowOptions" class="fp-menu-item -withlabel">
-            <MenuButton
-              ref="el-size-options-button"
+            <MenuButton ref="el-size-options-button"
+              class="fp-btn-icon-label"
               icon="scaling"
               label="Size Options"
-              @click="toggleSizeOptions" />
-          </div>
+              @click="showSizeOptions = !showSizeOptions" />
+          </template>
         </div>
       </div>
     </div>
@@ -252,51 +265,19 @@ const sortedFlakes = computed<Flake[]>(() => {
   </div>
 
   <div class="floating-container">
-    <div v-if="showSizeOptions"
+    <SizeOptionsPanel v-if="showSizeOptions"
       ref="el-size-options-panel"
-      class="fp-obsidian-panel size-options-panel"
-      :style="sizeOptionsPanelStyles">
-      <div class="size-option">
-        <span>Width</span>
-        <ObSlider v-model="pile.width"
-          :default="1"
-          :min="0.5"
-          :max="2"
-          :step="0.05"
-          class="slider" />
-      </div>
+      v-model:width="pile.width"
+      v-model:elastic-width="pile.elasticWidth"
+      v-model:enable-max-height="pile.enableMaxHeight"
+      v-model:max-height="pile.maxHeight"
+      v-model:elastic-height="pile.elasticHeight"
+      :flow="pile.flow"
+      :style="sizeOptionsPanelStyles" />
 
-      <label v-if="pile.flow == 'vertical'" class="size-option">
-        <span>Elastic Width</span>
-        <input v-model="pile.elasticWidth" type="checkbox" />
-      </label>
-
-      <hr />
-
-      <label class="size-option">
-        <span>Set Maximum Height</span>
-        <input v-model="pile.enableMaxHeight" type="checkbox" />
-      </label>
-
-      <div :class="['size-option', pile.enableMaxHeight ? '' : '-disabled']">
-        <span class="label">Height</span>
-        <ObSlider v-model="pile.maxHeight"
-          :default="1"
-          :min="0.4"
-          :max="2.5"
-          :step="0.05"
-          :disabled="!pile.enableMaxHeight"
-          class="slider" />
-      </div>
-
-      <label v-if="pile.flow == 'horizontal'"
-        :class="['size-option', pile.enableMaxHeight ? '' : '-disabled']">
-        <span class="label">Elastic Height</span>
-        <input v-model="pile.elasticHeight"
-          type="checkbox"
-          :disabled="!pile.enableMaxHeight" />
-      </label>
-    </div>
+    <LabelsPanel v-if="showLabels"
+      ref="el-labels-panel"
+      :style="labelPanelStyles" />
   </div>
 </template>
 
@@ -307,10 +288,10 @@ const sortedFlakes = computed<Flake[]>(() => {
   @extend %fp-inset;
   position: fixed;
   top: var(--header-height);
+  min-width: 400px;
 
   display: grid;
   grid-template-rows: min-content auto;
-  font-size: var(--font-text-size);
 
   >.header {
     position: relative;
@@ -345,11 +326,20 @@ const sortedFlakes = computed<Flake[]>(() => {
 }
 
 %fp-tools {
-  width: 100%;
   display: flex;
   align-items: center;
   column-gap: 0.5em;
-  font-size: var(--font-smaller);
+
+  width: 100%;
+  font-size: var(--font-ui-small);
+
+  >.expand {
+    flex-grow: 1;
+  }
+
+  >.wfull {
+    width: 100%;
+  }
 }
 
 %fp-tools-additional {
@@ -392,70 +382,5 @@ const sortedFlakes = computed<Flake[]>(() => {
   position: fixed;
   z-index: 10;
   pointer-events: none;
-}
-
-.size-options-panel {
-  font-size: var(--font-small);
-  pointer-events: painted;
-
-  display: grid;
-  row-gap: 0.5em;
-  padding: 0.75em;
-
-  >:deep(hr) {
-    margin: 0.125em 0;
-  }
-}
-
-.size-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  column-gap: 1em;
-  padding: 0 0.25em;
-
-  & .slider {
-    width: auto;
-    min-width: 120px;
-  }
-
-  & input[type=checkbox]:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  &.-disabled>.label {
-    color: var(--text-faint);
-  }
-}
-</style>
-
-<style lang="scss">
-@use '../globals.scss' as *;
-
-.fp-menu-item {
-  display: flex;
-  align-items: center;
-  column-gap: 0.5em;
-
-  &.-grow {
-    flex-grow: 1;
-  }
-
-  &.-withlabel .button {
-    @extend .fp-btn-icon-with-label;
-  }
-
-  &.-nolabel .button {
-    @extend .fp-btn-icon;
-  }
-
-  &.-nolabel .label {
-    display: none;
-  }
-
-  >.wfull {
-    width: 100%;
-  }
 }
 </style>

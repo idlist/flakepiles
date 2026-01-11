@@ -1,26 +1,31 @@
 .fp-btn-icon {
   padding: 0.5em;
-
-  .is-phone & {
-    min-width: var(--input-height);
-  }
-
-  &.-red {
-    color: var(--color-red);
-  }
+  min-width: var(--input-height);
 }
 
-.fp-btn-icon-with-label {
-  padding-left: 0.5em;
-
+.fp-btn-icon-label {
   display: flex;
   align-items: center;
   column-gap: 0.25em;
+
+  padding-left: 0.5em;
+
+  &.-nolabel {
+    @extend .fp-btn-icon
+  }
+
+  &.-nolabel .label {
+    display: none;
+  }
 }
 
 .fp-markdown {
   & p {
     margin: 0.5em 0;
+  }
+
+  & img {
+    border-radius: var(--radius-s);
   }
 }
 
@@ -29,6 +34,9 @@
   border: var(--border-width) solid var(--background-modifier-border);
   border-radius: var(--input-radius);
   box-shadow: var(--input-shadow);
+
+  padding: 0.75em;
+  pointer-events: painted;
 }
 
 %fp-inset {

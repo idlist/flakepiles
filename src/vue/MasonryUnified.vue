@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, shallowRef, useTemplateRef, watch, type StyleValue } from 'vue'
 import { until, useThrottleFn } from '@vueuse/core'
-import type { Flake } from '@/data'
+import type { Flake, PileAdaptiveFlow } from '@/data'
 import { px, pxy, PAD_Y, type MasonryOptions, type ResolvedMasonry, type ResolvedRect, type ResolvedMasonrySize } from './masonry-common'
 import { resolveMasonryVertical } from './masonry-vertical'
 import { resolveMasonryHorizontal } from './masonry-horizontal'
@@ -11,7 +11,7 @@ import FlakeView from './FlakeView.vue'
 const props = withDefaults(defineProps<{
   id: string
   flakes: Flake[]
-  flow: 'vertical' | 'horizontal' | 'mobile'
+  flow: PileAdaptiveFlow
   scrollX?: number
   scrollY?: number
   options: MasonryOptions
@@ -34,6 +34,11 @@ const onEditBegin = (id: string) => {
 const onEditFinish = () => {
   editing.value = null
 }
+
+watch(editing, (next, prev) => {
+  if (next && !prev) return
+  requestResolveMasonry()
+})
 
 const heightMap = reactive<Map<string, number>>(new Map())
 
@@ -215,12 +220,13 @@ const resolveMasonry = () => {
   }
 }
 
-const throttleResolveMasonry = useThrottleFn(resolveMasonry, 100, true)
+const requestResolveMasonry = useThrottleFn(resolveMasonry, 100, true)
 
-const requestResolveMasonry = () => {
+const autoResolveMasonry = () => {
   if (heightMap.size != props.flakes.length) return
+  if (editing.value) return
 
-  throttleResolveMasonry()
+  requestResolveMasonry()
 }
 
 watch(() => props.id, () => {
@@ -239,7 +245,7 @@ watch([
   () => props.options,
   heightMap,
 ], () => {
-  requestResolveMasonry()
+  autoResolveMasonry()
 }, { immediate: true })
 
 defineExpose({
