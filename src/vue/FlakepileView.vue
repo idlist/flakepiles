@@ -154,9 +154,9 @@ const sortedFlakes = computed<Flake[]>(() => {
 })
 
 const adaptiveToolClass = computed(() => {
-  return isViewportSmall.value
-    ? 'fp-btn-icon-label -nolabel'
-    : 'fp-btn-icon-label'
+  return isViewportLarge.value
+    ? 'fp-btn-icon-label'
+    : 'fp-btn-icon-label -nolabel'
 })
 </script>
 

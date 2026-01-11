@@ -35,11 +35,6 @@ const onEditFinish = () => {
   editing.value = null
 }
 
-watch(editing, (next, prev) => {
-  if (next && !prev) return
-  requestResolveMasonry()
-})
-
 const heightMap = reactive<Map<string, number>>(new Map())
 
 const onHeightUpdate = (id: string, height: number) => {
@@ -50,12 +45,6 @@ const onHeightUpdate = (id: string, height: number) => {
     heightMap.set(id, height)
   }
 }
-
-watch(editing, (_, prev) => {
-  if (!prev) return
-  if (!editingHeightCache.value) return
-  heightMap.set(prev, editingHeightCache.value)
-})
 
 const validateHeightMap = () => {
   for (const id of heightMap.keys()) {
@@ -145,9 +134,7 @@ const editingActualHeight = computed(() => {
   const contentHeight = props.options.canvasHeight - PAD_Y * 2
 
   let actualHeight = cachedHeight
-  if (actualHeight > contentHeight) {
-    actualHeight = contentHeight
-  }
+  actualHeight = Math.min(actualHeight, contentHeight)
 
   return actualHeight
 })
@@ -220,13 +207,13 @@ const resolveMasonry = () => {
   }
 }
 
-const requestResolveMasonry = useThrottleFn(resolveMasonry, 100, true)
+const resolveMasonryThrottled = useThrottleFn(resolveMasonry, 100, true)
 
 const autoResolveMasonry = () => {
   if (heightMap.size != props.flakes.length) return
   if (editing.value) return
 
-  requestResolveMasonry()
+  resolveMasonryThrottled()
 }
 
 watch(() => props.id, () => {

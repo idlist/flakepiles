@@ -6,7 +6,7 @@ import {
   createApp, shallowRef, triggerRef, ref,
   type App as VueApp, type Component, type ShallowRef, type Ref,
 } from 'vue'
-import { createFlakepile, type Flakepile } from './data'
+import { createFlakepile, type Flake, type Flakepile } from './data'
 import FlakepileView from './vue/FlakepileView.vue'
 
 export const VIEW_TYPE = 'flakepile'
@@ -18,9 +18,11 @@ export type PileRef = Ref<Flakepile>
 export interface PileActions {
   save: () => void
   saveLazy: () => void
-  injectMarkdown: (elementToInject: HTMLElement, content: string) => Promise<void>
+  renderContent: (elementToMount: HTMLElement, flake: Flake) => Promise<void>
   deleteFlake: (id: string) => void
 }
+
+const TICKS = '```'
 
 export class FlakepileApp extends TextFileView {
   view?: VueApp
@@ -40,6 +42,16 @@ export class FlakepileApp extends TextFileView {
     return this.file?.basename || 'Flakepile View'
   }
 
+  async mountMarkdown(target: HTMLElement, content: string) {
+    await MarkdownRenderer.render(
+      this.app,
+      content,
+      target,
+      this.file!.path,
+      this,
+    )
+  }
+
   async onOpen() {
     const container = this.contentEl
     container.empty()
@@ -54,19 +66,24 @@ export class FlakepileApp extends TextFileView {
         if (!this.parsed) return
         this.requestSave()
       },
-      injectMarkdown: async (elementToInject, content) => {
+      renderContent: async (elementToMount, flake) => {
         try {
-          elementToInject.innerHTML = ''
+          elementToMount.innerHTML = ''
+          let content: string = flake.content
 
-          await MarkdownRenderer.render(
-            this.app,
-            content,
-            elementToInject,
-            this.file!.path,
-            this,
-          )
+          if(flake.type == 'text') {
+            await this.mountMarkdown(elementToMount, flake.content)
+            this.hydrateMarkdown(elementToMount)
+          }
+          else if (flake.type == 'image') {
+            // TODO
+          }
+          else if (flake.type == 'code') {
+            content = `${TICKS}${flake.codeLang}\n${flake.content}\n${TICKS}`
+            await this.mountMarkdown(elementToMount, content)
+            this.codeBlockPostProcess(elementToMount)
 
-          this.hydrateMarkdown(elementToInject)
+          }
         } catch (e) {
           console.warn('Error rendering Flake content: ', e)
         }
@@ -129,6 +146,11 @@ export class FlakepileApp extends TextFileView {
       const tagname = target.innerText.trim()
       searchPlugin.openGlobalSearch(`tag:${tagname}`)
     })
+  }
+
+  codeBlockPostProcess(rendered: HTMLElement) {
+    const button = rendered.querySelector('pre>button.copy-code-button')
+    button?.remove()
   }
 
   async onClose() {

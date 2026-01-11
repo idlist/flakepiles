@@ -45,6 +45,9 @@ watch(() => props.disabled, (newVal) => {
 <style scoped>
 .ob-text-wrapper {
   display: flex;
+}
+
+.ob-text-wrapper :deep(input) {
   width: 100%;
 }
 </style>

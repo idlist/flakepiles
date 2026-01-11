@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, inject, onUnmounted, ref, useTemplateRef, watch, type StyleValue } from 'vue'
 import { moment, Notice } from 'obsidian'
-import { until, useElementSize, useTextareaAutosize, watchDebounced } from '@vueuse/core'
-import type { Flake } from '@/data'
+import { until, useDebounceFn, useElementSize, useTextareaAutosize } from '@vueuse/core'
+import type { Flake, FlakeType } from '@/data'
 import type { PileActions } from '@/app'
-import { ObIcon } from '@/components'
+import { ObIcon, ObText } from '@/components'
 
 const props = defineProps<{
   flake: Flake
@@ -19,39 +19,47 @@ const emit = defineEmits<{
   (e: 'height-update', id: string, height: number): void
 }>()
 
-const empty = () => !props.flake.content
+const isEmpty = computed(() => !props.flake.content)
+const isTextlike = computed(() => {
+  return !!props.flake.content && ['code', 'text'].includes(props.flake.type)
+})
+const isImage = computed(() => {
+  return !!props.flake.content && props.flake.type == 'image'
+})
+const noWrap = computed(() => {
+  return props.flake.type == 'code' && !props.flake.codeWrap
+})
 
 const viewing = computed(() => !props.editing)
 const { textarea: editAreaRef, input: editContent } = useTextareaAutosize()
 const editName = ref<string>('')
 
 const actions = inject('actions') as PileActions
+
 const flakeRef = useTemplateRef('el-flake')
 const nameRef = useTemplateRef('el-name')
 const contentRef = useTemplateRef('el-content')
+const footerRef = useTemplateRef('el-footer')
 const markdownRef = useTemplateRef('el-markdown')
-
-// Might need nextTick() to wait for rendering.
-const getFrameBorderHeight = (): number => {
-  if (!flakeRef.value) return 0
-  const styles = window.getComputedStyle(flakeRef.value)
-  const top = parseFloat(styles.borderTopWidth)
-  const bottom = parseFloat(styles.borderBottomWidth)
-  return top + bottom
-}
 
 const nameSize = useElementSize(nameRef)
 const contentSize = useElementSize(contentRef)
+const footerSize = useElementSize(footerRef)
 const height = computed(() => {
-  return getFrameBorderHeight()
+  return 2 // Approximate border size, not accurate.
     + nameSize.height.value
     + contentSize.height.value
+    + footerSize.height.value
 })
 
-watchDebounced(height, (next, prev) => {
+const requestReportHeight = useDebounceFn((height: number) => {
+  emit('height-update', props.flake.id, height)
+}, 10)
+
+watch(height, (next, prev) => {
   if (Math.abs(next - prev) < 1) return
-  emit('height-update', props.flake.id, next)
-}, { debounce: 10 })
+  requestReportHeight(next)
+})
 
 watch([
   markdownRef,
@@ -59,10 +67,10 @@ watch([
   () => props.editing,
 ], async () => {
   if (!markdownRef.value) return
-  if (empty()) return
+  if (isEmpty.value) return
   if (props.editing) return
 
-  actions.injectMarkdown(markdownRef.value, props.flake.content)
+  actions.renderContent(markdownRef.value, props.flake)
 }, { immediate: true })
 
 const editBegin = () => {
@@ -155,39 +163,98 @@ defineExpose({
   highlight,
 })
 
-const outerClass = computed<Record<string, boolean>>(() => {
+const outerClass = computed(() => {
   return {
     [`-${props.flake.theme}`]: true,
     '-editing': props.editing,
     [`-light${light.value}`]: light.value != null,
   }
 })
+
+const typeButtonClass = (type: FlakeType) => {
+  return {
+    'selected': type == props.flake.type,
+  }
+}
 </script>
 
 <template>
   <div ref="el-flake" class="flake-view fp-flake-theme" :class="outerClass">
     <div class="flake-card" :style="innerStyle">
       <div ref="el-name">
-        <div v-if="viewing" class="name">{{ flake.name }}</div>
-        <input v-if="editing" v-model="editName" class="nameedit" />
+        <div v-if="viewing"
+          class="flake-name -view">
+          {{ flake.name }}
+        </div>
+        <input v-if="editing"
+          v-model="editName"
+          class="flake-name -edit" />
       </div>
 
       <div class="content">
-        <div ref="el-content" class="content-scroll">
-          <div v-if="viewing && empty()" class="none">
+        <div ref="el-content" class="flake-content">
+          <div v-if="viewing && isEmpty" class="none">
             No Content
           </div>
-          <div v-if="viewing && !empty()"
+          <div v-if="viewing && isTextlike"
             ref="el-markdown"
-            class="view fp-markdown">
+            class="fp-markdown view"
+            :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']">
+          </div>
+          <div v-if="viewing && isImage">
+            <!-- TODO -->
           </div>
           <textarea v-if="editing"
             ref="editAreaRef"
             v-model="editContent"
             class="edit"
-            rows="3"
+            :class="[`-${flake.type}`]"
             placeholder="Note here...">
         </textarea>
+        </div>
+      </div>
+
+      <div ref="el-footer">
+        <div v-if="editing" class="flake-edit">
+          <div class="edit-options">
+            <button
+              class="fp-btn-icon"
+              :class="typeButtonClass('text')"
+              @click="flake.type = 'text'">
+              <ObIcon name="type" />
+            </button>
+            <button
+              class="fp-btn-icon"
+              :class="typeButtonClass('image')"
+              @click="flake.type = 'image'">
+              <ObIcon name="image" />
+            </button>
+            <button
+              class="fp-btn-icon"
+              :class="typeButtonClass('code')"
+              @click="flake.type = 'code'">
+              <ObIcon name="code" />
+            </button>
+
+            <div class="expand"></div>
+
+            <button class="fp-btn-icon">
+              <ObIcon name="tag" />
+            </button>
+          </div>
+
+          <div v-if="flake.type == 'code'" class="edit-options">
+            <ObText v-model="flake.codeLang"
+              class="expand codelang"
+              placeholder="Language..." />
+
+            <div class="gap"></div>
+
+            <label class="group">
+              <span>Wrap</span>
+              <input v-model="flake.codeWrap" type="checkbox" />
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -279,42 +346,10 @@ const outerClass = computed<Record<string, boolean>>(() => {
   overflow: hidden;
 
   display: grid;
-  grid-template-rows: min-content auto;
+  grid-template-rows: min-content auto min-content;
 
   color: var(--flake-text);
   background-color: var(--flake-text-bg);
-
-  border: var(--border-width) solid var(--flake-border);
-  border-radius: var(--radius-s);
-  box-shadow:
-    0 0 4px var(--flake-shadow),
-    1px 1px 2px var(--flake-shadow);
-
-  %flake-name {
-    padding: 0.375em 0.5em 0.25em 0.5em;
-    width: 100%;
-    line-height: 1.5;
-
-    font-family: var(--font-default);
-    font-size: var(--font-text-size);
-    font-weight: var(--font-bold);
-
-    color: var(--flake-name);
-    background-color: var(--flake-name-bg);
-  }
-
-  & .name {
-    @extend %flake-name;
-    word-break: break-word;
-    user-select: text;
-    border-bottom: var(--border-width) solid var(--flake-border);
-  }
-
-  & .nameedit {
-    @extend %flake-name;
-    border: none;
-    border-bottom: var(--border-width) solid var(--flake-border);
-  }
 
   & .content {
     overflow-y: auto;
@@ -322,7 +357,34 @@ const outerClass = computed<Record<string, boolean>>(() => {
   }
 }
 
-.content-scroll {
+.flake-name {
+  padding: 0.375em 0.5em 0.25em 0.5em;
+  width: 100%;
+  line-height: 1.5;
+  min-height: calc(1lh + 0.625em);
+
+  font-family: var(--font-default);
+  font-size: var(--font-text-size);
+  font-weight: var(--font-bold);
+
+  color: var(--flake-name);
+  background-color: var(--flake-name-bg);
+
+  &.-view {
+    word-break: break-word;
+    user-select: text;
+    border-bottom: var(--border-width) solid var(--flake-border);
+  }
+
+  &.-edit {
+    padding-right: 40px;
+    border: none;
+    user-select: contain;
+    border-bottom: var(--border-width) solid var(--flake-border);
+  }
+}
+
+.flake-content {
   width: 100%;
   display: flex;
   align-items: flex-start;
@@ -346,6 +408,14 @@ const outerClass = computed<Record<string, boolean>>(() => {
     user-select: text;
   }
 
+  >.view.-code :deep(pre) {
+    margin: 5px 0;
+  }
+
+  >.view.-nowrap :deep(code) {
+    white-space: pre;
+  }
+
   >.edit {
     @extend %content-common;
     padding: 0.5em;
@@ -354,6 +424,57 @@ const outerClass = computed<Record<string, boolean>>(() => {
     resize: none;
     border: none;
     box-shadow: none;
+    user-select: contain;
+  }
+
+  // The base size of textarea and rendered markdown has *subtle* difference.
+  >.edit.-code {
+    font-family: var(--font-monospace);
+    font-size: var(--font-smaller);
+    line-height: 1.45;
+    letter-spacing: -0.25px;
+  }
+}
+
+.flake-edit {
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 0.25em;
+  padding: 0.25em;
+
+  background-color: var(--flake-name-bg);
+  border-top: var(--border-width) solid var(--flake-border);
+}
+
+.edit-options {
+  display: flex;
+  align-items: center;
+  column-gap: 0.25em;
+  font-size: var(--font-ui-small);
+
+  >.selected {
+    color: var(--color-base-00);
+    background-color: var(--text-accent);
+  }
+
+  >.expand {
+    flex-grow: 1;
+  }
+
+  >.gap {
+    width: 0.5em;
+  }
+
+  >.group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 0.5em;
+  }
+
+  >.codelang,
+  >.codelang:deep(::placeholder) {
+    font-family: var(--font-monospace)
   }
 }
 
