@@ -1,8 +1,8 @@
 # Flakepiles for Obsidian
 
-Sticker / Card pile in a single file.
+Put small stickers / cards in a single file.
 
-For personal use. In very early development.
+An obsidian plugin. For personal use. In very early development.
 
 ## Status
 
@@ -20,11 +20,12 @@ Vite + Vue 3 + Sass
 
 - [x] Mount Vue into Obsidian
 - [x] Flakepile
-  - [x] Flow direction (vertical / horizontal)
+  - [x] Masonry layout
+  - [x] Masonry direction (vertical / horizontal)
+  - [x] Mobile-adaptive layout
   - [x] Flake size
   - [x] Flake elastic sizing
   - [x] Flake sorting
-  - [x] Mobile-adaptive layout
 - [ ] Flake
   - [x] Flake creation, update, deletion
   - [x] Flake markdown rendering
@@ -40,6 +41,9 @@ Vite + Vue 3 + Sass
 - [ ] Search inside a Flakepile
   - [ ] Search title
   - [ ] Search content
+- Limited support to internal plugins
+  - [x] Preview other markdown file
+  - [x] Jump to global search when clicking on a tag.
 
 ## Long term goals
 
@@ -53,7 +57,7 @@ Vite + Vue 3 + Sass
 
 - Live editing of Flake (too complex)
 - Cross-file searching / Obsidian-wise searching (restricted by API)
-- File linking (tags, wiki links) (restricted by API)
+- Global search indexing support (restricted by API)
 
 ## License
 

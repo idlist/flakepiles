@@ -30,7 +30,7 @@ export const createFlake = (): Flake => {
     content: '',
     imageOnly: false,
     codeLang: '',
-    codeWrap: true,
+    codeWrap: false,
     labels: [],
   }
 }

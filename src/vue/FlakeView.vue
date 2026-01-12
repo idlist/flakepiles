@@ -25,8 +25,8 @@ const isTextlike = computed(() => {
 const isImage = computed(() => {
   return !!props.flake.content && props.flake.type == 'image'
 })
-const noWrap = computed(() => {
-  return props.flake.type == 'code' && !props.flake.codeWrap
+const wrap = computed(() => {
+  return props.flake.type == 'code' && props.flake.codeWrap
 })
 
 const viewing = computed(() => !props.editing)
@@ -56,10 +56,10 @@ const requestReportHeight = useDebounceFn((height: number) => {
   emit('height-update', props.flake.id, height)
 }, 10)
 
-watch(height, (next, prev) => {
+watch(height, (next, prev = 0) => {
   if (Math.abs(next - prev) < 1) return
   requestReportHeight(next)
-})
+}, { immediate: true })
 
 watch([
   markdownRef,
@@ -70,7 +70,7 @@ watch([
   if (isEmpty.value) return
   if (props.editing) return
 
-  actions.renderContent(markdownRef.value, props.flake)
+  await actions.renderContent(markdownRef.value, props.flake)
 }, { immediate: true })
 
 const editBegin = () => {
@@ -199,7 +199,7 @@ const typeButtonClass = (type: FlakeType) => {
         <div v-if="viewing && isTextlike"
           ref="el-markdown"
           class="fp-markdown view"
-          :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']">
+          :class="[`-${flake.type}`, wrap ? '-wrap' : '-nowrap']">
         </div>
 
         <div v-if="viewing && isImage">
@@ -343,6 +343,7 @@ const typeButtonClass = (type: FlakeType) => {
   }
 
   &>.scrollable {
+    width: 100%;
     overflow-y: auto;
     scrollbar-gutter: stable;
   }
@@ -405,6 +406,10 @@ const typeButtonClass = (type: FlakeType) => {
 
   >.view.-code :deep(pre) {
     margin: 5px 0;
+  }
+
+  >.view.-wrap :deep(code) {
+    white-space: pre-wrap;
   }
 
   >.view.-nowrap :deep(code) {

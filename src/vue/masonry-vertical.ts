@@ -5,7 +5,7 @@ import {
 } from './masonry-common'
 import type { Flake } from '@/data'
 
-const getBasis = (options: MasonryOptions) => {
+export const getVerticalBasis = (options: MasonryOptions) => {
   let width = FLAKE_UNIT * options.width
   const usableWidth = options.canvasWidth - 2 * PAD_X
   let column: number = 1
@@ -33,7 +33,7 @@ export const resolveMasonryVertical = (
 ): ResolvedMasonry => {
   const styled = createStyledMasonry()
 
-  const { width, column } = getBasis(options)
+  const { width, column } = getVerticalBasis(options)
   const columns = createArray(column, 0)
   const maxHeight = FLAKE_UNIT * options.maxHeight
 

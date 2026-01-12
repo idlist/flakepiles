@@ -160,7 +160,7 @@ const adaptiveToolClass = computed(() => {
 </script>
 
 <template>
-  <div ref="el-viewport" class="view-layout">
+  <div ref="el-viewport" class="flakepile-layout">
     <div class="header">
       <h1 class="file-name">{{ name }}</h1>
 
@@ -256,24 +256,22 @@ const adaptiveToolClass = computed(() => {
       <div ref="el-canvas" :class="['sub-layout', `-${adaptiveFlow}`]">
         <div v-if="!pile.flakes.length" class="no-flakes">No Flakes</div>
 
-        <template v-else>
-          <MasonryUnified
-            :id="pile.id"
-            ref="el-masonry"
-            :flakes="sortedFlakes"
-            :flow="adaptiveFlow"
-            :scroll-x="scrollX"
-            :scroll-y="scrollY"
-            :options="{
-              width: pile.width,
-              elasticWidth: pile.elasticWidth,
-              enableMaxHeight: pile.enableMaxHeight,
-              maxHeight: pile.maxHeight,
-              elasticHeight: pile.elasticHeight,
-              canvasWidth: canvasSize.width.value,
-              canvasHeight: canvasSize.height.value,
-            }" />
-        </template>
+        <MasonryUnified v-else
+          :id="pile.id"
+          ref="el-masonry"
+          :flakes="sortedFlakes"
+          :flow="adaptiveFlow"
+          :scroll-x="scrollX"
+          :scroll-y="scrollY"
+          :options="{
+            width: pile.width,
+            elasticWidth: pile.elasticWidth,
+            enableMaxHeight: pile.enableMaxHeight,
+            maxHeight: pile.maxHeight,
+            elasticHeight: pile.elasticHeight,
+            canvasWidth: canvasSize.width.value,
+            canvasHeight: canvasSize.height.value,
+          }" />
       </div>
     </div>
   </div>
@@ -298,7 +296,7 @@ const adaptiveToolClass = computed(() => {
 <style lang="scss" scoped>
 @use '../globals.scss' as *;
 
-.view-layout {
+.flakepile-layout {
   @extend %fp-inset;
   position: fixed;
   top: var(--header-height);

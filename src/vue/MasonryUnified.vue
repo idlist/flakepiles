@@ -2,7 +2,7 @@
 import { computed, reactive, ref, shallowRef, useTemplateRef, watch, type StyleValue } from 'vue'
 import { until, useThrottleFn } from '@vueuse/core'
 import type { Flake, PileAdaptiveFlow } from '@/data'
-import { px, pxy, PAD_Y, type MasonryOptions, type ResolvedMasonry, type ResolvedRect, type ResolvedMasonrySize } from './masonry-common'
+import { PAD_Y, type MasonryOptions, type ResolvedMasonry, type ResolvedRect, type ResolvedMasonrySize, getUnsetWidth } from './masonry-common'
 import { resolveMasonryVertical } from './masonry-vertical'
 import { resolveMasonryHorizontal } from './masonry-horizontal'
 import { resolveMasonryMobile } from './masonry-mobile'
@@ -102,15 +102,30 @@ const updateStyles = (resolved: ResolvedMasonry) => {
   resolvedMasonry.value = resolved.masonry
 }
 
+const px = (x: number) => `${x}px`
+
 const flakeStyles = computed<Map<string, StyleValue>>(() => {
   const styles = new Map<string, StyleValue>()
-  for (const [id, rect] of resolvedRects.value) {
-    styles.set(id, {
-      translate: pxy(rect.x, rect.y),
-      width: px(rect.width),
-      height: px(rect.height),
-    })
+  const unsetWidth = getUnsetWidth(props.flow, props.options)
+
+  for (const flake of props.flakes) {
+    const rect = resolvedRects.value.get(flake.id)
+
+    if (rect) {
+      styles.set(flake.id, {
+        left: px(rect.x),
+        top: px(rect.y),
+        width: px(rect.width),
+        height: px(rect.height),
+      })
+    }
+    else {
+      styles.set(flake.id, {
+        width: px(unsetWidth),
+      })
+    }
   }
+
   return styles
 })
 
@@ -141,7 +156,8 @@ const editingStyles = computed<StyleValue>(() => {
   }
 
   return {
-    translate: pxy(rect.x, y),
+    left: px(rect.x),
+    top: px(y),
     width: px(rect.width),
     height: px(actualHeight),
   }
@@ -245,6 +261,13 @@ defineExpose({
 
   &.-preparing {
     visibility: hidden;
+    transition: none;
+  }
+}
+
+.masonry-transition {
+  &-move {
+    transition: transform 0.25s ease;
   }
 }
 </style>
