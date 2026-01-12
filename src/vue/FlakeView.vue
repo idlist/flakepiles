@@ -108,6 +108,7 @@ watchEffect(async () => {
 })
 
 const height = computed(() => {
+  console.log(nameSize.height.value, contentHeight.value, footerSize.height.value, scrollBarHeight.value)
   return 2 // Border size, not accurate
     + nameSize.height.value
     + contentHeight.value
@@ -253,7 +254,7 @@ const cssLight = useCssWith(light, (v) => `-light${v}`)
 
 const cssIsCode = useCssIf(isCode, '-code')
 const cssIsImage = useCssIf(isImage, '-image')
-const cssViewImage = useCssIf(() => isView.value && hasImage.value, '-viewimage')
+const cssViewImage = useCssIf(() => isView.value && isImage.value, '-viewimage')
 const cssNoWrap = useCssIf(noWrap, '-nowrap')
 
 const cssTypeIsText = useCssIf(isText, 'selected')
@@ -290,11 +291,11 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
           v-model="editContent"
           :class="['edit', cssIsImage, cssIsCode, cssNoWrap]"
           placeholder="Note here...">
-        </textarea>
+    </textarea>
       </div>
     </div>
 
-    <div v-if="!imageOnly" ref="el-footer">
+    <div ref="el-footer">
       <div v-if="isEdit" class="flake-edit-tools">
         <div class="flake-edit-row">
           <button
@@ -406,8 +407,8 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
   min-height: 0;
   max-height: 100%;
 
-  display: grid;
-  grid-template-rows: min-content auto min-content;
+  display: flex;
+  flex-direction: column;
 
   &.-editing {
     box-shadow: var(--box-shadow-heavy);
@@ -439,16 +440,15 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
   }
 
   &>.scrollable {
+    flex-grow: 1;
+    flex-shrink: 1;
+
     width: 100%;
     overflow-y: auto;
     scrollbar-gutter: stable;
   }
 
   &>.scrollable.-viewimage {
-    @extend .fp-inset;
-    position: absolute;
-
-    display: flex;
     overflow: hidden;
     scrollbar-gutter: auto;
   }

@@ -189,7 +189,9 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
         </h6>
       </div>
 
-      <h1 v-if="menuState != 'shrink'" class="file-name">{{ name }}</h1>
+      <h1 v-if="menuState != 'shrink'" class="file-name">
+        {{ name }}
+      </h1>
 
       <div v-if="menuState != 'shrink'" class="menu-area">
         <div v-if="menuState == 'normal'" class="menu-main">
@@ -284,7 +286,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
         </div>
       </div>
 
-      <div v-if="editing" class="header-mask"></div>
+      <div v-if="editing" class="header-masking"></div>
     </div>
 
     <div class="content">
@@ -355,7 +357,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
   }
 }
 
-.header-mask {
+.header-masking {
   @extend .fp-inset;
   position: absolute;
   z-index: 20;

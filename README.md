@@ -14,7 +14,7 @@ I don't want 100 `.md` files with 1 sentence each.
 
 ## Tech Stack
 
-Vite + Vue 3 + Sass
+Vite + Vue 3 + TypeScript + Sass
 
 ## Goals
 
@@ -31,7 +31,7 @@ Vite + Vue 3 + Sass
   - [x] Flake markdown rendering
   - [x] Text Flake
   - [x] Code Flake
-  - [ ] Image Flake
+  - [x] Image Flake
   - [ ] Flake color (theme)
 - [ ] Flake labels
   - [ ] Label creation, update, deletion
