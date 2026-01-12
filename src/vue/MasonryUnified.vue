@@ -2,7 +2,7 @@
 import { computed, inject, reactive, ref, shallowRef, useTemplateRef, watch, type StyleValue } from 'vue'
 import { until, useThrottleFn } from '@vueuse/core'
 import type { EditingRef, Flake, PileAdaptiveFlow } from '@/data'
-import { PAD_Y, type MasonryOptions, type ResolvedMasonry, type ResolvedRect, type ResolvedMasonrySize, getUnsetWidth } from './masonry-common'
+import { PAD_Y, type MasonryOptions, type ResolvedMasonry, type ResolvedRect, type ResolvedMasonrySize, getUnsetWidth as getFlakeWidth } from './masonry-common'
 import { resolveMasonryVertical } from './masonry-vertical'
 import { resolveMasonryHorizontal } from './masonry-horizontal'
 import { resolveMasonryMobile } from './masonry-mobile'
@@ -103,10 +103,12 @@ const updateStyles = (resolved: ResolvedMasonry) => {
   resolvedMasonry.value = resolved.masonry
 }
 
+const flakeWidth = computed(() => {
+  return getFlakeWidth(props.flow, props.options)
+})
+
 const flakeStyles = computed<Map<string, StyleValue>>(() => {
   const styles = new Map<string, StyleValue>()
-  const unsetWidth = getUnsetWidth(props.flow, props.options)
-
   for (const flake of props.flakes) {
     const rect = resolvedRects.value.get(flake.id)
 
@@ -119,7 +121,7 @@ const flakeStyles = computed<Map<string, StyleValue>>(() => {
     }
     else {
       styles.set(flake.id, {
-        width: px(unsetWidth),
+        width: px(flakeWidth.value),
       })
     }
   }
@@ -197,7 +199,7 @@ const resolveMasonry = () => {
   }
 }
 
-const resolveMasonryThrottled = useThrottleFn(resolveMasonry, 100, true)
+const resolveMasonryThrottled = useThrottleFn(resolveMasonry, 10, true)
 
 const autoResolveMasonry = () => {
   if (heightMap.size != props.flakes.length) return
@@ -240,7 +242,8 @@ defineExpose({
       class="masonry-element"
       :class="{ '-preparing': !resolvedFlakes.has(flake.id) }"
       :flake="flake"
-      :editing="editing == flake.id"
+      :is-edit="editing == flake.id"
+      :width="flakeWidth"
       :style="editing == flake.id ? editingStyles : flakeStyles.get(flake.id)"
       @edit-begin="onEditBegin"
       @edit-finish="onEditFinish"

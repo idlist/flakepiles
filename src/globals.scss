@@ -1,3 +1,10 @@
+.fp-inset {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
 .fp-btn-icon {
   padding: 0.5em;
   min-width: var(--input-height);
@@ -20,15 +27,48 @@
 }
 
 .fp-markdown {
-  & p {
-    margin: 0.5em 0;
+
+  p,
+  pre {
+    margin: 0.5rem 0;
   }
 
-  & img {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0.75rem 0 0.5em 0;
+  }
+
+  img {
     border-radius: var(--radius-s);
   }
 
-  & pre code {
+  pre {
+    border-radius: var(--radius-s);
+    background-color: var(--code-background);
+
+    position: relative;
+    margin: 0.5rem 0;
+    padding: 0.25rem 0.5rem;
+  }
+
+  pre .copy-code-button {
+    @extend .fp-btn-icon;
+
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: none;
+  }
+
+  pre:hover .copy-code-button {
+    display: flex;
+  }
+
+  pre code {
     font-size: var(--font-small);
     line-height: 1.4;
     letter-spacing: -0.2px;
@@ -45,9 +85,8 @@
   pointer-events: painted;
 }
 
-%fp-inset {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.fp-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

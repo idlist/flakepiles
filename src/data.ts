@@ -12,9 +12,9 @@ export interface Flake {
   name: string
   type: FlakeType
   content: string
-  /** When `type` is `image`, hide title bar. */
   imageOnly: boolean
-  /** When `type` is `code`, the highlight of the code  */
+  enableRatio: boolean
+  ratio: number
   codeLang: string
   codeWrap: boolean
   labels: string[]
@@ -30,6 +30,8 @@ export const createFlake = (): Flake => {
     type: 'text',
     content: '',
     imageOnly: false,
+    enableRatio: false,
+    ratio: 1,
     codeLang: '',
     codeWrap: false,
     labels: [],

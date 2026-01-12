@@ -27,7 +27,7 @@ const sliderRef = useTemplateRef('el-slider')
 let component: SliderComponent | null = null
 
 onMounted(() => {
-  model.value = props.default
+  model.value ??= props.default
 
   if (sliderRef.value) {
     component = new SliderComponent(sliderRef.value)

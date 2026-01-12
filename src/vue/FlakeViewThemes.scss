@@ -2,6 +2,7 @@
   &.-default {
     --system-hsl: var(--accent-h) var(--accent-s) var(--accent-l);
 
+    --flake-primary: hsl(var(--system-hsl));
     --flake-border: hsla(var(--system-hsl) / 0.25);
     --flake-shadow: hsla(var(--system-hsl) / 0.25);
     --flake-shadow-heavy: hsla(var(--system-hsl) / 0.75);

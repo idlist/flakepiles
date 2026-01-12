@@ -8,6 +8,7 @@ import {
 } from 'vue'
 import { createFlakepile, type Flake, type Flakepile } from './data'
 import FlakepileView from './vue/FlakepileView.vue'
+import { CausedError } from './utils'
 
 export const VIEW_TYPE = 'flakepile'
 
@@ -15,10 +16,15 @@ export type FileRef = ShallowRef<TFile | null>
 
 export type PileRef = Ref<Flakepile>
 
+export interface ImageRawSize {
+  width: number
+  height: number
+}
+
 export interface PileActions {
   save: () => void
   saveLazy: () => void
-  renderContent: (elementToMount: HTMLElement, flake: Flake) => Promise<void>
+  mountContent: (element: HTMLElement, flake: Flake) => Promise<ImageRawSize | void>
   deleteFlake: (id: string) => void
 }
 
@@ -42,16 +48,6 @@ export class FlakepileApp extends TextFileView {
     return this.file?.basename || 'Flakepile View'
   }
 
-  async mountMarkdown(target: HTMLElement, content: string) {
-    await MarkdownRenderer.render(
-      this.app,
-      content,
-      target,
-      this.file!.path,
-      this,
-    )
-  }
-
   async onOpen() {
     const container = this.contentEl
     container.empty()
@@ -66,27 +62,27 @@ export class FlakepileApp extends TextFileView {
         if (!this.parsed) return
         this.requestSave()
       },
-      renderContent: async (elementToMount, flake) => {
-        try {
-          elementToMount.innerHTML = ''
-          let content: string = flake.content
+      mountContent: async (element, flake) => {
+        element.innerHTML = ''
 
-          if(flake.type == 'text') {
-            await this.mountMarkdown(elementToMount, flake.content)
-            this.hydrateMarkdown(elementToMount)
-          }
-          else if (flake.type == 'image') {
-            // TODO
-          }
-          else if (flake.type == 'code') {
-            content = `${TICKS}${flake.codeLang}\n${flake.content}\n${TICKS}`
-            await this.mountMarkdown(elementToMount, content)
-            this.codeBlockPostProcess(elementToMount)
-
-          }
-        } catch (e) {
-          console.warn('Error rendering Flake content: ', e)
+        if (flake.type == 'text') {
+          await this.mountMarkdown(element, flake.content)
+          this.hydrateMarkdown(element)
         }
+        else if (flake.type == 'code') {
+          const content =
+            `${TICKS}${flake.codeLang}
+${flake.content}
+${TICKS}`
+
+          await this.mountMarkdown(element, content)
+          this.codeBlockPostProcess(element)
+        }
+        else if (flake.type == 'image') {
+          return await this.mountImage(element, flake.content)
+        }
+
+        return
       },
       deleteFlake: (id) => {
         const index = this.pile.value.flakes.findIndex((f) => f.id == id)
@@ -108,6 +104,16 @@ export class FlakepileApp extends TextFileView {
     this.registerEvent(this.app.vault.on('rename', () => {
       triggerRef(this.fileRef)
     }))
+  }
+
+  async mountMarkdown(element: HTMLElement, content: string) {
+    await MarkdownRenderer.render(
+      this.app,
+      content,
+      element,
+      this.file!.path,
+      this,
+    )
   }
 
   hydrateMarkdown(rendered: HTMLElement) {
@@ -151,6 +157,38 @@ export class FlakepileApp extends TextFileView {
   codeBlockPostProcess(rendered: HTMLElement) {
     const button = rendered.querySelector('pre>button.copy-code-button')
     button?.remove()
+  }
+
+  async mountImage(element: HTMLElement, content: string): Promise<ImageRawSize> {
+    const sourcePath = this.file!.path
+    const imageFile = this.app.metadataCache
+      .getFirstLinkpathDest(content, sourcePath)
+
+    if (imageFile) {
+      const imagePath = this.app.vault.getResourcePath(imageFile)
+
+      const promise = new Promise<ImageRawSize>((resolve) => {
+        element.createEl('img', {
+          attr: { class: 'fp-image' },
+        }, (imageEl) => {
+          const onload = () => {
+            imageEl.removeEventListener('load', onload)
+            resolve({
+              width: imageEl.naturalWidth,
+              height: imageEl.naturalHeight,
+            })
+          }
+
+          imageEl.src = imagePath
+          imageEl.addEventListener('load', onload)
+        })
+      })
+
+      return promise
+    }
+    else {
+      throw new CausedError('Cannot find the image.', 'noImage')
+    }
   }
 
   async onClose() {

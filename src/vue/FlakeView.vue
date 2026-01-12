@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch, watchEffect } from 'vue'
 import { moment, Notice } from 'obsidian'
 import { until, useDebounceFn, useElementSize, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
-import type { Flake, FlakeType } from '@/data'
-import type { PileActions } from '@/app'
+import type { ImageRawSize, PileActions } from '@/app'
+import type { Flake } from '@/data'
 import { ObIcon } from '@/components'
-import { px } from '@/utils'
+import { useCssIf, px, useCssWith, CausedError } from '@/utils'
 
 const props = defineProps<{
   flake: Flake
-  editing?: boolean
+  width: number
+  isEdit?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -19,19 +20,17 @@ const emit = defineEmits<{
   (e: 'height-update', id: string, height: number): void
 }>()
 
-const viewing = computed(() => !props.editing)
+const isView = computed(() => !props.isEdit)
 
 const isEmpty = computed(() => !props.flake.content)
-const isText = computed(() => {
-  return !isEmpty.value && props.flake.type == 'text'
-})
-const isCode = computed(() => {
-  return !isEmpty.value && props.flake.type == 'code'
-})
-const isImage = computed(() => {
-  return !isEmpty.value && props.flake.type == 'image'
-})
+const isText = computed(() => props.flake.type == 'text')
+const isCode = computed(() => props.flake.type == 'code')
+const isImage = computed(() => props.flake.type == 'image')
 
+const hasImage = computed(() => !isEmpty.value && isImage.value)
+
+const imageRawSize = ref<ImageRawSize | null>(null)
+const mountError = ref<string | null>(null)
 const actions = inject('actions') as PileActions
 
 const flakeRef = useTemplateRef('el-flake')
@@ -39,7 +38,7 @@ const nameRef = useTemplateRef('el-name')
 const scrollableRef = useTemplateRef('el-scrollable')
 const footerRef = useTemplateRef('el-footer')
 const contentRef = useTemplateRef('el-content')
-const markdownRef = useTemplateRef('el-markdown')
+const mountRef = useTemplateRef('el-mount')
 const textareaRef = useTemplateRef('el-textarea')
 
 const editName = ref<string>('')
@@ -50,9 +49,7 @@ const { triggerResize } = useTextareaAutosize({
   input: editContent,
 })
 
-const noWrap = computed(() => {
-  return isCode.value && !props.flake.codeWrap
-})
+const noWrap = computed(() => isCode.value && !props.flake.codeWrap)
 
 watch(noWrap, async () => {
   await nextTick()
@@ -63,14 +60,14 @@ watch(noWrap, async () => {
 const syncTextareaWidth = () => {
   if (!noWrap.value) return
   if (!textareaRef.value) return
-  console.log('sync')
 
   const textareaEl = textareaRef.value
-  textareaEl.style.width = '100%'
-  textareaEl.style.width = px(textareaEl.scrollWidth + 16)
+  const bleed = 16
+  textareaEl.style.width = `calc(100% - ${bleed}px)`
+  textareaEl.style.width = px(textareaEl.scrollWidth + bleed)
 }
 
-watch(() => props.editing, async (value) => {
+watch(() => props.isEdit, async (value) => {
   if (value) {
     await nextTick()
     syncTextareaWidth()
@@ -92,34 +89,74 @@ useResizeObserver(scrollableRef, (entries) => {
   scrollBarHeight.value = el.offsetHeight - el.clientHeight
 })
 
+const contentHeight = ref(0)
+
+watchEffect(async () => {
+  if (isView.value && hasImage.value && imageRawSize.value) {
+    if (props.flake.enableRatio) {
+      const ratio = Math.clamp(props.flake.ratio, 0.25, 4)
+      contentHeight.value = props.width * ratio
+    }
+    else {
+      const { width: w, height: h } = imageRawSize.value
+      contentHeight.value = props.width / w * h
+    }
+  }
+  else {
+    contentHeight.value = contentSize.height.value
+  }
+})
+
 const height = computed(() => {
-  return 2 // Approximate border size, not accurate.
+  return 2 // Border size, not accurate
     + nameSize.height.value
-    + contentSize.height.value
+    + contentHeight.value
     + footerSize.height.value
     + scrollBarHeight.value
 })
 
 const requestReportHeight = useDebounceFn((height: number) => {
   emit('height-update', props.flake.id, height)
-}, 10)
+}, 1)
 
 watch(height, (next, prev = 0) => {
   if (Math.abs(next - prev) < 1) return
+
   requestReportHeight(next)
 }, { immediate: true })
 
-watch([
-  markdownRef,
-  () => props.flake.content,
-  () => props.editing,
-], async () => {
-  if (!markdownRef.value) return
+watchEffect(async () => {
+  if (!mountRef.value) return
   if (isEmpty.value) return
-  if (props.editing) return
+  if (props.isEdit) return
 
-  await actions.renderContent(markdownRef.value, props.flake)
-}, { immediate: true })
+  try {
+    const result = await actions.mountContent(mountRef.value, props.flake)
+
+    if (hasImage.value) {
+      imageRawSize.value = result!
+    }
+
+    mountError.value = null
+  } catch (e) {
+    if (e instanceof CausedError && e.cause == 'noImage') {
+      mountError.value = 'image'
+    }
+    else {
+      console.warn('Failed to render content: ', e)
+      mountError.value = 'markdown'
+    }
+
+    imageRawSize.value = null
+  }
+})
+
+const imageOnly = computed(() => {
+  return isView.value
+    && hasImage.value
+    && !mountError.value
+    && props.flake.imageOnly
+})
 
 const editBegin = () => {
   editName.value = props.flake.name
@@ -136,8 +173,8 @@ const requestFocusEditArea = async () => {
   textareaRef.value!.focus()
 }
 
-watch(() => props.editing, () => {
-  if (props.editing) {
+watch(() => props.isEdit, () => {
+  if (props.isEdit) {
     requestFocusEditArea()
   }
   else {
@@ -191,8 +228,8 @@ const highlight = async (type: LightType) => {
   }, lightDuration[type])
 }
 
-watch(() => props.editing, () => {
-  if (props.editing) {
+watch(() => props.isEdit, () => {
+  if (props.isEdit) {
     light.value = null
     clearTimeout(lightHandle)
   }
@@ -210,79 +247,65 @@ defineExpose({
   highlight,
 })
 
-const modifierClass = computed(() => {
-  return {
-    [`-${props.flake.theme}`]: true,
-    '-editing': props.editing,
-    [`-light${light.value}`]: light.value != null,
-  }
-})
+const cssTheme = useCssWith(() => props.flake.theme, (v) => `-${v}`)
+const cssEditing = useCssIf(() => props.isEdit, '-editing')
+const cssLight = useCssWith(light, (v) => `-light${v}`)
 
-const typeButtonClass = (type: FlakeType) => {
-  return {
-    'selected': type == props.flake.type,
-  }
-}
+const cssIsCode = useCssIf(isCode, '-code')
+const cssIsImage = useCssIf(isImage, '-image')
+const cssViewImage = useCssIf(() => isView.value && hasImage.value, '-viewimage')
+const cssNoWrap = useCssIf(noWrap, '-nowrap')
+
+const cssTypeIsText = useCssIf(isText, 'selected')
+const cssTypeIsCode = useCssIf(isCode, 'selected')
+const cssTypeIsImage = useCssIf(isImage, 'selected')
 </script>
 
 <template>
-  <div ref="el-flake" class="flake-view fp-flake-theme" :class="modifierClass">
-    <div ref="el-name">
-      <div v-if="viewing"
-        class="flake-name -view">
+  <div ref="el-flake"
+    :class="['flake-view', 'fp-flake-theme', cssTheme, cssEditing, cssLight]">
+    <div v-if="!imageOnly" ref="el-name">
+      <div v-if="isView" class="flake-name -view">
         {{ flake.name }}
       </div>
-      <input v-if="editing"
+      <input v-if="isEdit"
         v-model="editName"
         class="flake-name -edit" />
     </div>
 
-    <div ref="el-scrollable" class="scrollable">
+    <div ref="el-scrollable" :class="['scrollable', cssViewImage]">
       <div ref="el-content"
-        class="flake-content"
-        :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']">
-        <div v-if="viewing && isEmpty" class="none">
+        :class="['flake-content', cssViewImage]">
+        <div v-if="isView && isEmpty" class="none">
           No Content
         </div>
 
-        <div v-if="viewing && (isText || isCode)"
-          ref="el-markdown"
-          class="fp-markdown view"
-          :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']">
+        <div v-if="isView"
+          ref="el-mount"
+          :class="['fp-markdown', 'view', cssIsImage, cssIsCode, cssNoWrap]">
         </div>
 
-        <div v-if="viewing && isImage">
-          <!-- TODO -->
-        </div>
-
-        <textarea v-if="editing"
+        <textarea v-if="isEdit"
           ref="el-textarea"
           v-model="editContent"
-          class="edit"
-          :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']"
+          :class="['edit', cssIsImage, cssIsCode, cssNoWrap]"
           placeholder="Note here...">
         </textarea>
       </div>
     </div>
 
-    <div ref="el-footer">
-      <div v-if="editing" class="flake-edit">
-        <div class="edit-options">
-          <button
-            class="fp-btn-icon"
-            :class="typeButtonClass('text')"
+    <div v-if="!imageOnly" ref="el-footer">
+      <div v-if="isEdit" class="flake-edit-tools">
+        <div class="flake-edit-row">
+          <button :class="['fp-btn-icon', cssTypeIsText]"
             @click="flake.type = 'text'">
             <ObIcon name="type" />
           </button>
-          <button
-            class="fp-btn-icon"
-            :class="typeButtonClass('image')"
+          <button :class="['fp-btn-icon', cssTypeIsImage]"
             @click="flake.type = 'image'">
             <ObIcon name="image" />
           </button>
-          <button
-            class="fp-btn-icon"
-            :class="typeButtonClass('code')"
+          <button :class="['fp-btn-icon', cssTypeIsCode]"
             @click="flake.type = 'code'">
             <ObIcon name="code" />
           </button>
@@ -294,7 +317,7 @@ const typeButtonClass = (type: FlakeType) => {
           </button>
         </div>
 
-        <div v-if="flake.type == 'code'" class="edit-options">
+        <div v-if="isCode" class="flake-edit-row">
           <input v-model="flake.codeLang"
             type="text"
             class="expand codelang"
@@ -302,31 +325,51 @@ const typeButtonClass = (type: FlakeType) => {
 
           <div class="gap"></div>
 
-          <label class="group">
+          <label class="withlabel -atleft">
             <span>Wrap</span>
             <input v-model="flake.codeWrap" type="checkbox" />
+          </label>
+        </div>
+
+        <div v-if="isImage" class="flake-edit-row">
+          <input v-model="flake.ratio"
+            type="number"
+            class="flake-ratio-value"
+            placeholder="0.25 - 4"
+            :disabled="!flake.enableRatio" />
+
+          <label class="withlabel -atright">
+            <input v-model="flake.enableRatio" type="checkbox" />
+            <span>Ratio</span>
+          </label>
+
+          <div class="expand"></div>
+
+          <label class="withlabel -atleft">
+            <span>Image Only</span>
+            <input v-model="flake.imageOnly" type="checkbox" />
           </label>
         </div>
       </div>
     </div>
 
     <div class="flake-menu">
-      <button v-if="viewing" class="fp-btn-icon danger" @click="deleteThis">
+      <button v-if="isView" class="fp-btn-icon danger" @click="deleteThis">
         <ObIcon name="trash-2" />
       </button>
 
       <div class="grow"></div>
 
-      <button v-if="viewing" class="fp-btn-icon" @click="copyJson">
+      <button v-if="isView" class="fp-btn-icon" @click="copyJson">
         <ObIcon name="braces" />
       </button>
-      <button v-if="viewing" class="fp-btn-icon" @click="copyContent">
+      <button v-if="isView" class="fp-btn-icon" @click="copyContent">
         <ObIcon name="copy" />
       </button>
-      <button v-if="viewing" class="fp-btn-icon" @click="editBegin">
+      <button v-if="isView" class="fp-btn-icon" @click="editBegin">
         <ObIcon name="pencil-line" />
       </button>
-      <button v-if="editing" class="fp-btn-icon" @click="editFinish">
+      <button v-if="isEdit" class="fp-btn-icon" @click="editFinish">
         <ObIcon name="check" />
       </button>
     </div>
@@ -339,6 +382,7 @@ const typeButtonClass = (type: FlakeType) => {
 @use '@/globals.scss' as *;
 
 .flake-view {
+  overflow: hidden;
   content-visibility: auto;
 
   --box-shadow:
@@ -397,6 +441,15 @@ const typeButtonClass = (type: FlakeType) => {
     scrollbar-gutter: stable;
   }
 
+  &>.scrollable.-viewimage {
+    @extend .fp-inset;
+    position: absolute;
+
+    display: flex;
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
+
   &:hover>.flake-menu {
     display: flex;
   }
@@ -434,6 +487,10 @@ const typeButtonClass = (type: FlakeType) => {
   display: flex;
   align-items: flex-start;
 
+  &.-viewimage {
+    height: 100%;
+  }
+
   >%content-common {
     width: 100%;
     font-size: var(--font-small);
@@ -453,8 +510,22 @@ const typeButtonClass = (type: FlakeType) => {
     user-select: text;
   }
 
+  >.view.-image {
+    display: flex;
+    padding: 0;
+
+    height: 100%;
+  }
+
+  >.view.-image :deep(img) {
+    border-radius: 0;
+  }
+
   >.view.-code :deep(pre) {
-    margin: 5px 0;
+    margin: 0.5em 0;
+    padding: 0;
+
+    background-color: var(--background-primary);
   }
 
   >.view.-nowrap {
@@ -477,6 +548,7 @@ const typeButtonClass = (type: FlakeType) => {
   }
 
   // The base size of textarea and rendered markdown has *subtle* difference.
+  >.edit.-image,
   >.edit.-code {
     font-family: var(--font-monospace);
     font-size: var(--font-smaller);
@@ -490,7 +562,7 @@ const typeButtonClass = (type: FlakeType) => {
   }
 }
 
-.flake-edit {
+.flake-edit-tools {
   display: grid;
   grid-template-columns: 1fr;
   row-gap: 0.25em;
@@ -500,15 +572,17 @@ const typeButtonClass = (type: FlakeType) => {
   border-top: var(--border-width) solid var(--flake-border);
 }
 
-.edit-options {
+.flake-edit-row {
   display: flex;
   align-items: center;
   column-gap: 0.25em;
+  min-height: 2em;
+
   font-size: var(--font-ui-small);
 
   >.selected {
     color: var(--color-base-00);
-    background-color: var(--text-accent);
+    background-color: var(--flake-primary);
   }
 
   >.expand {
@@ -519,16 +593,33 @@ const typeButtonClass = (type: FlakeType) => {
     width: 0.5em;
   }
 
-  >.group {
+  >.withlabel {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+  }
+
+  >.withlabel.-atleft {
     column-gap: 0.5em;
   }
 
-  >.codelang,
-  >.codelang:deep(::placeholder) {
+  >.withlabel.-atright {
+    padding-left: 0.25em;
+  }
+
+  >.codelang {
     font-family: var(--font-monospace)
+  }
+
+  >.codelang::placeholder {
+    font-family: var(--font-default)
+  }
+}
+
+.flake-ratio-value {
+  max-width: 80px;
+
+  &:disabled {
+    color: var(--text-faint);
   }
 }
 

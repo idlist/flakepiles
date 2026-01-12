@@ -6,6 +6,7 @@ import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
 import { createFlake, type Flake, type PileAdaptiveFlow } from '@/data'
 import type { FileRef, PileActions, PileRef } from '@/app'
 import { ObIcon, ObSearch } from '@/components'
+import { useCssIf, useCssWith } from '@/utils'
 
 import MenuButton from './MenuButton.vue'
 import MasonryUnified from './MasonryUnified.vue'
@@ -21,6 +22,7 @@ const fileRef = inject('fileRef') as FileRef
 const actions = inject('actions') as PileActions
 const name = computed<string>(() => fileRef.value?.basename ?? '')
 
+// Shallow watch `pile` doesn't work. I don't know why.
 watch([
   () => pile.value.flow,
   () => pile.value.sortBy,
@@ -76,17 +78,28 @@ const isMenuExpanded = ref(false)
 const showSizeOptions = ref(false)
 const showLabels = ref(true)
 
-// Reset menu and panels when changing files.
-watch(() => pile.value.id, () => {
-  isMenuExpanded.value = false
+const closeAllPanels = () => {
   showSizeOptions.value = false
   showLabels.value = false
+}
+
+// Reset menu and all panels when changing files.
+watch(() => pile.value.id, () => {
+  isMenuExpanded.value = false
+  closeAllPanels()
 })
 
-// Close *some* panels when the viewport is resized to small.
+// Close some panels when the viewport is resized to small.
 watch(isViewportSmall, (small) => {
   if (small) {
-    showSizeOptions.value = false
+    closeAllPanels()
+  }
+})
+
+// Close some panels when entering editing mode.
+watch(editing, () => {
+  if (editing.value) {
+    closeAllPanels()
   }
 })
 
@@ -155,11 +168,8 @@ const sortedFlakes = computed<Flake[]>(() => {
   return sorted
 })
 
-const adaptiveToolClass = computed(() => {
-  return isViewportLarge.value
-    ? 'fp-btn-icon-label'
-    : 'fp-btn-icon-label -nolabel'
-})
+const cssAdaptiveFlow = useCssWith(adaptiveFlow, (v) => `-${v}`)
+const cssNoLabel = useCssIf(isViewportLarge, '-nolabel')
 </script>
 
 <template>
@@ -170,7 +180,7 @@ const adaptiveToolClass = computed(() => {
       <div class="menu-area">
         <div v-if="!isMenuExpanded" class="menu-main">
           <MenuButton
-            :class="adaptiveToolClass"
+            :class="['fp-btn-icon-label', cssNoLabel]"
             icon="plus"
             label="Add Flake"
             @click="addFlake" />
@@ -186,7 +196,7 @@ const adaptiveToolClass = computed(() => {
 
         <div v-if="isMenuExpanded" class="menu-main">
           <MenuButton ref="el-labels-button"
-            :class="adaptiveToolClass"
+            :class="['fp-btn-icon-label', cssNoLabel]"
             icon="tags"
             label="Labels"
             @click="showLabels = !showLabels" />
@@ -222,14 +232,14 @@ const adaptiveToolClass = computed(() => {
         <div v-if="isMenuExpanded" class="menu-above">
           <div v-if="isDesktop">
             <MenuButton
-              :class="adaptiveToolClass"
+              :class="['fp-btn-icon-label', cssNoLabel]"
               icon="import"
               label="Import..." />
           </div>
 
           <div v-if="isDesktop">
             <MenuButton
-              :class="adaptiveToolClass"
+              :class="['fp-btn-icon-label', cssNoLabel]"
               icon="archive-restore"
               label="Export..." />
           </div>
@@ -256,7 +266,7 @@ const adaptiveToolClass = computed(() => {
     </div>
 
     <div class="content">
-      <div ref="el-canvas" :class="['sub-layout', `-${adaptiveFlow}`]">
+      <div ref="el-canvas" :class="['sub-layout', cssAdaptiveFlow]">
         <div v-if="!pile.flakes.length" class="no-flakes">No Flakes</div>
 
         <MasonryUnified v-else
@@ -300,7 +310,7 @@ const adaptiveToolClass = computed(() => {
 @use '../globals.scss' as *;
 
 .flakepile-layout {
-  @extend %fp-inset;
+  @extend .fp-inset;
   position: fixed;
   top: var(--header-height);
   min-width: 400px;
@@ -322,8 +332,9 @@ const adaptiveToolClass = computed(() => {
 }
 
 .sub-layout {
-  @extend %fp-inset;
+  @extend .fp-inset;
   position: absolute;
+
   overflow-x: scroll;
   overflow-y: auto;
   scrollbar-gutter: stable;
@@ -393,7 +404,7 @@ const adaptiveToolClass = computed(() => {
 }
 
 .floating-container {
-  @extend %fp-inset;
+  @extend .fp-inset;
   position: fixed;
   z-index: 10;
   pointer-events: none;
