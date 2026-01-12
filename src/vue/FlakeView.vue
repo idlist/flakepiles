@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, onUnmounted, ref, useTemplateRef, watch, type StyleValue } from 'vue'
+import { computed, inject, onUnmounted, ref, useTemplateRef, watch } from 'vue'
 import { moment, Notice } from 'obsidian'
 import { until, useDebounceFn, useElementSize, useTextareaAutosize } from '@vueuse/core'
 import type { Flake, FlakeType } from '@/data'
@@ -9,7 +9,6 @@ import { ObIcon } from '@/components'
 const props = defineProps<{
   flake: Flake
   editing?: boolean
-  innerStyle?: StyleValue
 }>()
 
 const emit = defineEmits<{
@@ -164,7 +163,7 @@ defineExpose({
   highlight,
 })
 
-const outerClass = computed(() => {
+const modifierClass = computed(() => {
   return {
     [`-${props.flake.theme}`]: true,
     '-editing': props.editing,
@@ -180,86 +179,84 @@ const typeButtonClass = (type: FlakeType) => {
 </script>
 
 <template>
-  <div ref="el-flake" class="flake-view fp-flake-theme" :class="outerClass">
-    <div class="flake-card" :style="innerStyle">
-      <div ref="el-name">
-        <div v-if="viewing"
-          class="flake-name -view">
-          {{ flake.name }}
-        </div>
-        <input v-if="editing"
-          v-model="editName"
-          class="flake-name -edit" />
+  <div ref="el-flake" class="flake-view fp-flake-theme" :class="modifierClass">
+    <div ref="el-name">
+      <div v-if="viewing"
+        class="flake-name -view">
+        {{ flake.name }}
       </div>
+      <input v-if="editing"
+        v-model="editName"
+        class="flake-name -edit" />
+    </div>
 
-      <div class="scrollable">
-        <div ref="el-content" class="flake-content">
-          <div v-if="viewing && isEmpty" class="none">
-            No Content
-          </div>
+    <div class="scrollable">
+      <div ref="el-content" class="flake-content">
+        <div v-if="viewing && isEmpty" class="none">
+          No Content
+        </div>
 
-          <div v-if="viewing && isTextlike"
-            ref="el-markdown"
-            class="fp-markdown view"
-            :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']">
-          </div>
+        <div v-if="viewing && isTextlike"
+          ref="el-markdown"
+          class="fp-markdown view"
+          :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']">
+        </div>
 
-          <div v-if="viewing && isImage">
-            <!-- TODO -->
-          </div>
+        <div v-if="viewing && isImage">
+          <!-- TODO -->
+        </div>
 
-          <textarea v-if="editing"
-            ref="editAreaRef"
-            v-model="editContent"
-            class="edit"
-            :class="[`-${flake.type}`]"
-            placeholder="Note here...">
+        <textarea v-if="editing"
+          ref="editAreaRef"
+          v-model="editContent"
+          class="edit"
+          :class="[`-${flake.type}`]"
+          placeholder="Note here...">
         </textarea>
-        </div>
       </div>
+    </div>
 
-      <div ref="el-footer">
-        <div v-if="editing" class="flake-edit">
-          <div class="edit-options">
-            <button
-              class="fp-btn-icon"
-              :class="typeButtonClass('text')"
-              @click="flake.type = 'text'">
-              <ObIcon name="type" />
-            </button>
-            <button
-              class="fp-btn-icon"
-              :class="typeButtonClass('image')"
-              @click="flake.type = 'image'">
-              <ObIcon name="image" />
-            </button>
-            <button
-              class="fp-btn-icon"
-              :class="typeButtonClass('code')"
-              @click="flake.type = 'code'">
-              <ObIcon name="code" />
-            </button>
+    <div ref="el-footer">
+      <div v-if="editing" class="flake-edit">
+        <div class="edit-options">
+          <button
+            class="fp-btn-icon"
+            :class="typeButtonClass('text')"
+            @click="flake.type = 'text'">
+            <ObIcon name="type" />
+          </button>
+          <button
+            class="fp-btn-icon"
+            :class="typeButtonClass('image')"
+            @click="flake.type = 'image'">
+            <ObIcon name="image" />
+          </button>
+          <button
+            class="fp-btn-icon"
+            :class="typeButtonClass('code')"
+            @click="flake.type = 'code'">
+            <ObIcon name="code" />
+          </button>
 
-            <div class="expand"></div>
+          <div class="expand"></div>
 
-            <button class="fp-btn-icon">
-              <ObIcon name="tag" />
-            </button>
-          </div>
+          <button class="fp-btn-icon">
+            <ObIcon name="tag" />
+          </button>
+        </div>
 
-          <div v-if="flake.type == 'code'" class="edit-options">
-            <input v-model="flake.codeLang"
-              type="text"
-              class="expand codelang"
-              placeholder="Language..." />
+        <div v-if="flake.type == 'code'" class="edit-options">
+          <input v-model="flake.codeLang"
+            type="text"
+            class="expand codelang"
+            placeholder="Language..." />
 
-            <div class="gap"></div>
+          <div class="gap"></div>
 
-            <label class="group">
-              <span>Wrap</span>
-              <input v-model="flake.codeWrap" type="checkbox" />
-            </label>
-          </div>
+          <label class="group">
+            <span>Wrap</span>
+            <input v-model="flake.codeWrap" type="checkbox" />
+          </label>
         </div>
       </div>
     </div>
@@ -306,10 +303,15 @@ const typeButtonClass = (type: FlakeType) => {
   border-radius: var(--radius-s);
   box-shadow: var(--box-shadow);
 
-  display: grid;
+  color: var(--flake-text);
+  background-color: var(--flake-text-bg);
+
+  position: relative;
   min-height: 0;
   max-height: 100%;
-  position: relative;
+
+  display: grid;
+  grid-template-rows: min-content auto min-content;
 
   &.-editing {
     box-shadow: var(--box-shadow-heavy);
@@ -340,25 +342,13 @@ const typeButtonClass = (type: FlakeType) => {
     animation: 2s linear light-long;
   }
 
-  &:hover>.flake-menu {
-    display: flex;
-  }
-}
-
-.flake-card {
-  min-height: 0;
-  max-height: 100%;
-  overflow: hidden;
-
-  display: grid;
-  grid-template-rows: min-content auto min-content;
-
-  color: var(--flake-text);
-  background-color: var(--flake-text-bg);
-
-  & .scrollable {
+  &>.scrollable {
     overflow-y: auto;
     scrollbar-gutter: stable;
+  }
+
+  &:hover>.flake-menu {
+    display: flex;
   }
 }
 

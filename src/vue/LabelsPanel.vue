@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ObIcon, ObText } from '@/components'
+import { ObIcon } from '@/components'
 </script>
 
 <template>
   <div class="fp-obsidian-panel labels-panel">
     <div class="">
-      <ObText placeholder="New label..." />
+      <input type="text" />
       <button class="fp-btn-icon">
         <ObIcon name="square-plus" />
       </button>
@@ -16,5 +16,6 @@ import { ObIcon, ObText } from '@/components'
 <style lang="scss" scoped>
 .labels-panel {
   font-size: var(--font-ui-small);
+  min-width: 240px;
 }
 </style>

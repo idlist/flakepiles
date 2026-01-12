@@ -1,6 +1,6 @@
 # Flakepiles for Obsidian
 
-Sticker pile in a single file.
+Sticker / Card pile in a single file.
 
 For personal use. In very early development.
 
@@ -40,7 +40,13 @@ Vite + Vue 3 + Sass
 - [ ] Search inside a Flakepile
   - [ ] Search title
   - [ ] Search content
+
+## Long term goals
+
 - [ ] Import multiple markdown files to Flakes
+- [ ] Import `.zip` archive to a Flakepile
+  - [ ] Import as a new Flakepile
+  - [ ] Import into an existing Flakepile
 - [ ] Export files to a .zip archive, each Flake as a markdown file
 
 ## Non-goals

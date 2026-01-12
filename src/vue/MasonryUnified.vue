@@ -102,28 +102,19 @@ const updateStyles = (resolved: ResolvedMasonry) => {
   resolvedMasonry.value = resolved.masonry
 }
 
-const outerStyles = computed<Map<string, StyleValue>>(() => {
+const flakeStyles = computed<Map<string, StyleValue>>(() => {
   const styles = new Map<string, StyleValue>()
   for (const [id, rect] of resolvedRects.value) {
     styles.set(id, {
       translate: pxy(rect.x, rect.y),
       width: px(rect.width),
-    })
-  }
-  return styles
-})
-
-const innerStyles = computed<Map<string, StyleValue>>(() => {
-  const styles = new Map<string, StyleValue>()
-  for (const [id, rect] of resolvedRects.value) {
-    styles.set(id, {
       height: px(rect.height),
     })
   }
   return styles
 })
 
-const editingActualHeight = computed(() => {
+const editingStyles = computed<StyleValue>(() => {
   const rect = resolvedRects.value.get(editing.value!)!
 
   let cachedHeight = editingHeightCache.value
@@ -135,15 +126,6 @@ const editingActualHeight = computed(() => {
 
   let actualHeight = cachedHeight
   actualHeight = Math.min(actualHeight, contentHeight)
-
-  return actualHeight
-})
-
-const outerStyleEditing = computed<StyleValue>(() => {
-  const rect = resolvedRects.value.get(editing.value!)!
-
-  const actualHeight = editingActualHeight.value
-  const contentHeight = props.options.canvasHeight - PAD_Y * 2
 
   let y: number
   const spaceBelow = contentHeight - (rect.y - props.scrollY)
@@ -161,12 +143,7 @@ const outerStyleEditing = computed<StyleValue>(() => {
   return {
     translate: pxy(rect.x, y),
     width: px(rect.width),
-  }
-})
-
-const innerStyleEditing = computed<StyleValue>(() => {
-  return {
-    height: px(editingActualHeight.value),
+    height: px(actualHeight),
   }
 })
 
@@ -251,8 +228,7 @@ defineExpose({
       :class="{ '-preparing': !resolvedFlakes.has(flake.id) }"
       :flake="flake"
       :editing="editing == flake.id"
-      :style="editing == flake.id ? outerStyleEditing : outerStyles.get(flake.id)"
-      :inner-style="editing == flake.id ? innerStyleEditing : innerStyles.get(flake.id)"
+      :style="editing == flake.id ? editingStyles : flakeStyles.get(flake.id)"
       @edit-begin="onEditBegin"
       @edit-finish="onEditFinish"
       @height-update="onHeightUpdate" />

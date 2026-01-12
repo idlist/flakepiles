@@ -8,7 +8,6 @@ import type { FileRef, PileActions, PileRef } from '@/app'
 import { ObIcon, ObSearch } from '@/components'
 
 import MenuButton from './MenuButton.vue'
-import SortOptions from './SortOptions.vue'
 import MasonryUnified from './MasonryUnified.vue'
 import SizeOptionsPanel from './SizeOptionsPanel.vue'
 import LabelsPanel from './LabelsPanel.vue'
@@ -191,9 +190,24 @@ const adaptiveToolClass = computed(() => {
 
           <div class="expand"></div>
 
-          <SortOptions
-            v-model:sort-by="pile.sortBy"
-            v-model:sort-order="pile.sortOrder" />
+          <label>Sort By</label>
+          <select v-model="pile.sortBy" class="dropdown">
+            <option value="name">Name</option>
+            <option value="createdAt">Time Created</option>
+            <option value="modifiedAt">Time Modified</option>
+          </select>
+          <button
+            v-if="pile.sortOrder == 'desc'"
+            class="fp-btn-icon"
+            @click="pile.sortOrder = 'asc'">
+            <ObIcon name="arrow-down-wide-narrow" />
+          </button>
+          <button
+            v-if="pile.sortOrder == 'asc'"
+            class="fp-btn-icon"
+            @click="pile.sortOrder = 'desc'">
+            <ObIcon name="arrow-up-narrow-wide" />
+          </button>
 
           <button
             class="fp-btn-icon"
