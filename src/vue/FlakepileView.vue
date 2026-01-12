@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Platform } from 'obsidian'
-import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
 import { useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
 import { createFlake, type Flake, type PileAdaptiveFlow } from '@/data'
@@ -33,6 +33,9 @@ watch([
 ], () => {
   actions.save()
 })
+
+const editing = ref<string | null>(null)
+provide('editing', editing)
 
 const viewportRef = useTemplateRef('el-viewport')
 const viewportSize = useElementSize(viewportRef)

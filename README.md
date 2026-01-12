@@ -30,7 +30,7 @@ Vite + Vue 3 + Sass
   - [x] Flake creation, update, deletion
   - [x] Flake markdown rendering
   - [x] Text Flake
-  - [ ] Code Flake
+  - [x] Code Flake
   - [ ] Image Flake
   - [ ] Flake color (theme)
 - [ ] Flake labels
@@ -52,6 +52,7 @@ Vite + Vue 3 + Sass
   - [ ] Import as a new Flakepile
   - [ ] Import into an existing Flakepile
 - [ ] Export files to a .zip archive, each Flake as a markdown file
+- [ ] Transition animation (investigated a bit, struggling with lifecycles)
 
 ## Non-goals
 

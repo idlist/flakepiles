@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, inject, onUnmounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch } from 'vue'
 import { moment, Notice } from 'obsidian'
-import { until, useDebounceFn, useElementSize, useTextareaAutosize } from '@vueuse/core'
+import { until, useDebounceFn, useElementSize, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
 import type { Flake, FlakeType } from '@/data'
 import type { PileActions } from '@/app'
 import { ObIcon } from '@/components'
+import { px } from '@/utils'
 
 const props = defineProps<{
   flake: Flake
@@ -18,38 +19,85 @@ const emit = defineEmits<{
   (e: 'height-update', id: string, height: number): void
 }>()
 
+const viewing = computed(() => !props.editing)
+
 const isEmpty = computed(() => !props.flake.content)
-const isTextlike = computed(() => {
-  return !!props.flake.content && ['code', 'text'].includes(props.flake.type)
+const isText = computed(() => {
+  return !isEmpty.value && props.flake.type == 'text'
+})
+const isCode = computed(() => {
+  return !isEmpty.value && props.flake.type == 'code'
 })
 const isImage = computed(() => {
-  return !!props.flake.content && props.flake.type == 'image'
+  return !isEmpty.value && props.flake.type == 'image'
 })
-const wrap = computed(() => {
-  return props.flake.type == 'code' && props.flake.codeWrap
-})
-
-const viewing = computed(() => !props.editing)
-const { textarea: editAreaRef, input: editContent } = useTextareaAutosize()
-const editName = ref<string>('')
 
 const actions = inject('actions') as PileActions
 
 const flakeRef = useTemplateRef('el-flake')
 const nameRef = useTemplateRef('el-name')
-const contentRef = useTemplateRef('el-content')
+const scrollableRef = useTemplateRef('el-scrollable')
 const footerRef = useTemplateRef('el-footer')
+const contentRef = useTemplateRef('el-content')
 const markdownRef = useTemplateRef('el-markdown')
+const textareaRef = useTemplateRef('el-textarea')
+
+const editName = ref<string>('')
+const editContent = ref<string>('')
+
+const { triggerResize } = useTextareaAutosize({
+  element: textareaRef,
+  input: editContent,
+})
+
+const noWrap = computed(() => {
+  return isCode.value && !props.flake.codeWrap
+})
+
+watch(noWrap, async () => {
+  await nextTick()
+  triggerResize()
+  syncTextareaWidth()
+})
+
+const syncTextareaWidth = () => {
+  if (!noWrap.value) return
+  if (!textareaRef.value) return
+  console.log('sync')
+
+  const textareaEl = textareaRef.value
+  textareaEl.style.width = '100%'
+  textareaEl.style.width = px(textareaEl.scrollWidth + 16)
+}
+
+watch(() => props.editing, async (value) => {
+  if (value) {
+    await nextTick()
+    syncTextareaWidth()
+  }
+})
+
+useEventListener(textareaRef, 'input', () => {
+  syncTextareaWidth()
+})
 
 const nameSize = useElementSize(nameRef)
 const contentSize = useElementSize(contentRef)
 const footerSize = useElementSize(footerRef)
+const scrollBarHeight = ref(0)
+
+useResizeObserver(scrollableRef, (entries) => {
+  const entry = entries[0]!
+  const el = entry.target as HTMLElement
+  scrollBarHeight.value = el.offsetHeight - el.clientHeight
+})
+
 const height = computed(() => {
   return 2 // Approximate border size, not accurate.
     + nameSize.height.value
     + contentSize.height.value
     + footerSize.height.value
-  // TODO: add the height of horizontal scroll bar when overflows.
+    + scrollBarHeight.value
 })
 
 const requestReportHeight = useDebounceFn((height: number) => {
@@ -84,9 +132,8 @@ const editFinish = async () => {
 }
 
 const requestFocusEditArea = async () => {
-  await until(editAreaRef).toBeTruthy({ timeout: 1000 })
-  const editAreaEl = editAreaRef.value!
-  editAreaEl.focus()
+  await until(textareaRef).toBeTruthy({ timeout: 1000 })
+  textareaRef.value!.focus()
 }
 
 watch(() => props.editing, () => {
@@ -190,16 +237,18 @@ const typeButtonClass = (type: FlakeType) => {
         class="flake-name -edit" />
     </div>
 
-    <div class="scrollable">
-      <div ref="el-content" class="flake-content">
+    <div ref="el-scrollable" class="scrollable">
+      <div ref="el-content"
+        class="flake-content"
+        :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']">
         <div v-if="viewing && isEmpty" class="none">
           No Content
         </div>
 
-        <div v-if="viewing && isTextlike"
+        <div v-if="viewing && (isText || isCode)"
           ref="el-markdown"
           class="fp-markdown view"
-          :class="[`-${flake.type}`, wrap ? '-wrap' : '-nowrap']">
+          :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']">
         </div>
 
         <div v-if="viewing && isImage">
@@ -207,10 +256,10 @@ const typeButtonClass = (type: FlakeType) => {
         </div>
 
         <textarea v-if="editing"
-          ref="editAreaRef"
+          ref="el-textarea"
           v-model="editContent"
           class="edit"
-          :class="[`-${flake.type}`]"
+          :class="[`-${flake.type}`, noWrap ? '-nowrap' : '']"
           placeholder="Note here...">
         </textarea>
       </div>
@@ -408,8 +457,8 @@ const typeButtonClass = (type: FlakeType) => {
     margin: 5px 0;
   }
 
-  >.view.-wrap :deep(code) {
-    white-space: pre-wrap;
+  >.view.-nowrap {
+    width: auto;
   }
 
   >.view.-nowrap :deep(code) {
@@ -433,6 +482,11 @@ const typeButtonClass = (type: FlakeType) => {
     font-size: var(--font-smaller);
     line-height: 1.45;
     letter-spacing: -0.25px;
+  }
+
+  >.edit.-nowrap {
+    flex-shrink: 0;
+    white-space: pre;
   }
 }
 

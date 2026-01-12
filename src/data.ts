@@ -1,5 +1,6 @@
 import { moment } from 'obsidian'
 import { nanoid } from 'nanoid'
+import type { Ref } from 'vue'
 
 export type FlakeType = 'text' | 'image' | 'code'
 
@@ -80,3 +81,5 @@ export const createFlakepile = (): Flakepile => {
     flakes: [],
   }
 }
+
+export type EditingRef = Ref<string | null>
