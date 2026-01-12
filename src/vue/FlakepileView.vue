@@ -74,7 +74,9 @@ const scrollY = computed(() => {
   return canvasBounding.top.value - masonryBounding.top.value
 })
 
-const isMenuExpanded = ref(false)
+type MenuState = 'shrink' | 'normal' | 'expand'
+
+const menuState = ref<MenuState>('normal')
 const showSizeOptions = ref(false)
 const showLabels = ref(true)
 
@@ -85,7 +87,7 @@ const closeAllPanels = () => {
 
 // Reset menu and all panels when changing files.
 watch(() => pile.value.id, () => {
-  isMenuExpanded.value = false
+  menuState.value = 'normal'
   closeAllPanels()
 })
 
@@ -169,16 +171,34 @@ const sortedFlakes = computed<Flake[]>(() => {
 })
 
 const cssAdaptiveFlow = useCssWith(adaptiveFlow, (v) => `-${v}`)
-const cssNoLabel = useCssIf(isViewportLarge, '-nolabel')
+const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 </script>
 
 <template>
   <div ref="el-viewport" class="flakepile-layout">
     <div class="header">
-      <h1 class="file-name">{{ name }}</h1>
+      <div v-if="menuState == 'shrink'" class="menu-shrink">
+        <button
+          class="fp-btn-icon"
+          @click="menuState = 'normal'">
+          <ObIcon name="chevrons-up-down" />
+        </button>
 
-      <div class="menu-area">
-        <div v-if="!isMenuExpanded" class="menu-main">
+        <h6 class="file-name-shrink">
+          {{ name }}
+        </h6>
+      </div>
+
+      <h1 v-if="menuState != 'shrink'" class="file-name">{{ name }}</h1>
+
+      <div v-if="menuState != 'shrink'" class="menu-area">
+        <div v-if="menuState == 'normal'" class="menu-main">
+          <button
+            class="fp-btn-icon"
+            @click="menuState = 'shrink'">
+            <ObIcon name="chevrons-down-up" />
+          </button>
+
           <MenuButton
             :class="['fp-btn-icon-label', cssNoLabel]"
             icon="plus"
@@ -189,12 +209,12 @@ const cssNoLabel = useCssIf(isViewportLarge, '-nolabel')
 
           <button
             class="fp-btn-icon"
-            @click="isMenuExpanded = true">
+            @click="menuState = 'expand'">
             <ObIcon name="square-menu" />
           </button>
         </div>
 
-        <div v-if="isMenuExpanded" class="menu-main">
+        <div v-if="menuState == 'expand'" class="menu-main">
           <MenuButton ref="el-labels-button"
             :class="['fp-btn-icon-label', cssNoLabel]"
             icon="tags"
@@ -224,12 +244,12 @@ const cssNoLabel = useCssIf(isViewportLarge, '-nolabel')
 
           <button
             class="fp-btn-icon"
-            @click="isMenuExpanded = false">
+            @click="menuState = 'normal'">
             <ObIcon name="cross" />
           </button>
         </div>
 
-        <div v-if="isMenuExpanded" class="menu-above">
+        <div v-if="menuState == 'expand'" class="menu-expand">
           <div v-if="isDesktop">
             <MenuButton
               :class="['fp-btn-icon-label', cssNoLabel]"
@@ -263,6 +283,8 @@ const cssNoLabel = useCssIf(isViewportLarge, '-nolabel')
           </template>
         </div>
       </div>
+
+      <div v-if="editing" class="header-mask"></div>
     </div>
 
     <div class="content">
@@ -320,6 +342,8 @@ const cssNoLabel = useCssIf(isViewportLarge, '-nolabel')
 
   >.header {
     position: relative;
+    overflow-x: hidden;
+
     padding: 0.5em 1em;
     background-color: var(--background-primary);
     border-bottom: var(--border-width) solid var(--background-modifier-border);
@@ -331,6 +355,14 @@ const cssNoLabel = useCssIf(isViewportLarge, '-nolabel')
   }
 }
 
+.header-mask {
+  @extend .fp-inset;
+  position: absolute;
+  z-index: 20;
+
+  background-color: color-mix(in srgb, var(--background-primary), transparent 25%);
+}
+
 .sub-layout {
   @extend .fp-inset;
   position: absolute;
@@ -340,10 +372,29 @@ const cssNoLabel = useCssIf(isViewportLarge, '-nolabel')
   scrollbar-gutter: stable;
 }
 
+.menu-shrink {
+  display: flex;
+  align-items: center;
+  column-gap: 0.5em;
+}
+
+%file-name-ellipsis {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: text;
+}
+
+.file-name-shrink {
+  @extend %file-name-ellipsis;
+  margin: 0;
+}
+
 .file-name {
+  @extend %file-name-ellipsis;
   margin: 0;
   margin-bottom: 0.375em;
-  user-select: text;
 
   .is-mobile & {
     margin-top: 0.5em;
@@ -351,7 +402,12 @@ const cssNoLabel = useCssIf(isViewportLarge, '-nolabel')
   }
 }
 
-%fp-tools {
+.menu-area {
+  width: 100%;
+  position: relative;
+}
+
+.menu-main {
   display: flex;
   align-items: center;
   column-gap: 0.5em;
@@ -368,31 +424,17 @@ const cssNoLabel = useCssIf(isViewportLarge, '-nolabel')
   }
 }
 
-%fp-tools-additional {
-  @extend %fp-tools;
+.menu-expand {
+  @extend .menu-main;
   position: absolute;
   left: 0;
   right: 0;
   z-index: 5;
   column-gap: 0.5em;
 
-  background-color: color-mix(in srgb, var(--background-primary), transparent 10%);
-}
-
-.menu-area {
-  width: 100%;
-  position: relative;
-}
-
-.menu-main {
-  @extend %fp-tools;
-  position: relative;
-}
-
-.menu-above {
-  @extend %fp-tools-additional;
   bottom: 100%;
   margin-bottom: 0.5em;
+  background-color: color-mix(in srgb, var(--background-primary), transparent 10%);
 }
 
 .no-flakes {

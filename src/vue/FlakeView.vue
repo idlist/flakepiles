@@ -297,15 +297,18 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
     <div v-if="!imageOnly" ref="el-footer">
       <div v-if="isEdit" class="flake-edit-tools">
         <div class="flake-edit-row">
-          <button :class="['fp-btn-icon', cssTypeIsText]"
+          <button
+            :class="['fp-btn-icon', cssTypeIsText]"
             @click="flake.type = 'text'">
             <ObIcon name="type" />
           </button>
-          <button :class="['fp-btn-icon', cssTypeIsImage]"
+          <button
+            :class="['fp-btn-icon', cssTypeIsImage]"
             @click="flake.type = 'image'">
             <ObIcon name="image" />
           </button>
-          <button :class="['fp-btn-icon', cssTypeIsCode]"
+          <button
+            :class="['fp-btn-icon', cssTypeIsCode]"
             @click="flake.type = 'code'">
             <ObIcon name="code" />
           </button>
