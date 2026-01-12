@@ -13,11 +13,12 @@ import MasonryUnified from './MasonryUnified.vue'
 import SizeOptionsPanel from './SizeOptionsPanel.vue'
 import LabelsPanel from './LabelsPanel.vue'
 
-const props = defineProps<{
-  pile: PileRef
-}>()
-const pile = props.pile
+const props = defineProps<{ pile: PileRef }>()
 
+const isDev = ref(false)
+provide('isDev', isDev)
+
+const pile = props.pile
 const fileRef = inject('fileRef') as FileRef
 const actions = inject('actions') as PileActions
 const name = computed<string>(() => fileRef.value?.basename ?? '')
@@ -217,7 +218,8 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
         </div>
 
         <div v-if="menuState == 'expand'" class="menu-main">
-          <MenuButton ref="el-labels-button"
+          <MenuButton v-if="isDev"
+            ref="el-labels-button"
             :class="['fp-btn-icon-label', cssNoLabel]"
             icon="tags"
             label="Labels"
@@ -252,14 +254,14 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
         </div>
 
         <div v-if="menuState == 'expand'" class="menu-expand">
-          <div v-if="isDesktop">
+          <div v-if="isDesktop && isDev">
             <MenuButton
               :class="['fp-btn-icon-label', cssNoLabel]"
               icon="import"
               label="Import..." />
           </div>
 
-          <div v-if="isDesktop">
+          <div v-if="isDesktop && isDev">
             <MenuButton
               :class="['fp-btn-icon-label', cssNoLabel]"
               icon="archive-restore"

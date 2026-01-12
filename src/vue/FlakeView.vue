@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch, watchEffect } from 'vue'
+import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch, watchEffect, type Ref } from 'vue'
 import { moment, Notice } from 'obsidian'
 import { until, useDebounceFn, useElementSize, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
 import type { ImageRawSize, PileActions } from '@/app'
@@ -20,6 +20,7 @@ const emit = defineEmits<{
   (e: 'height-update', id: string, height: number): void
 }>()
 
+const isDev = inject('isDev') as Ref<boolean>
 const isView = computed(() => !props.isEdit)
 
 const isEmpty = computed(() => !props.flake.content)
@@ -27,11 +28,32 @@ const isText = computed(() => props.flake.type == 'text')
 const isCode = computed(() => props.flake.type == 'code')
 const isImage = computed(() => props.flake.type == 'image')
 
-const hasImage = computed(() => !isEmpty.value && isImage.value)
-
-const imageRawSize = ref<ImageRawSize | null>(null)
-const mountError = ref<string | null>(null)
 const actions = inject('actions') as PileActions
+const imageRawSize = ref<ImageRawSize | null>(null)
+
+type MountErrorCause = null | 'image' | 'markdown'
+
+const mountError = ref<MountErrorCause>(null)
+
+const mountErrorMessage = (e: MountErrorCause): string => {
+  if (e == 'image') {
+    return `Cannot find image "${props.flake.content}".`
+  }
+  else if (e == 'markdown') {
+    return `Cannot parse markdown content.`
+  }
+  else {
+    return `Unknown error.`
+  }
+}
+
+const imageLoaded = computed(() => isImage.value && !mountError.value)
+
+const imageOnly = computed(() => {
+  return isView.value
+    && imageLoaded.value
+    && props.flake.imageOnly
+})
 
 const flakeRef = useTemplateRef('el-flake')
 const nameRef = useTemplateRef('el-name')
@@ -92,8 +114,8 @@ useResizeObserver(scrollableRef, (entries) => {
 const contentHeight = ref(0)
 
 watchEffect(async () => {
-  if (isView.value && hasImage.value && imageRawSize.value) {
-    if (props.flake.enableRatio) {
+  if (isView.value && isImage.value && imageRawSize.value) {
+    if (props.flake.enableRatio && props.flake.ratio) {
       const ratio = Math.clamp(props.flake.ratio, 0.25, 4)
       contentHeight.value = props.width * ratio
     }
@@ -108,7 +130,6 @@ watchEffect(async () => {
 })
 
 const height = computed(() => {
-  console.log(nameSize.height.value, contentHeight.value, footerSize.height.value, scrollBarHeight.value)
   return 2 // Border size, not accurate
     + nameSize.height.value
     + contentHeight.value
@@ -134,7 +155,7 @@ watchEffect(async () => {
   try {
     const result = await actions.mountContent(mountRef.value, props.flake)
 
-    if (hasImage.value) {
+    if (isImage.value) {
       imageRawSize.value = result!
     }
 
@@ -150,13 +171,6 @@ watchEffect(async () => {
 
     imageRawSize.value = null
   }
-})
-
-const imageOnly = computed(() => {
-  return isView.value
-    && hasImage.value
-    && !mountError.value
-    && props.flake.imageOnly
 })
 
 const editBegin = () => {
@@ -254,8 +268,8 @@ const cssLight = useCssWith(light, (v) => `-light${v}`)
 
 const cssIsCode = useCssIf(isCode, '-code')
 const cssIsImage = useCssIf(isImage, '-image')
-const cssViewImage = useCssIf(() => isView.value && isImage.value, '-viewimage')
 const cssNoWrap = useCssIf(noWrap, '-nowrap')
+const cssViewImage = useCssIf(() => isView.value && imageLoaded.value, '-viewimage')
 
 const cssTypeIsText = useCssIf(isText, 'selected')
 const cssTypeIsCode = useCssIf(isCode, 'selected')
@@ -282,8 +296,16 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
         </div>
 
         <div v-if="isView"
+          v-show="!mountError"
           ref="el-mount"
           :class="['fp-markdown', 'view', cssIsImage, cssIsCode, cssNoWrap]">
+        </div>
+
+        <div v-if="isView && mountError"
+          class="view">
+          <p class="flake-mount-error">
+            {{ mountErrorMessage(mountError) }}
+          </p>
         </div>
 
         <textarea v-if="isEdit"
@@ -316,8 +338,12 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 
           <div class="expand"></div>
 
-          <button class="fp-btn-icon">
+          <button v-if="isDev" class="fp-btn-icon">
             <ObIcon name="tag" />
+          </button>
+
+          <button v-if="isDev" class="fp-btn-icon">
+            <ObIcon name="palette" />
           </button>
         </div>
 
@@ -563,6 +589,15 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
     flex-shrink: 0;
     white-space: pre;
   }
+}
+
+.flake-mount-error {
+  margin: var(--size-4-2) 0;
+  padding: var(--size-4-2);
+  text-align: center;
+  font-size: var(--font-smaller);
+  color: var(--text-muted);
+  background-color: var(--background-primary-alt);
 }
 
 .flake-edit-tools {

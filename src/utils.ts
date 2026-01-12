@@ -21,11 +21,13 @@ export const useCssWith = <T>(
   })
 }
 
-export class CausedError extends Error {
+export class CausedError<T> extends Error {
   cause: string
+  data?: T
 
-  constructor(message: string, cause: string) {
+  constructor(message: string, cause: string, data?: T) {
     super(message)
     this.cause = cause
+    this.data = data
   }
 }

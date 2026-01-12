@@ -71,9 +71,7 @@ export class FlakepileApp extends TextFileView {
         }
         else if (flake.type == 'code') {
           const content =
-            `${TICKS}${flake.codeLang}
-${flake.content}
-${TICKS}`
+            `${TICKS}${flake.codeLang}\n${flake.content}\n${TICKS}`
 
           await this.mountMarkdown(element, content)
           this.codeBlockPostProcess(element)

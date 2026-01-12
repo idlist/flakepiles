@@ -14,7 +14,7 @@ export interface Flake {
   content: string
   imageOnly: boolean
   enableRatio: boolean
-  ratio: number
+  ratio: number | ''
   codeLang: string
   codeWrap: boolean
   labels: string[]

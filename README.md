@@ -6,7 +6,7 @@ An obsidian plugin. For personal use. In very early development.
 
 ## Status
 
-MVP (i.e., barely usable), lacking convenient tools.
+Minimum viable product. Please expect bugs in edge cases.
 
 ## Why
 
@@ -26,33 +26,35 @@ Vite + Vue 3 + TypeScript + Sass
   - [x] Flake size
   - [x] Flake elastic sizing
   - [x] Flake sorting
-- [ ] Flake
+- [x] Flake
   - [x] Flake creation, update, deletion
   - [x] Flake markdown rendering
   - [x] Text Flake
   - [x] Code Flake
   - [x] Image Flake
-  - [ ] Flake color (theme)
-- [ ] Flake labels
-  - [ ] Label creation, update, deletion
-  - [ ] Label color
-  - [ ] Hide specific label (display as `+N`)
-  - [ ] Label filtering
 - [ ] Search inside a Flakepile
   - [ ] Search title
   - [ ] Search content
+- [ ] Flake labels
+  - [ ] Label creation, update, deletion
+  - [ ] Add / remove label to Flake
+  - [ ] Label color
+  - [ ] Hide specific label (display as `+N`)
+  - [ ] Label filtering
 - Limited support to internal plugins
   - [x] Preview other markdown file
   - [x] Jump to global search when clicking on a tag.
 
 ## Long term goals
 
+- [ ] Flake colors (theme)
+- [ ] Search keywords highlight
 - [ ] Import multiple markdown files to Flakes
 - [ ] Import `.zip` archive to a Flakepile
   - [ ] Import as a new Flakepile
   - [ ] Import into an existing Flakepile
 - [ ] Export files to a .zip archive, each Flake as a markdown file
-- [ ] Transition animation (investigated a bit, struggling with lifecycles)
+- [ ] Transition animation (investigated a bit, mostly jank, needs help)
 
 ## Non-goals
 
