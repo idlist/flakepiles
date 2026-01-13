@@ -72,7 +72,7 @@ const reset = () => {
   model.value = props.default
 }
 
-const cssDisabled = useCssIf(()=> props.disabled, '-disabled')
+const cssDisabled = useCssIf(() => props.disabled, '-disabled')
 </script>
 
 <template>
@@ -104,8 +104,10 @@ const cssDisabled = useCssIf(()=> props.disabled, '-disabled')
   align-items: center;
   width: 100%;
 }
+</style>
 
-.ob-slider-wrapper :deep(.slider) {
+<style>
+.ob-slider-wrapper>.slider {
   width: 100%;
 }
 </style>

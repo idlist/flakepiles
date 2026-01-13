@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<{
 })
 
 const masonryRef = useTemplateRef('el-masonry')
-const flakeIds = computed(() => new Set(props.flakes.map((f) => f.id)))
+// const flakeIds = computed(() => new Set(props.flakes.map((f) => f.id)))
 
 const editing = inject('editing') as EditingRef
 const editingHeightCache = ref<number>(0)
@@ -47,14 +47,6 @@ const onHeightUpdate = (id: string, height: number) => {
   }
 }
 
-const validateHeightMap = () => {
-  for (const id of heightMap.keys()) {
-    if (!flakeIds.value.has(id)) {
-      heightMap.delete(id)
-    }
-  }
-}
-
 type MaybeFlakeRef = InstanceType<typeof FlakeView> | null
 
 const flakeRefs = ref<Map<string, MaybeFlakeRef>>(new Map())
@@ -64,6 +56,7 @@ const setFlakeRef = (id: string, el: MaybeFlakeRef) => {
     flakeRefs.value.set(id, el)
   } else {
     flakeRefs.value.delete(id)
+    heightMap.delete(id)
   }
 }
 
@@ -79,7 +72,7 @@ const requestHighlight = async (id: string) => {
   }
 }
 
-const requestScrollTo = async (id: string) => {
+const requestScroll = async (id: string) => {
   try {
     await until(() => flakeRefs.value.has(id) && resolvedFlakes.value.has(id))
       .toBe(true, requestTimeout)
@@ -90,6 +83,16 @@ const requestScrollTo = async (id: string) => {
     })
   } catch (e) {
     console.warn('Failed to scroll into view:', e)
+  }
+}
+
+const requestEdit = async (id: string) => {
+  try {
+    await requestScroll(id)
+    console.log(props.flakes.find((f) => f.id == id))
+    onEditBegin(id)
+  } catch (e) {
+    console.warn('Failed to request edit:', e)
   }
 }
 
@@ -166,9 +169,10 @@ const masonryStyle = computed<StyleValue>(() => {
   const size = resolvedMasonry.value
   if (!size) return
 
+  const { canvasWidth, canvasHeight } = props.options
   return {
-    width: px(size.width),
-    height: px(size.height),
+    width: px(Math.max(size.width, canvasWidth)),
+    height: px(Math.max(size.height, canvasHeight)),
   }
 })
 
@@ -214,12 +218,6 @@ watch(() => props.id, () => {
 
 watch([
   () => props.flakes,
-], () => {
-  validateHeightMap()
-})
-
-watch([
-  () => props.flakes,
   () => props.flow,
   () => props.options,
   heightMap,
@@ -230,7 +228,8 @@ watch([
 defineExpose({
   root: masonryRef,
   requestHighlight,
-  requestScrollTo,
+  requestScroll,
+  requestEdit,
 })
 </script>
 
@@ -258,9 +257,11 @@ defineExpose({
 
 .masonry-element {
   position: absolute;
+  transition: height 0.2s ease-out;
 
   &.-preparing {
     visibility: hidden;
+    transition: none;
   }
 }
 </style>

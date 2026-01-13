@@ -64,10 +64,6 @@ const elasticHeight = defineModel<boolean>('elastic-height')
   row-gap: var(--size-4-1);
 
   font-size: var(--font-ui-small);
-
-  >:deep(hr) {
-    margin: var(--size-4-1) 0;
-  }
 }
 
 .size-option {
@@ -90,5 +86,11 @@ const elasticHeight = defineModel<boolean>('elastic-height')
   &.-disabled>.label {
     color: var(--text-faint);
   }
+}
+</style>
+
+<style>
+.size-options-panel>hr {
+  margin: var(--size-4-1) 0;
 }
 </style>

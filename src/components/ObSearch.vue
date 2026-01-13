@@ -36,8 +36,8 @@ watch(() => props.modelValue, (next) => {
   <div ref="el-search" class="ob-search-wrapper" @keydown.stop></div>
 </template>
 
-<style scoped>
-.ob-search-wrapper :deep(.search-input-container) {
+<style>
+.ob-search-wrapper>.search-input-container {
   width: 100%;
   display: flex;
 }

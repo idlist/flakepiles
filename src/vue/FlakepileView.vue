@@ -90,6 +90,7 @@ const closeAllPanels = () => {
 // Reset menu and all panels when changing files.
 watch(() => pile.value.id, () => {
   menuState.value = 'normal'
+  editing.value = null
   closeAllPanels()
 })
 
@@ -132,7 +133,7 @@ const addFlake = () => {
   pile.value.flakes.push(flake)
   actions.save()
 
-  masonryRef.value!.requestScrollTo(flake.id)
+  masonryRef.value!.requestEdit(flake.id)
 }
 
 const searchQueue = ref<string>('')

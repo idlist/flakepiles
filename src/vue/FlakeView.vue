@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch, watchEffect, type Ref } from 'vue'
 import { moment, Notice } from 'obsidian'
-import { until, useDebounceFn, useElementSize, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
+import { until, useDebounceFn, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
 import type { ImageRawSize, PileActions } from '@/app'
 import type { Flake } from '@/data'
 import { ObIcon } from '@/components'
-import { useCssIf, px, useCssWith, CausedError } from '@/utils'
+import { useCssIf, px, useCssWith, CausedError, useElementBorderSize } from '@/utils'
 
 const props = defineProps<{
   flake: Flake
@@ -100,9 +100,9 @@ useEventListener(textareaRef, 'input', () => {
   syncTextareaWidth()
 })
 
-const nameSize = useElementSize(nameRef)
-const contentSize = useElementSize(contentRef)
-const footerSize = useElementSize(footerRef)
+const nameSize = useElementBorderSize(nameRef)
+const contentSize = useElementBorderSize(contentRef)
+const footerSize = useElementBorderSize(footerRef)
 const scrollBarHeight = ref(0)
 
 useResizeObserver(scrollableRef, (entries) => {
@@ -130,7 +130,7 @@ watchEffect(async () => {
 })
 
 const height = computed(() => {
-  return 2 // Border size, not accurate
+  return 2 // Slightly larger than border size
     + nameSize.height.value
     + contentHeight.value
     + footerSize.height.value
@@ -174,8 +174,6 @@ watchEffect(async () => {
 })
 
 const editBegin = () => {
-  editName.value = props.flake.name
-  editContent.value = props.flake.content
   emit('edit-begin', props.flake.id)
 }
 
@@ -190,6 +188,8 @@ const requestFocusEditArea = async () => {
 
 watch(() => props.isEdit, () => {
   if (props.isEdit) {
+    editName.value = props.flake.name
+    editContent.value = props.flake.content
     requestFocusEditArea()
   }
   else {
@@ -263,7 +263,7 @@ defineExpose({
 })
 
 const cssTheme = useCssWith(() => props.flake.theme, (v) => `-${v}`)
-const cssEditing = useCssIf(() => props.isEdit, '-editing')
+const cssIsEdit = useCssIf(() => props.isEdit, '-editing')
 const cssLight = useCssWith(light, (v) => `-light${v}`)
 
 const cssIsCode = useCssIf(isCode, '-code')
@@ -278,14 +278,22 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 
 <template>
   <div ref="el-flake"
-    :class="['flake-view', 'fp-flake-theme', cssTheme, cssEditing, cssLight]">
-    <div v-if="!imageOnly" ref="el-name">
-      <div v-if="isView" class="flake-name -view">
+    :class="['flake-view', 'fp-flake-theme', cssTheme, cssIsEdit, cssLight]">
+    <div v-if="!imageOnly" ref="el-name" class="flake-name">
+      <div v-if="isText" class="noicon"></div>
+
+      <div v-else class="icon">
+        <ObIcon v-if="isCode" name="code" />
+        <ObIcon v-if="isImage" name="image" />
+      </div>
+
+      <div v-if="isView" class="view">
         {{ flake.name }}
       </div>
+
       <input v-if="isEdit"
         v-model="editName"
-        class="flake-name -edit" />
+        class="edit" />
     </div>
 
     <div ref="el-scrollable" :class="['scrollable', cssViewImage]">
@@ -485,34 +493,64 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 }
 
 .flake-name {
-  padding: var(--size-4-1) var(--size-4-2);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+
   width: 100%;
-  line-height: 1.5;
-  min-height: calc(1lh + var(--size-4-1) * 2);
-
-  font-family: var(--font-default);
-  font-size: var(--font-text-size);
-  font-weight: var(--font-bold);
-
   color: var(--flake-name);
   background-color: var(--flake-name-bg);
+  border-bottom: var(--border-width) solid var(--flake-border);
 
-  &.-view {
-    word-break: break-word;
-    user-select: text;
-    border-bottom: var(--border-width) solid var(--flake-border);
+  >.noicon {
+    padding-left: var(--size-4-1);
   }
 
-  &.-edit {
+  >.icon {
+    padding-left: var(--size-4-2);
+    padding-top: var(--size-4-2);
+    padding-bottom: var(--size-4-1);
+  }
+
+  >.noicon {
+    padding-left: var(--size-4-1);
+  }
+
+  >%name {
+    width: 100%;
+    min-height: 1lh;
+    padding-left: var(--size-4-1);
+    padding-right: var(--size-4-2);
+    padding-top: var(--size-4-2);
+    padding-bottom: var(--size-4-1);
+
+    line-height: 1.5;
+    font-family: var(--font-default);
+    font-size: var(--font-text-size);
+    font-weight: var(--font-bold);
+
+    color: var(--flake-name);
+    background-color: transparent;
+  }
+
+  >.view {
+    @extend %name;
+
+    word-break: break-word;
+    user-select: text;
+  }
+
+  >.edit {
+    @extend %name;
+
     padding-right: 40px;
     border: none;
-    user-select: contain;
-    border-bottom: var(--border-width) solid var(--flake-border);
   }
 }
 
 .flake-content {
   width: 100%;
+
   display: flex;
   align-items: flex-start;
 
@@ -522,6 +560,8 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 
   >%content-common {
     width: 100%;
+    background-color: transparent;
+    min-height: auto;
     font-size: var(--font-small);
   }
 
@@ -534,7 +574,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 
   >.view {
     @extend %content-common;
-    padding: 0 var(--size-4-2);
+    padding: var(--size-2-1) var(--size-4-2);
     overflow-wrap: break-word;
     user-select: text;
   }
@@ -546,23 +586,12 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
     height: 100%;
   }
 
-  >.view.-image :deep(img) {
-    border-radius: 0;
-  }
-
-  >.view.-code :deep(pre) {
-    margin: var(--size-4-2) 0;
-    padding: 0;
-
-    background-color: var(--background-primary);
+  >.view.-code {
+    padding: 0 var(--size-4-2);
   }
 
   >.view.-nowrap {
     width: auto;
-  }
-
-  >.view.-nowrap :deep(code) {
-    white-space: pre;
   }
 
   >.edit {
@@ -573,7 +602,6 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
     resize: none;
     border: none;
     box-shadow: none;
-    user-select: contain;
   }
 
   // The base size of textarea and rendered markdown has *subtle* difference.
@@ -653,7 +681,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 }
 
 .flake-ratio-value {
-  max-width: 80px;
+  max-width: 120px;
 
   &:disabled {
     color: var(--text-faint);
@@ -683,6 +711,25 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
   >.danger {
     color: var(--color-base-00);
     background-color: var(--color-red);
+  }
+}
+</style>
+
+<style lang="scss">
+.flake-content {
+  >.view.-image img {
+    border-radius: 0;
+  }
+
+  >.view.-code pre {
+    margin: var(--size-4-1) 0;
+    padding: 0;
+
+    background-color: var(--background-primary);
+  }
+
+  >.view.-nowrap code {
+    white-space: pre;
   }
 }
 </style>
