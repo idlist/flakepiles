@@ -34,9 +34,7 @@ Using Vite as I'm using Vue, using Vue as I'm mostly familiar with it.
   - [x] Text Flake
   - [x] Code Flake
   - [x] Image Flake
-- [ ] Search inside a Flakepile
-  - [ ] Search title
-  - [ ] Search content
+- [x] Search filter inside a Flakepile
 - [ ] Flake labels
   - [ ] Label creation, update, deletion
   - [ ] Add / remove label to Flake

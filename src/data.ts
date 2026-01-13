@@ -54,11 +54,15 @@ export type PileFlow = 'vertical' | 'horizontal'
 
 export type PileAdaptiveFlow = PileFlow | 'mobile'
 
+export type SortCondition = 'name' | 'createdAt' | 'modifiedAt'
+
+export type SortOrder = 'asc' | 'desc'
+
 export interface Flakepile {
   id: string
   flow: PileFlow
-  sortBy: 'name' | 'createdAt' | 'modifiedAt'
-  sortOrder: 'asc' | 'desc'
+  sortBy: SortCondition
+  sortOrder: SortOrder
   width: number
   elasticWidth: boolean
   enableMaxHeight: boolean

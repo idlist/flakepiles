@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { Platform, prepareFuzzySearch, prepareSimpleSearch } from 'obsidian'
+import { Platform } from 'obsidian'
 import { computed, inject, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
-import { useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
+import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
 import { createFlake, type Flake, type PileAdaptiveFlow } from '@/data'
 import type { FileRef, PileActions, PileRef } from '@/app'
 import { ObIcon, ObSearch } from '@/components'
 import { useCssIf, useCssWith } from '@/utils'
+import { searchFlakes, sortFlakes } from './flake-filters'
 
 import MenuButton from './MenuButton.vue'
 import MasonryUnified from './MasonryUnified.vue'
@@ -136,40 +137,16 @@ const addFlake = () => {
   masonryRef.value!.requestEdit(flake.id)
 }
 
-const searchQueue = ref<string>('')
+const searchQuery = ref<string>('')
+const searchQueryDebounced = refDebounced(searchQuery, 100)
 
 const sortedFlakes = computed<Flake[]>(() => {
-  const sorted = [...pile.value.flakes]
+  let flakes = [...pile.value.flakes]
 
-  sorted.sort((a, b) => {
-    if (pile.value.sortBy == 'name') {
-      if (pile.value.sortOrder == 'asc') {
-        return a.name.localeCompare(b.name)
-      }
-      else if (pile.value.sortOrder == 'desc') {
-        return b.name.localeCompare(a.name)
-      }
-    }
-    else if (pile.value.sortBy == 'createdAt') {
-      if (pile.value.sortOrder == 'asc') {
-        return a.createdAt - b.createdAt
-      }
-      else if (pile.value.sortOrder == 'desc') {
-        return b.createdAt - a.createdAt
-      }
-    }
-    else if (pile.value.sortBy == 'modifiedAt') {
-      if (pile.value.sortOrder == 'asc') {
-        return a.modifiedAt - b.modifiedAt
-      }
-      else if (pile.value.sortOrder == 'desc') {
-        return b.modifiedAt - a.modifiedAt
-      }
-    }
-    return 0
-  })
+  flakes = searchFlakes(flakes, searchQueryDebounced.value)
+  sortFlakes(flakes, pile.value.sortBy, pile.value.sortOrder)
 
-  return sorted
+  return flakes
 })
 
 const cssAdaptiveFlow = useCssWith(adaptiveFlow, (v) => `-${v}`)
@@ -211,7 +188,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
             label="Add Flake"
             @click="addFlake" />
 
-          <ObSearch v-model="searchQueue" class="wfull" />
+          <ObSearch v-model="searchQuery" class="wfull" />
 
           <button
             class="fp-btn-icon"
