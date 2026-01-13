@@ -2,13 +2,17 @@
 
 An Obsidian plugin to put small stickies / cards in a single file, and manage them in masonry layout.
 
-The underlying file format (`.flakes`) is JSON. Mainly for personal use. In early development.
+The underlying file format (`.flakes`) is JSON. The plugin is in early development, though basic features should now work properly.
 
 ![preview](docs/preview.jpg)
 
+## Installation
+
+The plugin is not published as Obsidian's community plugin yet. Please use [BRAT](https://github.com/TfTHacker/obsidian42-brat) to install the plugin. I might (or might not) submit the plugin later.
+
 ## Status
 
-Minimum viable product. I've tested many edge cases I can think of, but please expect bugs.
+Basic features. I've tested many edge cases I can think of, and [I myself am using it currently](https://en.wikipedia.org/wiki/Eating_your_own_dog_food), but please expect bugs exist.
 
 ## Why
 
@@ -29,7 +33,7 @@ Using Vite as I'm using Vue, using Vue as I'm mostly familiar with it.
   - [x] (Sort of) Mobile-adaptive layout
   - [x] Flake size
   - [x] Flake elastic sizing
-  - [x] Flake sorting
+  - [x] Flake sorting (name, time created, time modified)
 - [x] Flake
   - [x] Flake creation, update, deletion
   - [x] Flake markdown rendering
@@ -66,6 +70,21 @@ Using Vite as I'm using Vue, using Vue as I'm mostly familiar with it.
 - Cross-file searching / Obsidian-wise searching (restricted by API)
 - Global search indexing support (restricted by API)
 - Unit testing (do not have time)
+
+## Build from source
+
+If you want to take a look inside the development of the plugin, or just want to ensure maximum safety, you can clone this repository and build from source:
+
+```
+npm i
+npm run dev       // watch mode, works with hot reload [1]
+npm run build:dev // one-time dev build without minification
+npm run build     // build for production
+```
+
+[1] [Hot reload](https://github.com/pjeby/hot-reload)
+
+With `npm run build`, the output files will be copied to `dist` folder.
 
 ## License
 

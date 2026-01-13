@@ -86,7 +86,7 @@ const cssDisabled = useCssIf(() => props.disabled, '-disabled')
 
 <style lang="scss" scoped>
 .clickable-icon {
-  padding: var(--size-4-2);
+  padding: var(--size-4-1);
 
   &.-disabled {
     visibility: hidden;
@@ -96,7 +96,6 @@ const cssDisabled = useCssIf(() => props.disabled, '-disabled')
 .ob-slider {
   display: flex;
   align-items: center;
-  column-gap: var(--size-4-1);
 }
 
 .ob-slider-wrapper {

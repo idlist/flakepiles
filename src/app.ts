@@ -63,7 +63,7 @@ export class FlakepileApp extends TextFileView {
         this.requestSave()
       },
       mountContent: async (element, flake) => {
-        element.innerHTML = ''
+        element.empty()
 
         if (flake.type == 'text') {
           await this.mountMarkdown(element, flake.content)

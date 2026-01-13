@@ -1,7 +1,7 @@
 {
   "name": "flakepiles",
   "version": "0.1.2",
-  "description": "Sticker pile in a single file, for Obsidian.",
+  "description": "Put small stickies / cards in a single file. Manage them in masonry layout.",
   "main": "main.js",
   "type": "module",
   "scripts": {

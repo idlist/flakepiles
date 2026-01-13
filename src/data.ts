@@ -38,10 +38,22 @@ export const createFlake = (): Flake => {
   }
 }
 
+type FlakeLabelColor = 'none'
+
 export interface FlakeLabel {
   id: string
   name: string
-  color: string
+  color: FlakeLabelColor
+  filter: boolean
+}
+
+export const createLabel = (): FlakeLabel => {
+  return {
+    id: nanoid(8),
+    name: '',
+    color: 'none',
+    filter: false,
+  }
 }
 
 export interface FlakeTheme {
@@ -68,7 +80,6 @@ export interface Flakepile {
   enableMaxHeight: boolean
   maxHeight: number
   elasticHeight: boolean
-  labelFilters: string[]
   labels: FlakeLabel[]
   flakes: Flake[]
 }
@@ -84,7 +95,6 @@ export const createFlakepile = (): Flakepile => {
     enableMaxHeight: false,
     maxHeight: 1,
     elasticHeight: false,
-    labelFilters: [],
     labels: [],
     flakes: [],
   }
