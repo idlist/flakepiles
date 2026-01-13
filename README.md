@@ -4,9 +4,11 @@ Put small stickies / cards in a single file. Manage them in masonry layout.
 
 An obsidian plugin. For personal use. In early development.
 
+![preview](docs/preview.jpg)
+
 ## Status
 
-Minimum viable product. I've tested many edge cases I can think of, but still, please expect bugs.
+Minimum viable product. I've tested many edge cases I can think of, but please expect bugs.
 
 ## Why
 
@@ -24,7 +26,7 @@ Using Vite as I'm using Vue, using Vue as I'm mostly familiar with it.
 - [x] Flakepile
   - [x] Masonry layout
   - [x] Masonry direction (vertical / horizontal)
-  - [x] (Somewhat) Mobile-adaptive layout
+  - [x] (Sort of) Mobile-adaptive layout
   - [x] Flake size
   - [x] Flake elastic sizing
   - [x] Flake sorting
