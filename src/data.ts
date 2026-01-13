@@ -68,6 +68,7 @@ export interface Flakepile {
   enableMaxHeight: boolean
   maxHeight: number
   elasticHeight: boolean
+  labelFilters: string[]
   labels: FlakeLabel[]
   flakes: Flake[]
 }
@@ -83,6 +84,7 @@ export const createFlakepile = (): Flakepile => {
     enableMaxHeight: false,
     maxHeight: 1,
     elasticHeight: false,
+    labelFilters: [],
     labels: [],
     flakes: [],
   }

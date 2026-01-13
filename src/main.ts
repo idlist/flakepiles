@@ -101,6 +101,6 @@ export default class Flakepiles extends Plugin {
     const flakepile = this.app.workspace.getActiveViewOfType(FlakepileApp)
     if (!flakepile) return
 
-    this.flakeCount?.setText(`${flakepile.pile.value.flakes.length} Flakes`)
+    this.flakeCount?.setText(`${flakepile.pile.value.flakes.length} Flake(s)`)
   }
 }

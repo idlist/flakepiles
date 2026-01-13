@@ -1,8 +1,8 @@
 # Flakepiles for Obsidian
 
-Put small stickies / cards in a single file. Manage them in masonry layout.
+An Obsidian plugin to put small stickies / cards in a single file, and manage them in masonry layout.
 
-An obsidian plugin. For personal use. In early development.
+The underlying file format (`.flakes`) is JSON. Mainly for personal use. In early development.
 
 ![preview](docs/preview.jpg)
 
@@ -37,6 +37,7 @@ Using Vite as I'm using Vue, using Vue as I'm mostly familiar with it.
   - [x] Code Flake
   - [x] Image Flake
 - [x] Search filter inside a Flakepile
+- [ ] Flake colors (theme)
 - [ ] Flake labels
   - [ ] Label creation, update, deletion
   - [ ] Add / remove label to Flake
@@ -49,13 +50,13 @@ Using Vite as I'm using Vue, using Vue as I'm mostly familiar with it.
 
 ## Long term goals
 
-- Flake colors (theme)
 - Search keywords highlight
+- Copy Flake across Flakepile (the Copy Raw botton is for this)
 - Import multiple markdown files to Flakes
 - Import `.zip` archive to a Flakepile
   - Import as a new Flakepile
   - Import into an existing Flakepile
-- Export files to a .zip archive, each Flake as a markdown file
+- Export files to a `.zip` archive, each Flake as a markdown file
 - Transition animation (investigated a bit, mostly jank, needs help)
 
 ## Non-goals

@@ -89,7 +89,6 @@ const requestScroll = async (id: string) => {
 const requestEdit = async (id: string) => {
   try {
     await requestScroll(id)
-    console.log(props.flakes.find((f) => f.id == id))
     onEditBegin(id)
   } catch (e) {
     console.warn('Failed to request edit:', e)
