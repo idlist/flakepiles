@@ -257,7 +257,7 @@ defineExpose({
 
 .masonry-element {
   position: absolute;
-  transition: height 0.2s ease-out;
+  transition: height 0.1s ease; // Cover jank.
 
   &.-preparing {
     visibility: hidden;

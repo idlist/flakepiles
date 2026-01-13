@@ -68,4 +68,4 @@ Using Vite as I'm using Vue, using Vue as I'm mostly familiar with it.
 
 ## License
 
-MIT (c) i'DLisT 2026
+MIT © i'DLisT 2026
