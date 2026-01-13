@@ -2,13 +2,10 @@
 import { onMounted, watch, useTemplateRef } from 'vue'
 import { SearchComponent } from 'obsidian'
 
-const props = defineProps<{
-  modelValue: string;
-  placeholder?: string;
-}>()
+const model = defineModel<string>({ required: true })
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
+const props = defineProps<{
+  placeholder?: string;
 }>()
 
 const searchRef = useTemplateRef('el-search')
@@ -19,13 +16,13 @@ onMounted(() => {
 
   component = new SearchComponent(searchRef.value)
     .setPlaceholder(props.placeholder ?? 'Search...')
-    .setValue(props.modelValue)
+    .setValue(model.value)
     .onChange((value: string) => {
-      emit('update:modelValue', value)
+      model.value = value
     })
 })
 
-watch(() => props.modelValue, (next) => {
+watch(() => model.value, (next) => {
   if (component && component.getValue() !== next) {
     component.setValue(next)
   }

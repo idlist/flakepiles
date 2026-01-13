@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Platform } from 'obsidian'
 import { computed, inject, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
-import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
+import { refDebounced, until, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
 import { createFlake, type Flake, type PileAdaptiveFlow } from '@/data'
 import type { FileRef, PileActions, PileRef } from '@/app'
@@ -88,21 +88,21 @@ const closeAllPanels = () => {
   showLabels.value = false
 }
 
-// Reset menu and all panels when changing files.
+// Reset menu, panels and editing state when changing files.
 watch(() => pile.value.id, () => {
   menuState.value = 'normal'
   editing.value = null
   closeAllPanels()
 })
 
-// Close some panels when the viewport is resized to small.
+// Close panels when the viewport is resized to small.
 watch(isViewportSmall, (small) => {
   if (small) {
     closeAllPanels()
   }
 })
 
-// Close some panels when entering editing mode.
+// Close panels when entering editing mode.
 watch(editing, () => {
   if (editing.value) {
     closeAllPanels()
@@ -129,11 +129,12 @@ const {
   whileElementsMounted: autoUpdate,
 })
 
-const addFlake = () => {
+const addFlake = async () => {
   var flake = createFlake()
   pile.value.flakes.push(flake)
   actions.save()
 
+  await until(masonryRef).toBeTruthy()
   masonryRef.value!.requestEdit(flake.id)
 }
 
@@ -308,7 +309,8 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 
     <LabelsPanel v-if="showLabels"
       ref="el-labels-panel"
-      :style="labelPanelStyles" />
+      :style="labelPanelStyles"
+      :labels="pile.labels" />
   </div>
 </template>
 

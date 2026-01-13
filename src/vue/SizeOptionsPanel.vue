@@ -62,8 +62,6 @@ const elasticHeight = defineModel<boolean>('elastic-height')
 .size-options-panel {
   display: grid;
   row-gap: var(--size-4-1);
-
-  font-size: var(--font-ui-small);
 }
 
 .size-option {

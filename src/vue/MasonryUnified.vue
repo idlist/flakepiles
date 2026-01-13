@@ -217,7 +217,6 @@ watch(() => props.id, () => {
 })
 
 watch([
-  () => props.flakes,
   () => props.flow,
   () => props.options,
   heightMap,
@@ -239,7 +238,10 @@ defineExpose({
       :key="flake.id"
       :ref="(el) => { setFlakeRef(flake.id, el as MaybeFlakeRef) }"
       class="masonry-element"
-      :class="{ '-preparing': !resolvedFlakes.has(flake.id) }"
+      :class="{
+        '-preparing': !resolvedFlakes.has(flake.id),
+        '-editing': editing == flake.id,
+      }"
       :flake="flake"
       :is-edit="editing == flake.id"
       :width="flakeWidth"
@@ -257,11 +259,13 @@ defineExpose({
 
 .masonry-element {
   position: absolute;
-  transition: height 0.1s ease; // Cover janks.
 
   &.-preparing {
     visibility: hidden;
-    transition: none;
+  }
+
+  &.-editing {
+    transition: height 0.1s ease; // Cover janks.
   }
 }
 </style>

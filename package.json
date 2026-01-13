@@ -1,6 +1,6 @@
 {
   "name": "flakepiles",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Sticker pile in a single file, for Obsidian.",
   "main": "main.js",
   "type": "module",
