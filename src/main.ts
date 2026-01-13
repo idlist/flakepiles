@@ -4,6 +4,8 @@ import { createFlakepile } from './data'
 import './globals.scss'
 
 export default class Flakepiles extends Plugin {
+  flakeCount?: HTMLElement
+
   async onload() {
     // Register Flakepile view.
     this.registerView(
@@ -13,15 +15,6 @@ export default class Flakepiles extends Plugin {
 
     // Register .flakes (JSON) file type.
     this.registerExtensions(['flakes'], VIEW_TYPE)
-
-    // Register command for creating Flakepile.
-    this.addCommand({
-      id: 'create',
-      name: 'Create new Flakepile',
-      callback: async () => {
-        await this.createFlakepileFile()
-      },
-    })
 
     // Register file menu option for creating Flakepile.
     this.registerEvent(this.app.workspace.on('file-menu', (menu, file) => {
@@ -36,10 +29,22 @@ export default class Flakepiles extends Plugin {
           })
       })
     }))
+
+    // Register status bar item.
+    this.flakeCount = this.addStatusBarItem()
+
+    this.registerInterval(window.setInterval(() => {
+      this.updateFlakeCount()
+    }, 100))
+
+    // Hide other status bar items as most of them are not useful in the custom view.
+    this.registerEvent(this.app.workspace.on('file-open', () => {
+      this.adjustStatusBar()
+    }))
   }
 
   onunload() {
-    // Do nothing.
+    document.body.removeClass('is-flakepile')
   }
 
   async createFlakepileFile(folder?: TFolder) {
@@ -77,5 +82,25 @@ export default class Flakepiles extends Plugin {
       new Notice('Failed to create Flakepile. Check dev console for more info.', 0)
       console.error('Failed to create Flakepile: ', e)
     }
+  }
+
+  adjustStatusBar() {
+    const flakepile = this.app.workspace.getActiveViewOfType(FlakepileApp)
+
+    if (flakepile) {
+      document.body.addClass('is-flakepile')
+      this.flakeCount?.show()
+    }
+    else {
+      document.body.removeClass('is-flakepile')
+      this.flakeCount?.hide()
+    }
+  }
+
+  updateFlakeCount() {
+    const flakepile = this.app.workspace.getActiveViewOfType(FlakepileApp)
+    if (!flakepile) return
+
+    this.flakeCount?.setText(`${flakepile.pile.value.flakes.length} Flakes`)
   }
 }

@@ -1,9 +1,13 @@
+/* Utilities */
+
 .fp-inset {
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
 }
+
+/* Reusable components */
 
 .fp-btn-icon {
   padding: var(--size-4-1);
@@ -30,6 +34,25 @@
     display: none;
   }
 }
+
+.fp-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+// Mimics an obsidian panel (except border radius).
+.fp-obsidian-panel {
+  background-color: var(--background-primary);
+  border: var(--border-width) solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--input-shadow);
+
+  padding: var(--size-4-2) var(--size-4-3);
+  pointer-events: painted;
+}
+
+/* Adjustment to markdown styles */
 
 .fp-markdown {
 
@@ -83,19 +106,14 @@
   }
 }
 
-// Mimics an obsidian panel (except border radius).
-.fp-obsidian-panel {
-  background-color: var(--background-primary);
-  border: var(--border-width) solid var(--background-modifier-border);
-  border-radius: var(--radius-m);
-  box-shadow: var(--input-shadow);
+/* Overwrite global styles */
 
-  padding: var(--size-4-2) var(--size-4-3);
-  pointer-events: painted;
-}
+.is-flakepile .status-bar {
+  >.status-bar-item {
+    display: none;
+  }
 
-.fp-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  >.plugin-flakepiles {
+    display: block;
+  }
 }

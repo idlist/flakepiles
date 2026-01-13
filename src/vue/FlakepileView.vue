@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Platform } from 'obsidian'
+import { Platform, prepareFuzzySearch, prepareSimpleSearch } from 'obsidian'
 import { computed, inject, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
 import { useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
@@ -379,7 +379,6 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
   @extend .fp-inset;
   position: absolute;
 
-  overflow-x: scroll;
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
