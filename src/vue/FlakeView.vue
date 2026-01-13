@@ -604,13 +604,12 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
     box-shadow: none;
   }
 
-  // The base size of textarea and rendered markdown has *subtle* difference.
   >.edit.-image,
   >.edit.-code {
     font-family: var(--font-monospace);
-    font-size: var(--font-smaller);
-    line-height: 1.45;
-    letter-spacing: -0.25px;
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: -0.2px;
   }
 
   >.edit.-nowrap {
