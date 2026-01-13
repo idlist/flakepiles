@@ -51,6 +51,7 @@ onMounted(() => {
 })
 
 const isDesktop = computed(() => Platform.isDesktop)
+const isPhone = computed(() => Platform.isPhone)
 const isViewportSmall = computed(() => vw.value <= 600)
 const isViewportLarge = computed(() => vw.value > 600)
 
@@ -58,7 +59,7 @@ const adaptiveFlow = computed<PileAdaptiveFlow>(() => {
   return isViewportSmall.value ? 'mobile' : pile.value.flow
 })
 const placeFlowOptions = computed(() => {
-  return isDesktop.value && isViewportLarge.value
+  return isViewportLarge.value
 })
 
 const canvasRef = useTemplateRef('el-canvas')
@@ -112,7 +113,7 @@ const {
   floatingStyles: sizeOptionsPanelStyles,
 } = useFloating(sizeOptionsButtonRef, sizeOptionsPanelRef, {
   placement: 'bottom-end',
-  middleware: [offset(4), shift({ padding: 4 })],
+  middleware: [offset(4), shift({ padding: 8 })],
   whileElementsMounted: autoUpdate,
 })
 
@@ -122,7 +123,7 @@ const {
   floatingStyles: labelPanelStyles,
 } = useFloating(labelsButtonRef, labelsPanelRef, {
   placement: 'bottom-start',
-  middleware: [offset(4), shift({ padding: 4 })],
+  middleware: [offset(4), shift({ padding: 8 })],
   whileElementsMounted: autoUpdate,
 })
 
@@ -131,7 +132,6 @@ const addFlake = () => {
   pile.value.flakes.push(flake)
   actions.save()
 
-  masonryRef.value!.requestHighlight(flake.id)
   masonryRef.value!.requestScrollTo(flake.id)
 }
 
@@ -178,6 +178,8 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 <template>
   <div ref="el-viewport" class="flakepile-layout">
     <div class="header">
+      <div class="menu-padding"></div>
+
       <div v-if="menuState == 'shrink'" class="menu-shrink">
         <button
           class="fp-btn-icon"
@@ -196,7 +198,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 
       <div v-if="menuState != 'shrink'" class="menu-area">
         <div v-if="menuState == 'normal'" class="menu-main">
-          <button
+          <button v-if="!isPhone"
             class="fp-btn-icon"
             @click="menuState = 'shrink'">
             <ObIcon name="chevrons-down-up" />
@@ -348,9 +350,14 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
     position: relative;
     overflow-x: hidden;
 
-    padding: 0.5em 1em;
+    padding: var(--size-4-2) var(--size-4-4);
     background-color: var(--background-primary);
     border-bottom: var(--border-width) solid var(--background-modifier-border);
+  }
+
+  .is-phone &>.header,
+  .is-tablet &>.header {
+    padding: var(--size-4-2) var(--size-4-3);
   }
 
   >.content {
@@ -379,7 +386,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 .menu-shrink {
   display: flex;
   align-items: center;
-  column-gap: 0.5em;
+  column-gap: var(--size-4-2);
 }
 
 %file-name-ellipsis {
@@ -398,11 +405,28 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 .file-name {
   @extend %file-name-ellipsis;
   margin: 0;
-  margin-bottom: 0.375em;
+  margin-bottom: var(--size-4-2);
 
-  .is-mobile & {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
+  .is-phone & {
+    display: none;
+  }
+
+  .is-tablet & {
+    margin-top: var(--size-4-2);
+  }
+}
+
+.menu-padding {
+  display: none;
+
+  .is-phone & {
+    display: block;
+    padding-bottom: var(--size-4-16);
+  }
+
+  .is-tablet & {
+    display: block;
+    padding-bottom: var(--size-4-2);
   }
 }
 
@@ -414,7 +438,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 .menu-main {
   display: flex;
   align-items: center;
-  column-gap: 0.5em;
+  column-gap: var(--size-4-1);
 
   width: 100%;
   font-size: var(--font-ui-small);
@@ -434,10 +458,10 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
   left: 0;
   right: 0;
   z-index: 5;
-  column-gap: 0.5em;
+  column-gap: var(--size-4-1);
 
   bottom: 100%;
-  margin-bottom: 0.5em;
+  margin-bottom: var(--size-4-1);
   background-color: color-mix(in srgb, var(--background-primary), transparent 10%);
 }
 

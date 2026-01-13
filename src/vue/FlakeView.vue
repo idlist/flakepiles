@@ -423,7 +423,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
     1px 1px 4px var(--flake-shadow);
 
   border: var(--border-width) solid var(--flake-border);
-  border-radius: var(--radius-s);
+  border-radius: var(--radius-m);
   box-shadow: var(--box-shadow);
 
   color: var(--flake-text);
@@ -485,10 +485,10 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 }
 
 .flake-name {
-  padding: 0.375em 0.5em 0.25em 0.5em;
+  padding: var(--size-4-1) var(--size-4-2);
   width: 100%;
   line-height: 1.5;
-  min-height: calc(1lh + 0.625em);
+  min-height: calc(1lh + var(--size-4-1) * 2);
 
   font-family: var(--font-default);
   font-size: var(--font-text-size);
@@ -527,14 +527,14 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 
   >.none {
     @extend %content-common;
-    padding: 0.5em;
+    padding: var(--size-4-2);
     font-style: italic;
     color: var(--text-faint);
   }
 
   >.view {
     @extend %content-common;
-    padding: 0 0.5em;
+    padding: 0 var(--size-4-2);
     overflow-wrap: break-word;
     user-select: text;
   }
@@ -551,7 +551,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
   }
 
   >.view.-code :deep(pre) {
-    margin: 0.5em 0;
+    margin: var(--size-4-2) 0;
     padding: 0;
 
     background-color: var(--background-primary);
@@ -567,7 +567,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 
   >.edit {
     @extend %content-common;
-    padding: 0.5em;
+    padding: var(--size-4-2);
     overflow: hidden;
     overflow-wrap: break-word;
     resize: none;
@@ -603,8 +603,8 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 .flake-edit-tools {
   display: grid;
   grid-template-columns: 1fr;
-  row-gap: 0.25em;
-  padding: 0.25em;
+  row-gap: var(--size-4-1);
+  padding: var(--size-4-1);
 
   background-color: var(--flake-name-bg);
   border-top: var(--border-width) solid var(--flake-border);
@@ -613,8 +613,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 .flake-edit-row {
   display: flex;
   align-items: center;
-  column-gap: 0.25em;
-  min-height: 2em;
+  column-gap: var(--size-4-1);
 
   font-size: var(--font-ui-small);
 
@@ -628,7 +627,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
   }
 
   >.gap {
-    width: 0.5em;
+    width: var(--size-4-2);
   }
 
   >.withlabel {
@@ -637,11 +636,11 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
   }
 
   >.withlabel.-atleft {
-    column-gap: 0.5em;
+    column-gap: var(--size-4-2);
   }
 
   >.withlabel.-atright {
-    padding-left: 0.25em;
+    padding-left: var(--size-4-1);
   }
 
   >.codelang {
@@ -663,14 +662,14 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 
 .flake-menu {
   position: absolute;
-  top: 0.25em;
-  left: 0.25em;
-  right: 0.25em;
+  top: var(--size-4-1);
+  left: var(--size-4-1);
+  right: var(--size-4-1);
   z-index: 20;
 
   display: none; // flex when hovered
   flex-direction: row;
-  column-gap: 0.25em;
+  column-gap: var(--size-4-1);
   pointer-events: none;
 
   >button {

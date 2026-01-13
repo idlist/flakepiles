@@ -2,6 +2,7 @@
 import { onMounted, watch, useTemplateRef } from 'vue'
 import { SliderComponent } from 'obsidian'
 import { exists } from '@rewl/kit'
+import { useCssIf } from '@/utils'
 import ObIcon from './ObIcon.vue'
 
 const props = withDefaults(defineProps<{
@@ -70,33 +71,32 @@ watch(() => props.disabled, (next) => {
 const reset = () => {
   model.value = props.default
 }
+
+const cssDisabled = useCssIf(()=> props.disabled, '-disabled')
 </script>
 
 <template>
   <div class="ob-slider">
-    <div v-if="!disabled" class="clickable-icon" @click="reset">
+    <div :class="['clickable-icon', cssDisabled]" @click="reset">
       <ObIcon name="rotate-ccw" />
     </div>
-    <div v-else class="icon-placeholder"></div>
     <div ref="el-slider" class="ob-slider-wrapper"></div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .clickable-icon {
-  padding: var(--size-2-2);
-}
+  padding: var(--size-4-2);
 
-.icon-placeholder {
-  $size: calc(24px + var(--size-2-1));
-  min-width: $size;
-  min-height: $size;
+  &.-disabled {
+    visibility: hidden;
+  }
 }
 
 .ob-slider {
   display: flex;
   align-items: center;
-  column-gap: 0.25em;
+  column-gap: var(--size-4-1);
 }
 
 .ob-slider-wrapper {

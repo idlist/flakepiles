@@ -61,12 +61,12 @@ const elasticHeight = defineModel<boolean>('elastic-height')
 <style lang="scss" scoped>
 .size-options-panel {
   display: grid;
-  row-gap: 0.5em;
+  row-gap: var(--size-4-1);
 
   font-size: var(--font-ui-small);
 
   >:deep(hr) {
-    margin: 0.125em 0;
+    margin: var(--size-4-1) 0;
   }
 }
 
@@ -74,8 +74,8 @@ const elasticHeight = defineModel<boolean>('elastic-height')
   display: flex;
   align-items: center;
   justify-content: space-between;
-  column-gap: 1em;
-  padding: 0 0.25em;
+  column-gap: var(--size-4-4);
+  min-height: 24px;
 
   & .slider {
     width: auto;

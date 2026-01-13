@@ -1,12 +1,12 @@
 # Flakepiles for Obsidian
 
-Put small stickers / cards in a single file.
+Put small stickies / cards in a single file. Manage them in masonry layout.
 
-An obsidian plugin. For personal use. In very early development.
+An obsidian plugin. For personal use. In early development.
 
 ## Status
 
-Minimum viable product. Please expect bugs in edge cases.
+Minimum viable product. I've tested many edge cases I can think of, but still, please expect bugs.
 
 ## Why
 
@@ -16,13 +16,15 @@ I don't want 100 `.md` files with 1 sentence each.
 
 Vite + Vue 3 + TypeScript + Sass
 
+Using Vite as I'm using Vue, using Vue as I'm mostly familiar with it.
+
 ## Goals
 
 - [x] Mount Vue into Obsidian
 - [x] Flakepile
   - [x] Masonry layout
   - [x] Masonry direction (vertical / horizontal)
-  - [x] Mobile-adaptive layout
+  - [x] (Somewhat) Mobile-adaptive layout
   - [x] Flake size
   - [x] Flake elastic sizing
   - [x] Flake sorting
@@ -47,21 +49,23 @@ Vite + Vue 3 + TypeScript + Sass
 
 ## Long term goals
 
-- [ ] Flake colors (theme)
-- [ ] Search keywords highlight
-- [ ] Import multiple markdown files to Flakes
-- [ ] Import `.zip` archive to a Flakepile
-  - [ ] Import as a new Flakepile
-  - [ ] Import into an existing Flakepile
-- [ ] Export files to a .zip archive, each Flake as a markdown file
-- [ ] Transition animation (investigated a bit, mostly jank, needs help)
+- Flake colors (theme)
+- Search keywords highlight
+- Import multiple markdown files to Flakes
+- Import `.zip` archive to a Flakepile
+  - Import as a new Flakepile
+  - Import into an existing Flakepile
+- Export files to a .zip archive, each Flake as a markdown file
+- Transition animation (investigated a bit, mostly jank, needs help)
 
 ## Non-goals
 
+- Very large Flakepile support (not the very intended way)
 - Live editing of Flake (too complex)
 - Cross-file searching / Obsidian-wise searching (restricted by API)
 - Global search indexing support (restricted by API)
+- Unit testing (do not have time)
 
 ## License
 
-MIT
+MIT (c) i'DLisT 2026
