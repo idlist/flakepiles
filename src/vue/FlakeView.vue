@@ -209,7 +209,7 @@ const copyContent = async () => {
     await navigator.clipboard.writeText(props.flake.content)
     new Notice('Content copied.', 1000)
   } catch (e) {
-    console.warn(`Failed to copy the content of Flake ${props.flake.id}: `, e)
+    console.warn(`Failed to copy the content of flake ${props.flake.id}: `, e)
     new Notice('Failed to copy content. Check dev console for detail.', 0)
   }
 }
@@ -219,7 +219,7 @@ const copyJson = async () => {
     await navigator.clipboard.writeText(JSON.stringify(props.flake, null, 2))
     new Notice('Raw JSON copied.', 1000)
   } catch (e) {
-    console.warn(`Failed to copy the raw JSON of Flake ${props.flake.id}: `, e)
+    console.warn(`Failed to copy the raw JSON of flake ${props.flake.id}: `, e)
     new Notice('Failed to copy raw JSON. Check dev console for detail.', 0)
   }
 }
@@ -300,7 +300,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
       <div ref="el-content"
         :class="['flake-content', cssViewImage]">
         <div v-if="isView && isEmpty" class="none">
-          No Content
+          No content
         </div>
 
         <div v-if="isView"
@@ -384,7 +384,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
           <div class="expand"></div>
 
           <label class="withlabel -atleft">
-            <span>Image Only</span>
+            <span>Image only</span>
             <input v-model="flake.imageOnly" type="checkbox" />
           </label>
         </div>
