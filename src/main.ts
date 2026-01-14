@@ -6,7 +6,7 @@ import './globals.scss'
 export default class Flakepiles extends Plugin {
   flakeCount?: HTMLElement
 
-  async onload() {
+  onload() {
     // Register Flakepile view.
     this.registerView(
       VIEW_TYPE,
