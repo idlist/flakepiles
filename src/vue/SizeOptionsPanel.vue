@@ -26,14 +26,14 @@ const elasticHeight = defineModel<boolean>('elastic-height')
     </div>
 
     <label v-if="flow == 'vertical'" class="size-option">
-      <span>Elastic Width</span>
+      <span>Elastic width</span>
       <input v-model="elasticWidth" type="checkbox" />
     </label>
 
     <hr />
 
     <label class="size-option">
-      <span>Set Maximum Height</span>
+      <span>Set maximum height</span>
       <input v-model="enableMaxHeight" type="checkbox" />
     </label>
 
@@ -50,7 +50,7 @@ const elasticHeight = defineModel<boolean>('elastic-height')
 
     <label v-if="flow == 'horizontal'"
       :class="['size-option', enableMaxHeight ? '' : '-disabled']">
-      <span class="label">Elastic Height</span>
+      <span class="label">Elastic height</span>
       <input v-model="elasticHeight"
         type="checkbox"
         :disabled="!enableMaxHeight" />
@@ -76,6 +76,10 @@ const elasticHeight = defineModel<boolean>('elastic-height')
     min-width: 120px;
   }
 
+  & input[type=checkbox] {
+    margin-right: var(--size-2-1);
+  }
+
   & input[type=checkbox]:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -90,5 +94,6 @@ const elasticHeight = defineModel<boolean>('elastic-height')
 <style>
 .size-options-panel>hr {
   margin: var(--size-4-1) 0;
+  margin-right: var(--size-2-1);
 }
 </style>

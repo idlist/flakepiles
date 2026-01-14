@@ -205,7 +205,7 @@ export class FlakepileApp extends TextFileView {
       this.parsed.value = true
     } catch (e) {
       this.parsed.value = false
-      new Notice('Cannot parse Flakepile file. Check dev console for more info.', 0)
+      new Notice('Cannot parse the flakepile. Check dev console for more info.', 0)
       console.error('Cannot parse Flakepile file: ', e)
       return
     }

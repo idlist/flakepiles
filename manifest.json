@@ -1,9 +1,9 @@
 {
   "id": "flakepiles",
   "name": "Flakepiles",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "minAppVersion": "0.15.0",
-  "description": "Put small stickies / cards in a single file. Manage them in masonry layout.",
+  "description": "Put small stickies / cards in a dedicated file. Manage them in masonry layout.",
   "author": "i'DLisT",
   "authorUrl": "https://idl.ist",
   "isDesktopOnly": false

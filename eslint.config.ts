@@ -77,7 +77,7 @@ export default defineConfig(
       },
     },
     rules: {
-      'obsidianmd/ui/sentence-case': 'off',
+      'obsidianmd/ui/sentence-case': 'warn',
     },
   },
   {

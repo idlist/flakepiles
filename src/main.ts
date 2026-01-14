@@ -22,7 +22,7 @@ export default class Flakepiles extends Plugin {
 
       menu.addItem((item) => {
         item
-          .setTitle('Create new Flakepile')
+          .setTitle('Create new flakepile')
           .setIcon('sticker')
           .onClick(async () => {
             await this.createFlakepileFile(file)
@@ -79,8 +79,8 @@ export default class Flakepiles extends Plugin {
 
       await this.app.workspace.getLeaf().openFile(newFile)
     } catch (e) {
-      new Notice('Failed to create Flakepile. Check dev console for more info.', 0)
-      console.error('Failed to create Flakepile: ', e)
+      new Notice('Failed to create flakepile. Check dev console for more info.', 0)
+      console.error('Failed to create flakepile: ', e)
     }
   }
 
@@ -101,6 +101,6 @@ export default class Flakepiles extends Plugin {
     const flakepile = this.app.workspace.getActiveViewOfType(FlakepileApp)
     if (!flakepile) return
 
-    this.flakeCount?.setText(`${flakepile.pile.value.flakes.length} Flake(s)`)
+    this.flakeCount?.setText(`${flakepile.pile.value.flakes.length} flake(s)`)
   }
 }

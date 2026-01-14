@@ -186,7 +186,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
           <MenuButton
             :class="['fp-btn-icon-label', cssNoLabel]"
             icon="plus"
-            label="Add Flake"
+            label="Add flake"
             @click="addFlake" />
 
           <ObSearch v-model="searchQuery" class="wfull" />
@@ -208,11 +208,11 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 
           <div class="expand"></div>
 
-          <label>Sort By</label>
+          <label>Sort by</label>
           <select v-model="pile.sortBy" class="dropdown">
             <option value="name">Name</option>
-            <option value="createdAt">Time Created</option>
-            <option value="modifiedAt">Time Modified</option>
+            <option value="createdAt">Time created</option>
+            <option value="modifiedAt">Time modified</option>
           </select>
           <button
             v-if="pile.sortOrder == 'desc'"
@@ -274,7 +274,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 
     <div class="content">
       <div ref="el-canvas" :class="['sub-layout', cssAdaptiveFlow]">
-        <div v-if="!pile.flakes.length" class="no-flakes">No Flakes</div>
+        <div v-if="!pile.flakes.length" class="no-flakes">No flakes.</div>
 
         <MasonryUnified v-else
           :id="pile.id"

@@ -1,75 +1,92 @@
 # Flakepiles for Obsidian
 
-An Obsidian plugin to put small stickies / cards in a single file, and manage them in masonry layout.
+An Obsidian plugin to put small notes / stickies / cards in a dedicated file, and manage them in masonry layout.
 
-The underlying file format (`.flakes`) is JSON. The plugin is in early development, though basic features should now work properly.
+A "flake" means a small piece of note, and a "flakepile" is a pile of those flakes.
+
+Can be used to store ideas, diaries, code snippets, and more.
+
+*The preview image is in horizontal layout. You can change this to vertical layout.*
 
 ![preview](docs/preview.jpg)
-
-## Installation
-
-The plugin is not published as Obsidian's community plugin yet. Please use [BRAT](https://github.com/TfTHacker/obsidian42-brat) to install the plugin. I might (or might not) submit the plugin later.
-
-## Status
-
-Basic features. I've tested many edge cases I can think of, and [I myself am using it currently](https://en.wikipedia.org/wiki/Eating_your_own_dog_food), but please expect bugs exist.
 
 ## Why
 
 I don't want 100 `.md` files with 1 sentence each.
 
+## Status
+
+ The plugin is in early development, though basic features should now work properly. I've tested many cases I can think of, and [I myself am using it currently](https://en.wikipedia.org/wiki/Eating_your_own_dog_food), but please expect bug exists in corner cases.
+
+## Installation
+
+The plugin is not published as Obsidian's community plugin yet. Please use [BRAT](https://github.com/TfTHacker/obsidian42-brat) to install the plugin, or copy the files under the release tag to the plugin folder of your Obsidian application. You can also [build it from source](#build-from-source).
+
 ## Tech Stack
 
 Vite + Vue 3 + TypeScript + Sass
 
-Using Vite as I'm using Vue, using Vue as I'm mostly familiar with it.
+The underlying file format (`.flakes`) is JSON. See the [non-goals](#non-goals) section for explanation.
 
-## Goals
+## Roadmap
+
+Inside a flakepile:
 
 - [x] Mount Vue into Obsidian
 - [x] Flakepile
   - [x] Masonry layout
   - [x] Masonry direction (vertical / horizontal)
-  - [x] (Sort of) Mobile-adaptive layout
+  - [x] (Sort of) mobile-adaptive layout
   - [x] Flake size
   - [x] Flake elastic sizing
   - [x] Flake sorting (name, time created, time modified)
 - [x] Flake
   - [x] Flake creation, update, deletion
   - [x] Flake markdown rendering
-  - [x] Text Flake
-  - [x] Code Flake
-  - [x] Image Flake
-- [x] Search filter inside a Flakepile
+  - [x] Text flake
+  - [x] Image flake
+  - [x] Code flake
+- [x] Search filter inside a flakepile
 - [ ] Flake colors (theme)
 - [ ] Flake labels
   - [ ] Label creation, update, deletion
-  - [ ] Add / remove label to Flake
+  - [ ] Add / remove label to flake
   - [ ] Label color
-  - [ ] Hide specific label (display as `+N`)
+  - [ ] Hide some labels (display as `+N`)
   - [ ] Label filtering
+
+Obsidian-wise:
+
+- [x] "Create new flakepile" file menu option
+- [x] "Flake count" status bar item [1]
 - Limited support to internal plugins
   - [x] Preview other markdown file
-  - [x] Jump to global search when clicking on a tag.
+  - [x] Jump to global search when clicking on a tag
+
+[1] Due to the nature of this plugin, other status bar items are hidden in flakepile view. Please let me know if you think some status bar item should be displayed.
 
 ## Long term goals
 
 - Search keywords highlight
-- Copy Flake across Flakepile (the Copy Raw botton is for this)
+- Copy flake across flakepiles (the "copy raw" botton is for this)
+- Export files to markdown files
+  - Export as a single markdown file
+  - Export as a `.zip` archive, each flake as a markdown file
+- Import the `.zip` archive to a flakepile
 - Import multiple markdown files to Flakes
-- Import `.zip` archive to a Flakepile
-  - Import as a new Flakepile
-  - Import into an existing Flakepile
-- Export files to a `.zip` archive, each Flake as a markdown file
-- Transition animation (investigated a bit, mostly jank, needs help)
 
 ## Non-goals
 
-- Very large Flakepile support (not the very intended way)
-- Live editing of Flake (too complex)
+- Freedom / manual layout (consider using Canvas)
+- Very large flakepile support (not the very intended way)
+- Live editing of a flake (too complex)
 - Cross-file searching / Obsidian-wise searching (restricted by API)
-- Global search indexing support (restricted by API)
-- Unit testing (do not have time)
+- Global search indexing (restricted by API)
+- Unit testing (do not have enough time)
+
+I recognize that this plugin is not so an Obsidian-style plugin, as it does not leverage markdown file like many other plugins do. On the other hand, this has the benefit of not having to juggle with black magics that makes a markdown file look like other layout (when the layout itself is quite complicated).
+
+Also, this plugin is primarily to fulfill my specific need. For this reason, I would prioritize maintainability over adding unplanned features. I'm open to suggestions, though feature requests might be considered only when it's aligned to my own use case. 🙏
 
 ## Build from source
 
@@ -77,14 +94,14 @@ If you want to take a look inside the development of the plugin, or just want to
 
 ```
 npm i
-npm run dev       // watch mode, works with hot reload [1]
-npm run build:dev // one-time dev build without minification
-npm run build     // build for production
+npm run dev       // Watch mode, works with hot reload [1]
+npm run build:dev // One-time dev build without minification
+npm run build     // Build for production
 ```
 
 [1] [Hot reload](https://github.com/pjeby/hot-reload)
 
-With `npm run build`, the output files will be copied to `dist` folder.
+WHen running `npm run build`, the output files will be copied to `dist` folder.
 
 ## License
 
