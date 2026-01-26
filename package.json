@@ -1,6 +1,6 @@
 {
   "name": "flakepiles",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Put small stickies / cards in a dedicated file. Manage them in masonry layout.",
   "main": "main.js",
   "type": "module",
