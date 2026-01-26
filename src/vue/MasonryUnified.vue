@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, reactive, ref, shallowRef, useTemplateRef, watch, type StyleValue } from 'vue'
+import { computed, inject, nextTick, reactive, ref, shallowRef, useTemplateRef, watch, type StyleValue } from 'vue'
 import { until, useThrottleFn } from '@vueuse/core'
 import type { EditingRef, Flake, PileAdaptiveFlow } from '@/data'
 import { PAD_Y, type MasonryOptions, type ResolvedMasonry, type ResolvedRect, type ResolvedMasonrySize, getUnsetWidth as getFlakeWidth } from './masonry-common'
@@ -22,7 +22,6 @@ const props = withDefaults(defineProps<{
 })
 
 const masonryRef = useTemplateRef('el-masonry')
-// const flakeIds = computed(() => new Set(props.flakes.map((f) => f.id)))
 
 const editing = inject('editing') as EditingRef
 const editingHeightCache = ref<number>(0)
@@ -32,8 +31,13 @@ const onEditBegin = (id: string) => {
   editingHeightCache.value = 0
 }
 
+const lastEdited = ref<string | null>(null)
+
 const onEditFinish = () => {
+  lastEdited.value = editing.value
   editing.value = null
+
+  resolveMasonryThrottled()
 }
 
 const heightMap = reactive<Map<string, number>>(new Map())
@@ -200,6 +204,16 @@ const resolveMasonry = () => {
     )
     updateStyles(styles)
   }
+
+  tryScrollToLastEdited()
+}
+
+const tryScrollToLastEdited = async () => {
+  if (!lastEdited.value) return
+
+  await nextTick()
+  requestScroll(lastEdited.value)
+  lastEdited.value = null
 }
 
 const resolveMasonryThrottled = useThrottleFn(resolveMasonry, 10, true)
@@ -217,6 +231,7 @@ watch(() => props.id, () => {
 
 watch([
   () => props.flow,
+  () => props.flakes,
   () => props.options,
   heightMap,
 ], () => {

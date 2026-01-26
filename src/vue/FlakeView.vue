@@ -130,7 +130,7 @@ watchEffect(async () => {
 })
 
 const height = computed(() => {
-  return 2 // Slightly larger than border size
+  return 2 // Slightly larger than the border size
     + nameSize.height.value
     + contentHeight.value
     + footerSize.height.value

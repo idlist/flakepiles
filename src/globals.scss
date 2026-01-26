@@ -59,8 +59,20 @@
 .fp-markdown {
 
   p,
-  pre {
+  pre,
+  ul,
+  ol {
     margin: 0.5rem 0;
+  }
+
+  ul,
+  ol {
+    padding-inline-start: 2rem;
+  }
+
+  li.task-list-item>input {
+    vertical-align: middle;
+    transform: translateY(-2px);
   }
 
   h1,

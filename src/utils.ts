@@ -26,9 +26,7 @@ export const useElementBorderSize = (target: MaybeComputedElementRef) => {
   return useElementSize(target, { width: 0, height: 0 }, { box: 'border-box' })
 }
 
-export const noopAsync = async () => {
-  await new Promise<void>((resolve) => resolve())
-}
+export const noopAsync = async () => await Promise.resolve()
 
 export class CausedError<T> extends Error {
   cause: string

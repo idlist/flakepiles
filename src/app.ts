@@ -120,6 +120,13 @@ export class FlakepileApp extends TextFileView {
   hydrateMarkdown(rendered: HTMLElement) {
     const sourcePath = this.file!.path
 
+    // Disable input of task item checkbox.
+    const taskItemChechboxes = rendered.querySelectorAll('.task-list-item>input')
+
+    taskItemChechboxes.forEach((element) => {
+      element.setAttrs({ disabled: true })
+    })
+
     // Support internal links.
     rendered.on('click', 'a.internal-link', (e, target) => {
       const linktext = target.getAttribute('data-href')

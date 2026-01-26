@@ -22,13 +22,22 @@ export default class Flakepiles extends Plugin {
 
       menu.addItem((item) => {
         item
-          .setTitle('Create new flakepile')
+          .setTitle('New flakepile')
           .setIcon('sticker')
           .onClick(async () => {
             await this.createFlakepileFile(file)
           })
       })
     }))
+
+    // Register "New flakepile" command.
+    this.addCommand({
+      id: 'new',
+      name: 'Create a new flakepile',
+      callback: async () => {
+        await this.createFlakepileFile()
+      },
+    })
 
     // Register status bar item.
     this.flakeCount = this.addStatusBarItem()

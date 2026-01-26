@@ -8,6 +8,7 @@ import type { FileRef, PileActions, PileRef } from '@/app'
 import { ObIcon, ObSearch } from '@/components'
 import { useCssIf, useCssWith } from '@/utils'
 import { searchFlakes, sortFlakes } from './flake-filters'
+import type { MasonryOptions } from './masonry-common'
 
 import MenuButton from './MenuButton.vue'
 import MasonryUnified from './MasonryUnified.vue'
@@ -75,6 +76,18 @@ const scrollX = computed(() => {
 })
 const scrollY = computed(() => {
   return canvasBounding.top.value - masonryBounding.top.value
+})
+
+const masonryOptions = computed<MasonryOptions>(() => {
+  return {
+    width: pile.value.width,
+    elasticWidth: pile.value.elasticWidth,
+    enableMaxHeight: pile.value.enableMaxHeight,
+    maxHeight: pile.value.maxHeight,
+    elasticHeight: pile.value.elasticHeight,
+    canvasWidth: canvasSize.width.value,
+    canvasHeight: canvasSize.height.value,
+  }
 })
 
 type MenuState = 'shrink' | 'normal' | 'expand'
@@ -263,7 +276,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
             <MenuButton ref="el-size-options-button"
               class="fp-btn-icon-label"
               icon="scaling"
-              label="Size Options"
+              label="Size options"
               @click="showSizeOptions = !showSizeOptions" />
           </template>
         </div>
@@ -283,15 +296,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
           :flow="adaptiveFlow"
           :scroll-x="scrollX"
           :scroll-y="scrollY"
-          :options="{
-            width: pile.width,
-            elasticWidth: pile.elasticWidth,
-            enableMaxHeight: pile.enableMaxHeight,
-            maxHeight: pile.maxHeight,
-            elasticHeight: pile.elasticHeight,
-            canvasWidth: canvasSize.width.value,
-            canvasHeight: canvasSize.height.value,
-          }" />
+          :options="masonryOptions" />
       </div>
     </div>
   </div>

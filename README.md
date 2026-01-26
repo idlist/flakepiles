@@ -2,9 +2,9 @@
 
 An Obsidian plugin to put small notes / stickies / cards in a dedicated file, and manage them in masonry layout.
 
-A "flake" means a small piece of note, and a "flakepile" is a pile of those flakes.
+A "flake" refers to a small piece of note, and a "flakepile" is a pile of those flakes.
 
-Can be used to store ideas, diaries, code snippets, and more.
+Can be used to collect ideas, diaries, code snippets, and more.
 
 *The preview image is in horizontal layout. You can change this to vertical layout.*
 
@@ -20,7 +20,9 @@ I don't want 100 `.md` files with 1 sentence each.
 
 ## Installation
 
-The plugin is not published as Obsidian's community plugin yet. Please use [BRAT](https://github.com/TfTHacker/obsidian42-brat) to install the plugin, or copy the files under the release tag to the plugin folder of your Obsidian application. You can also [build it from source](#build-from-source).
+The plugin is not published as Obsidian's community plugin [yet](https://github.com/obsidianmd/obsidian-releases/pull/9533).
+
+Please use [BRAT](https://github.com/TfTHacker/obsidian42-brat) to install the plugin, or copy the files under the release tag to the plugin folder of your Obsidian application. You can also [build it from source](#build-from-source).
 
 ## Tech Stack
 
@@ -57,10 +59,10 @@ Inside a flakepile:
 
 Obsidian-wise:
 
-- [x] "Create new flakepile" file menu option
+- [x] "New flakepile" command & file menu option.
 - [x] "Flake count" status bar item [1]
 - Limited support to internal plugins
-  - [x] Preview other markdown file
+  - [x] Preview other markdown files via `[[file link]]`
   - [x] Jump to global search when clicking on a tag
 
 [1] Due to the nature of this plugin, other status bar items are hidden in flakepile view. Please let me know if you think some status bar item should be displayed.
@@ -102,6 +104,10 @@ npm run build     // Build for production
 [1] [Hot reload](https://github.com/pjeby/hot-reload)
 
 WHen running `npm run build`, the output files will be copied to `dist` folder.
+
+## Changelog
+
+[Changelog for pre-1.0 versions](docs/changelog_pre1.0.md)
 
 ## License
 
