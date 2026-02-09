@@ -3,8 +3,8 @@ import { Platform } from 'obsidian'
 import { computed, inject, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
 import { refDebounced, until, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
-import { createFlake, type Flake, type PileAdaptiveFlow } from '@/data'
-import type { FileRef, PileActions, PileRef } from '@/app'
+import { createFlake, type Flake, type IsDevRef, type PileAdaptiveFlow } from '@/data'
+import type { FileRef, PileActions, PileRef } from '@/view'
 import { ObIcon, ObSearch } from '@/components'
 import { useCssIf, useCssWith } from '@/utils'
 import { searchFlakes, sortFlakes } from './flake-filters'
@@ -17,10 +17,8 @@ import LabelsPanel from './LabelsPanel.vue'
 
 const props = defineProps<{ pile: PileRef }>()
 
-const isDev = ref(false)
-provide('isDev', isDev)
-
 const pile = props.pile
+const isDev = inject('isDev') as IsDevRef
 const fileRef = inject('fileRef') as FileRef
 const actions = inject('actions') as PileActions
 const name = computed<string>(() => fileRef.value?.basename ?? '')
@@ -94,7 +92,7 @@ type MenuState = 'shrink' | 'normal' | 'expand'
 
 const menuState = ref<MenuState>('normal')
 const showSizeOptions = ref(false)
-const showLabels = ref(true)
+const showLabels = ref(false)
 
 const closeAllPanels = () => {
   showSizeOptions.value = false

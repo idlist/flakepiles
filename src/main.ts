@@ -1,5 +1,5 @@
 import { Notice, Plugin, TFolder } from 'obsidian'
-import { FlakepileApp, VIEW_TYPE } from './app'
+import { FlakepileView, VIEW_TYPE } from './view'
 import { createFlakepile } from './data'
 import './globals.scss'
 
@@ -10,7 +10,7 @@ export default class Flakepiles extends Plugin {
     // Register Flakepile view.
     this.registerView(
       VIEW_TYPE,
-      (leaf) => new FlakepileApp(leaf),
+      (leaf) => new FlakepileView(leaf),
     )
 
     // Register .flakes (JSON) file type.
@@ -94,7 +94,7 @@ export default class Flakepiles extends Plugin {
   }
 
   adjustStatusBar() {
-    const flakepile = this.app.workspace.getActiveViewOfType(FlakepileApp)
+    const flakepile = this.app.workspace.getActiveViewOfType(FlakepileView)
 
     if (flakepile) {
       document.body.addClass('is-flakepile')
@@ -107,7 +107,7 @@ export default class Flakepiles extends Plugin {
   }
 
   updateFlakeCount() {
-    const flakepile = this.app.workspace.getActiveViewOfType(FlakepileApp)
+    const flakepile = this.app.workspace.getActiveViewOfType(FlakepileView)
     if (!flakepile) return
 
     this.flakeCount?.setText(`${flakepile.pile.value.flakes.length} flake(s)`)

@@ -7,7 +7,7 @@ import {
   type App as VueApp, type Component, type ShallowRef, type Ref,
 } from 'vue'
 import { createFlakepile, type Flake, type Flakepile } from './data'
-import FlakepileView from './vue/FlakepileView.vue'
+import FlakepileApp from './vue/App.vue'
 import { noopAsync, CausedError } from './utils'
 
 export const VIEW_TYPE = 'flakepile'
@@ -15,6 +15,10 @@ export const VIEW_TYPE = 'flakepile'
 export type FileRef = ShallowRef<TFile | null>
 
 export type PileRef = Ref<Flakepile>
+
+type ParsingState = 'load' | 'reload' | 'parsed' | 'failed'
+
+export type ParsingStateRef = Ref<ParsingState>
 
 export interface ImageRawSize {
   width: number
@@ -30,10 +34,11 @@ export interface PileActions {
 
 const TICKS = '```'
 
-export class FlakepileApp extends TextFileView {
+export class FlakepileView extends TextFileView {
   view?: VueApp
-  parsed: Ref<boolean> = ref(false)
+  parsing: ParsingStateRef = ref('load')
   fileRef: FileRef = shallowRef(this.file)
+  raw: string = ''
   pile: PileRef = ref(createFlakepile())
 
   constructor(leaf: WorkspaceLeaf) {
@@ -55,11 +60,11 @@ export class FlakepileApp extends TextFileView {
 
     const actions: PileActions = {
       save: () => {
-        if (!this.parsed) return
+        if (this.parsing.value != 'parsed') return
         void this.save()
       },
       saveLazy: () => {
-        if (!this.parsed) return
+        if (this.parsing.value != 'parsed') return
         this.requestSave()
       },
       mountContent: async (element, flake) => {
@@ -90,11 +95,11 @@ export class FlakepileApp extends TextFileView {
       },
     }
 
-    this.view = createApp(FlakepileView as Component, {
+    this.view = createApp(FlakepileApp as Component, {
       pile: this.pile,
     })
 
-    this.view.provide('parsed', this.parsed)
+    this.view.provide('parsing', this.parsing)
     this.view.provide('fileRef', this.fileRef)
     this.view.provide('actions', actions)
     this.view.mount(mountPoint)
@@ -211,13 +216,21 @@ export class FlakepileApp extends TextFileView {
 
   setViewData(data: string) {
     this.fileRef.value = this.file
+    this.raw = data
     let updatedPile: Flakepile
 
     try {
+      if (this.parsing.value == 'failed') {
+        this.parsing.value = 'load'
+      }
+      if (this.parsing.value == 'parsed') {
+        this.parsing.value = 'reload'
+      }
+
       updatedPile = JSON.parse(data) as Flakepile
-      this.parsed.value = true
+      this.parsing.value = 'parsed'
     } catch (e) {
-      this.parsed.value = false
+      this.parsing.value = 'failed'
       new Notice('Cannot parse the flakepile. Check dev console for more info.', 0)
       console.error('Cannot parse Flakepile file: ', e)
       return
@@ -227,7 +240,12 @@ export class FlakepileApp extends TextFileView {
   }
 
   getViewData(): string {
-    return JSON.stringify(this.pile.value, null, 2)
+    if (this.parsing.value == 'parsed') {
+      return JSON.stringify(this.pile.value, null, 2)
+    }
+    else {
+      return this.raw
+    }
   }
 
   clear() {

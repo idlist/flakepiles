@@ -2,7 +2,7 @@
 import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch, watchEffect, type Ref } from 'vue'
 import { moment, Notice } from 'obsidian'
 import { until, useDebounceFn, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
-import type { ImageRawSize, PileActions } from '@/app'
+import type { ImageRawSize, PileActions } from '@/view'
 import type { Flake } from '@/data'
 import { ObIcon } from '@/components'
 import { useCssIf, px, useCssWith, CausedError, useElementBorderSize } from '@/utils'

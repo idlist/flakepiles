@@ -58,12 +58,6 @@ export const createLabel = (): FlakeLabel => {
   }
 }
 
-export interface FlakeTheme {
-  name: string
-  colorBg: string
-  colorText: string
-}
-
 export type PileFlow = 'vertical' | 'horizontal'
 
 export type PileAdaptiveFlow = PileFlow | 'mobile'
@@ -103,3 +97,5 @@ export const createFlakepile = (): Flakepile => {
 }
 
 export type EditingRef = Ref<string | null>
+
+export type IsDevRef = Ref<boolean>

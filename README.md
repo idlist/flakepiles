@@ -49,13 +49,13 @@ Inside a flakepile:
   - [x] Image flake
   - [x] Code flake
 - [x] Search filter inside a flakepile
-- [ ] Flake colors (theme)
 - [ ] Flake labels
   - [ ] Label creation, update, deletion
   - [ ] Add / remove label to flake
   - [ ] Label color
   - [ ] Hide some labels (display as `+N`)
   - [ ] Label filtering
+- [ ] Flake colors
 
 Obsidian-wise:
 
@@ -69,7 +69,7 @@ Obsidian-wise:
 
 ## Long term goals
 
-- Search keywords highlight
+- Search keywords highlighting
 - Copy flake across flakepiles (the "copy raw" botton is for this)
 - Export files to markdown files
   - Export as a single markdown file
