@@ -346,14 +346,14 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
             <ObIcon name="type" />
           </button>
           <button
-            :class="['fp-btn-icon', cssTypeIsImage]"
-            @click="flake.type = 'image'">
-            <ObIcon name="image" />
-          </button>
-          <button
             :class="['fp-btn-icon', cssTypeIsCode]"
             @click="flake.type = 'code'">
             <ObIcon name="code" />
+          </button>
+          <button
+            :class="['fp-btn-icon', cssTypeIsImage]"
+            @click="flake.type = 'image'">
+            <ObIcon name="image" />
           </button>
 
           <div class="expand"></div>
