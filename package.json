@@ -20,6 +20,7 @@
     "@vueuse/core": "^14.1.0",
     "nanoid": "^5.1.6",
     "obsidian": "latest",
+    "parse-json": "^8.3.0",
     "vue": "^3.5.26"
   },
   "devDependencies": {

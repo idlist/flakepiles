@@ -224,6 +224,18 @@ const copyJson = async () => {
   }
 }
 
+const textareaPlaceholder = computed<string>(() => {
+  if (isCode.value) {
+    return 'Code here...'
+  }
+  else if (isImage.value) {
+    return 'Relative path to the image here...'
+  }
+  else {
+    return 'Note here...'
+  }
+})
+
 type LightType = 'short' | 'long'
 
 const light = ref<LightType | null>(null)
@@ -320,7 +332,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
           ref="el-textarea"
           v-model="editContent"
           :class="['edit', cssIsImage, cssIsCode, cssNoWrap]"
-          placeholder="Note here...">
+          :placeholder="textareaPlaceholder">
     </textarea>
       </div>
     </div>

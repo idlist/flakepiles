@@ -1,5 +1,7 @@
 import 'obsidian'
 
+// Only mock the internal types actually used in this plugin
+// instead of importing the whole "obsidian-typings" package.
 declare module 'obsidian' {
   interface App {
     // https://fevol.github.io/obsidian-typings/api/obsidian-typings/namespaces/internals/interfaces/internalplugins/

@@ -4,7 +4,7 @@ import { computed, inject, onMounted, provide, ref, useTemplateRef, watch } from
 import { refDebounced, until, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
 import { createFlake, type Flake, type IsDevRef, type PileAdaptiveFlow } from '@/data'
-import type { FileRef, PileActions, PileRef } from '@/view'
+import type { FileInfo, Parsing, PileActions, PileRef } from '@/view'
 import { ObIcon, ObSearch } from '@/components'
 import { useCssIf, useCssWith } from '@/utils'
 import { searchFlakes, sortFlakes } from './flake-filters'
@@ -18,24 +18,15 @@ import LabelsPanel from './LabelsPanel.vue'
 const props = defineProps<{ pile: PileRef }>()
 
 const pile = props.pile
-const isDev = inject('isDev') as IsDevRef
-const fileRef = inject('fileRef') as FileRef
+const file = inject('file') as FileInfo
+const parsing = inject('parsing') as Parsing
 const actions = inject('actions') as PileActions
-const name = computed<string>(() => fileRef.value?.basename ?? '')
 
-// Shallow watch `pile` doesn't work. I don't know why.
-watch([
-  () => pile.value.flow,
-  () => pile.value.sortBy,
-  () => pile.value.sortOrder,
-  () => pile.value.width,
-  () => pile.value.elasticWidth,
-  () => pile.value.enableMaxHeight,
-  () => pile.value.maxHeight,
-  () => pile.value.elasticHeight,
-], () => {
+const isDev = inject('isDev') as IsDevRef
+
+watch(() => pile.value, () => {
   actions.save()
-})
+}, { deep: 1 })
 
 const editing = ref<string | null>(null)
 provide('editing', editing)
@@ -178,12 +169,12 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
         </button>
 
         <h6 class="file-name-shrink">
-          {{ name }}
+          {{ file.name }}
         </h6>
       </div>
 
       <h1 v-if="menuState != 'shrink'" class="file-name">
-        {{ name }}
+        {{ file.name }}
       </h1>
 
       <div v-if="menuState != 'shrink'" class="menu-area">
@@ -285,16 +276,26 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 
     <div class="content">
       <div ref="el-canvas" :class="['sub-layout', cssAdaptiveFlow]">
-        <div v-if="!pile.flakes.length" class="no-flakes">No flakes.</div>
+        <div v-if="parsing.state == 'reloading'"
+          class="reloading-flakes">
+          Loading flakes.
+        </div>
 
-        <MasonryUnified v-else
-          :id="pile.id"
-          ref="el-masonry"
-          :flakes="sortedFlakes"
-          :flow="adaptiveFlow"
-          :scroll-x="scrollX"
-          :scroll-y="scrollY"
-          :options="masonryOptions" />
+        <template v-if="parsing.state == 'parsed'">
+          <div v-if="!pile.flakes.length"
+            class="no-flakes">
+            No flakes.
+          </div>
+
+          <MasonryUnified v-else
+            :id="pile.id"
+            ref="el-masonry"
+            :flakes="sortedFlakes"
+            :flow="adaptiveFlow"
+            :scroll-x="scrollX"
+            :scroll-y="scrollY"
+            :options="masonryOptions" />
+        </template>
       </div>
     </div>
   </div>
@@ -445,6 +446,13 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
   bottom: 100%;
   margin-bottom: var(--size-4-1);
   background-color: color-mix(in srgb, var(--background-primary), transparent 10%);
+}
+
+.reloading-flakes {
+  width: 100%;
+  padding: 1rem;
+  color: var(--text-faint);
+  text-align: center;
 }
 
 .no-flakes {

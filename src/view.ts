@@ -1,24 +1,37 @@
-import {
-  Keymap, MarkdownRenderer, Notice, TextFileView,
-  type TFile, type WorkspaceLeaf,
-} from 'obsidian'
-import {
-  createApp, shallowRef, triggerRef, ref,
-  type App as VueApp, type Component, type ShallowRef, type Ref,
-} from 'vue'
+import { Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
+import { createApp, reactive, ref, type App as VueApp, type Component, type Ref } from 'vue'
+import parseJson from 'parse-json'
 import { createFlakepile, type Flake, type Flakepile } from './data'
 import FlakepileApp from './vue/App.vue'
 import { noopAsync, CausedError } from './utils'
 
 export const VIEW_TYPE = 'flakepile'
 
-export type FileRef = ShallowRef<TFile | null>
-
 export type PileRef = Ref<Flakepile>
 
-type ParsingState = 'load' | 'reload' | 'parsed' | 'failed'
+type ParsingState = 'loading' | 'reloading' | 'parsed' | 'failed'
 
-export type ParsingStateRef = Ref<ParsingState>
+export interface Parsing {
+  state: ParsingState
+  error: Error | null
+}
+
+const initParsing = (): Parsing => {
+  return {
+    state: 'loading',
+    error: null,
+  }
+}
+
+export interface FileInfo {
+  name: string
+}
+
+const initFileInfo = (): FileInfo => {
+  return {
+    name: '',
+  }
+}
 
 export interface ImageRawSize {
   width: number
@@ -36,9 +49,9 @@ const TICKS = '```'
 
 export class FlakepileView extends TextFileView {
   view?: VueApp
-  parsing: ParsingStateRef = ref('load')
-  fileRef: FileRef = shallowRef(this.file)
   raw: string = ''
+  parsing: Parsing = reactive(initParsing())
+  fileInfo: FileInfo = reactive(initFileInfo())
   pile: PileRef = ref(createFlakepile())
 
   constructor(leaf: WorkspaceLeaf) {
@@ -60,11 +73,11 @@ export class FlakepileView extends TextFileView {
 
     const actions: PileActions = {
       save: () => {
-        if (this.parsing.value != 'parsed') return
+        if (this.parsing.state != 'parsed') return
         void this.save()
       },
       saveLazy: () => {
-        if (this.parsing.value != 'parsed') return
+        if (this.parsing.state != 'parsed') return
         this.requestSave()
       },
       mountContent: async (element, flake) => {
@@ -99,17 +112,21 @@ export class FlakepileView extends TextFileView {
       pile: this.pile,
     })
 
+    this.view.provide('file', this.fileInfo)
     this.view.provide('parsing', this.parsing)
-    this.view.provide('fileRef', this.fileRef)
     this.view.provide('actions', actions)
     this.view.mount(mountPoint)
 
     this.registerEvent(this.app.vault.on('rename', () => {
-      triggerRef(this.fileRef)
+      this.updateFileInfo()
     }))
 
     // Comply with Auto-review bot.
     await noopAsync()
+  }
+
+  updateFileInfo() {
+    this.fileInfo.name = this.file?.basename ?? ''
   }
 
   async mountMarkdown(element: HTMLElement, content: string) {
@@ -215,32 +232,37 @@ export class FlakepileView extends TextFileView {
   }
 
   setViewData(data: string) {
-    this.fileRef.value = this.file
     this.raw = data
-    let updatedPile: Flakepile
+    this.parsing.error = null
+    this.updateFileInfo()
 
-    try {
-      if (this.parsing.value == 'failed') {
-        this.parsing.value = 'load'
-      }
-      if (this.parsing.value == 'parsed') {
-        this.parsing.value = 'reload'
-      }
-
-      updatedPile = JSON.parse(data) as Flakepile
-      this.parsing.value = 'parsed'
-    } catch (e) {
-      this.parsing.value = 'failed'
-      new Notice('Cannot parse the flakepile. Check dev console for more info.', 0)
-      console.error('Cannot parse Flakepile file: ', e)
-      return
+    if (this.parsing.state == 'failed') {
+      this.parsing.state = 'loading'
+    }
+    if (this.parsing.state == 'parsed') {
+      this.parsing.state = 'reloading'
     }
 
-    this.pile.value = updatedPile
+    try {
+      const updatedPile = parseJson(data) as unknown as Flakepile
+
+      this.parsing.state = 'parsed'
+      this.pile.value = updatedPile
+    } catch (e) {
+      this.parsing.state = 'failed'
+
+      if (e instanceof Error) {
+        this.parsing.error = e
+      }
+      else {
+        new Notice('Cannot parse the flakepile. Please check the dev console for more information.')
+        console.error('Cannot parse flakepile: ', e)
+      }
+    }
   }
 
   getViewData(): string {
-    if (this.parsing.value == 'parsed') {
+    if (this.parsing.state == 'parsed') {
       return JSON.stringify(this.pile.value, null, 2)
     }
     else {

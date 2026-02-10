@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import { inject, provide, ref } from 'vue'
-import type { ParsingStateRef, PileRef } from '@/view'
+import type { Parsing, PileRef } from '@/view'
 
-import PileLoad from './PileLoad.vue'
+import PileLoading from './PileLoading.vue'
 import PileFailed from './PileFailed.vue'
 import PileParsed from './PileParsed.vue'
 
 defineProps<{ pile: PileRef }>()
-const parsing = inject('parsing') as ParsingStateRef
+const parsing = inject('parsing') as Parsing
 
 const isDev = ref(false)
 provide('isDev', isDev)
 </script>
 
 <template>
-  <PileLoad v-if="parsing == 'load'" />
+  <PileLoading v-if="parsing.state == 'loading'" />
 
-  <PileFailed v-if="parsing == 'failed'" />
+  <PileFailed v-else-if="parsing.state == 'failed'" />
 
-  <PileParsed v-if="parsing == 'parsed' || parsing == 'reload'" :pile="pile" />
+  <PileParsed v-else :pile="pile" />
 </template>
