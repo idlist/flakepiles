@@ -42,7 +42,7 @@ export interface PileActions {
   save: () => void
   saveLazy: () => void
   mountContent: (element: HTMLElement, flake: Flake) => Promise<ImageRawSize | void>
-  deleteFlake: (id: string) => void
+  removeFlake: (id: string) => void
 }
 
 const TICKS = '```'
@@ -100,7 +100,7 @@ export class FlakepileView extends TextFileView {
 
         return
       },
-      deleteFlake: (id) => {
+      removeFlake: (id) => {
         const index = this.pile.value.flakes.findIndex((f) => f.id == id)
         if (index == -1) return
         this.pile.value.flakes.splice(index, 1)

@@ -2,9 +2,7 @@
 
 An Obsidian plugin to put small notes / stickies / cards in a dedicated file, and manage them in masonry layout.
 
-A "flake" refers to a small piece of note, and a "flakepile" is a pile of those flakes.
-
-Can be used to collect ideas, diaries, code snippets, and more.
+A "flake" refers to a small piece of note, and a "flakepile" is a pile of those flakes. Forseeable use cases of the plugin includes collecting ideas, writing small diaries, storing code snippets, and more.
 
 *The preview image is in horizontal layout. You can change this to vertical layout.*
 
@@ -12,11 +10,11 @@ Can be used to collect ideas, diaries, code snippets, and more.
 
 ## Why
 
-I don't want 100 `.md` files with 1 sentence each.
+I don't want 100 `.md` files with 1 sentence each, and I'm picky about information density.
 
 ## Status
 
- The plugin is in early development, though basic features should now work properly. I've tested many cases I can think of, and [I myself am using it currently](https://en.wikipedia.org/wiki/Eating_your_own_dog_food), but please expect bug exists in corner cases.
+The plugin is in early development, though basic functionalities should now work properly. I've tested it at my best, and [I myself am using it currently](https://en.wikipedia.org/wiki/Eating_your_own_dog_food), but please expect bug exists in corner cases.
 
 ## Installation
 
@@ -53,8 +51,8 @@ Inside a flakepile:
   - [ ] Label creation, update, deletion
   - [ ] Add / remove label to flake
   - [ ] Label color
-  - [ ] Hide some labels (display as `+N`)
-  - [ ] Label filtering
+  - [ ] Simple display of labels in flakes (display as `+N`)
+  - [ ] Hide flake with labels
 - [ ] Flake colors
 
 Obsidian-wise:

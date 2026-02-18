@@ -200,8 +200,8 @@ watch(() => props.isEdit, () => {
   }
 })
 
-const deleteThis = () => {
-  actions.deleteFlake(props.flake.id)
+const removeThis = () => {
+  actions.removeFlake(props.flake.id)
 }
 
 const copyContent = async () => {
@@ -404,7 +404,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
     </div>
 
     <div class="flake-menu">
-      <button v-if="isView" class="fp-btn-icon danger" @click="deleteThis">
+      <button v-if="isView" class="fp-btn-icon danger" @click="removeThis">
         <ObIcon name="trash-2" />
       </button>
 
@@ -720,8 +720,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
   }
 
   >.danger {
-    color: var(--color-base-00);
-    background-color: var(--color-red);
+    @extend .fp-danger;
   }
 }
 </style>

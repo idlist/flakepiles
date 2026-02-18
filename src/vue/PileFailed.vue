@@ -27,7 +27,7 @@ const parsing = inject('parsing') as Parsing
 }
 
 .failed-message {
-  padding: 0 0.5em;
+  padding: 0.25em 0.5em;
   margin-bottom: 0.5em;
 
   color: var(--text-error);
@@ -36,7 +36,7 @@ const parsing = inject('parsing') as Parsing
   border-radius: var(--radius-m);
 
   &>p {
-    margin: 0.5em 0;
+    margin: 0.25em 0;
     line-height: 1.5;
   }
 
@@ -54,5 +54,6 @@ const parsing = inject('parsing') as Parsing
 
   line-height: 1.5;
   white-space: pre-wrap;
+  user-select: text;
 }
 </style>

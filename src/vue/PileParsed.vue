@@ -81,13 +81,13 @@ const masonryOptions = computed<MasonryOptions>(() => {
 
 type MenuState = 'shrink' | 'normal' | 'expand'
 
-const menuState = ref<MenuState>('normal')
+const menuState = ref<MenuState>('expand')
 const showSizeOptions = ref(false)
-const showLabels = ref(false)
+const showLabels = ref(true)
 
 const closeAllPanels = () => {
   showSizeOptions.value = false
-  showLabels.value = false
+  showLabels.value = true
 }
 
 // Reset menu, panels and editing state when changing files.
@@ -201,7 +201,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
         </div>
 
         <div v-if="menuState == 'expand'" class="menu-main">
-          <MenuButton v-if="isDev"
+          <MenuButton
             ref="el-labels-button"
             :class="['fp-btn-icon-label', cssNoLabel]"
             icon="tags"
@@ -313,8 +313,8 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 
     <LabelsPanel v-if="showLabels"
       ref="el-labels-panel"
-      :style="labelPanelStyles"
-      :labels="pile.labels" />
+      :pile="pile"
+      :style="labelPanelStyles" />
   </div>
 </template>
 

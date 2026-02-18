@@ -44,8 +44,8 @@ export interface FlakeLabel {
   id: string
   name: string
   color: FlakeLabelColor
-  show: boolean
-  filter: boolean
+  listed: boolean
+  filtered: boolean
 }
 
 export const createLabel = (): FlakeLabel => {
@@ -53,8 +53,8 @@ export const createLabel = (): FlakeLabel => {
     id: nanoid(8),
     name: '',
     color: 'none',
-    show: true,
-    filter: false,
+    listed: true,
+    filtered: false,
   }
 }
 

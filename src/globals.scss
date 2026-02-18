@@ -7,6 +7,16 @@
   right: 0;
 }
 
+.fp-danger {
+  color: var(--color-base-00);
+  background-color: var(--text-error);
+}
+
+.fp-invert {
+  color: var(--color-base-00);
+  background-color: var(--text-normal);
+}
+
 /* Reusable components */
 
 .fp-btn-icon {
