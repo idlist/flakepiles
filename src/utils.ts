@@ -1,5 +1,5 @@
 import { useElementSize, type MaybeComputedElementRef } from '@vueuse/core'
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
+import { computed, toValue, type Directive, type MaybeRefOrGetter } from 'vue'
 
 export const px = (x: number) => `${x}px`
 
@@ -27,6 +27,16 @@ export const useElementBorderSize = (target: MaybeComputedElementRef) => {
 }
 
 export const noopAsync = async () => await Promise.resolve()
+
+export const vFocus: Directive<HTMLInputElement> = {
+  mounted: (el, binding) => {
+    el.focus()
+
+    if (binding.arg == 'select') {
+      el.select()
+    }
+  },
+}
 
 export class CausedError<T> extends Error {
   cause: string

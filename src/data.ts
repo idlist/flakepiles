@@ -45,7 +45,7 @@ export interface FlakeLabel {
   name: string
   color: FlakeLabelColor
   listed: boolean
-  filtered: boolean
+  filter: boolean
 }
 
 export const createLabel = (): FlakeLabel => {
@@ -54,7 +54,7 @@ export const createLabel = (): FlakeLabel => {
     name: '',
     color: 'none',
     listed: true,
-    filtered: false,
+    filter: false,
   }
 }
 
@@ -76,6 +76,7 @@ export interface Flakepile {
   enableMaxHeight: boolean
   maxHeight: number
   elasticHeight: boolean
+  filterInvert: boolean
   labels: FlakeLabel[]
   flakes: Flake[]
 }
@@ -91,6 +92,7 @@ export const createFlakepile = (): Flakepile => {
     enableMaxHeight: false,
     maxHeight: 1,
     elasticHeight: false,
+    filterInvert: false,
     labels: [],
     flakes: [],
   }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, useTemplateRef, type StyleValue } from 'vue'
+import { computed, onMounted, useTemplateRef, watch, type StyleValue } from 'vue'
 import { setIcon } from 'obsidian'
 
 const props = defineProps<{
@@ -17,6 +17,10 @@ const styles = computed(() => {
   const decls: StyleValue = {}
   if (props.cssColor) decls.color = props.cssColor
   return decls
+})
+
+watch(() => props.name, () => {
+  setIcon(iconRef.value!, props.name)
 })
 </script>
 

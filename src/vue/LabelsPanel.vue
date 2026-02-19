@@ -1,18 +1,31 @@
 <script setup lang="ts">
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import type { PileActions } from '@/view'
 import { createLabel, type FlakeLabel, type Flakepile } from '@/data'
 import { ObIcon } from '@/components'
+import { vFocus, useCssIf } from '@/utils'
 
 const props = defineProps<{ pile: Flakepile }>()
 const actions = inject('actions') as PileActions
 
 const moreTools = ref(false)
-const labelInput = ref('')
+const newLabelName = ref('')
+const editLabelName = ref('')
 const editing = ref<string | null>(null)
+const filterInvert = computed(() => props.pile.filterInvert)
+
+const toggleInvertFilter = () => {
+  props.pile.filterInvert = !props.pile.filterInvert
+
+  for (const label of props.pile.labels) {
+    label.filter = !label.filter
+  }
+
+  actions.save()
+}
 
 const addLabel = () => {
-  var name = labelInput.value.trim()
+  var name = newLabelName.value.trim()
   if (name == '') return
 
   props.pile.labels.push({
@@ -21,7 +34,7 @@ const addLabel = () => {
   })
 
   actions.save()
-  labelInput.value = ''
+  newLabelName.value = ''
 }
 
 const findLabel = (id: string): FlakeLabel | undefined => {
@@ -33,7 +46,7 @@ const findLabel = (id: string): FlakeLabel | undefined => {
 const setFiltered = (id: string, value: boolean) => {
   const label = findLabel(id)
   if (!label) return
-  label.filtered = value
+  label.filter = value
   actions.save()
 }
 
@@ -45,11 +58,32 @@ const setListed = (id: string, value: boolean) => {
 }
 
 const editBegin = (id: string) => {
+  if (editing.value && editing.value != id) {
+    editFinish()
+  }
+
+  const label = findLabel(id)
+  if (!label) return
+
   editing.value = id
+  editLabelName.value = label.name
+}
+
+const tryUpdateLabel = () => {
+  if (!editing.value) return
+
+  const label = findLabel(editing.value)
+  if (!label) return
+
+  label.name = editLabelName.value
 }
 
 const editFinish = () => {
+  tryUpdateLabel()
+
   editing.value = null
+  editLabelName.value = ''
+  actions.save()
 }
 
 const remove = (id: string) => {
@@ -58,12 +92,20 @@ const remove = (id: string) => {
   props.pile.labels.splice(index, 1)
   actions.save()
 }
+
+const cssFilterInvert = useCssIf(() => filterInvert.value, 'invert')
 </script>
 
 <template>
   <div class="fp-obsidian-panel labels-panel">
     <div class="label-add">
-      <input v-model="labelInput"
+      <button
+        :class="['fp-btn-icon', cssFilterInvert]"
+        @click="toggleInvertFilter">
+        <ObIcon name="squares-intersect" />
+      </button>
+
+      <input v-model="newLabelName"
         type="text"
         class="expand label-input" />
 
@@ -88,38 +130,39 @@ const remove = (id: string) => {
 
     <div class="label-list">
       <div v-for="label of pile.labels" :key="label.id" class="label-item">
-        <template v-if="moreTools">
-          <button v-if="editing != label.id"
-            class="fp-btn-icon danger"
-            @click="() => remove(label.id)">
-            <ObIcon name="trash-2" />
-          </button>
-        </template>
-
-        <template v-else>
-          <button v-if="!label.filtered"
+        <template v-if="!moreTools">
+          <button v-if="!label.filter"
             class="fp-btn-icon"
             @click="() => setFiltered(label.id, true)">
-            <ObIcon name="eye" />
+            <ObIcon :name="filterInvert ? 'eye-closed' : 'eye'" />
           </button>
-
           <button v-else
             class="fp-btn-icon invert"
             @click="() => setFiltered(label.id, false)">
-            <ObIcon name="eye-closed" />
+            <ObIcon :name="filterInvert ? 'eye' : 'eye-closed'" />
           </button>
+
+          <div class="name" :title="label.name">
+            {{ label.name }}
+          </div>
+
+          <div class="expand"></div>
         </template>
 
-        <div v-if="editing != label.id"
-          class="name"
-          :title="label.name">
-          {{ label.name }}
-        </div>
-
-        <div class="expand"></div>
-
-        <template v-if="moreTools">
+        <template v-else>
           <template v-if="editing != label.id">
+            <button
+              class="fp-btn-icon danger"
+              @click="() => remove(label.id)">
+              <ObIcon name="trash-2" />
+            </button>
+
+            <div class="name" :title="label.name">
+              {{ label.name }}
+            </div>
+
+            <div class="expand"></div>
+
             <button
               class="fp-btn-icon"
               @click="() => editBegin(label.id)">
@@ -128,7 +171,7 @@ const remove = (id: string) => {
 
             <button
               class="fp-btn-icon">
-              <ObIcon name="pipette" />
+              <ObIcon name="palette" />
             </button>
 
             <button v-if="label.listed"
@@ -136,7 +179,6 @@ const remove = (id: string) => {
               @click="() => setListed(label.id, false)">
               <ObIcon name="text-align-start" />
             </button>
-
             <button v-else
               class="fp-btn-icon invert"
               @click="() => setListed(label.id, true)">
@@ -145,6 +187,11 @@ const remove = (id: string) => {
           </template>
 
           <template v-else>
+            <input v-model="editLabelName"
+              v-focus:select
+              type="text"
+              class="expand" />
+
             <button
               class="fp-btn-icon"
               @click="editFinish">
@@ -171,7 +218,6 @@ const remove = (id: string) => {
 }
 
 .labels-panel {
-  min-width: 280px;
   max-width: 320px;
 }
 
@@ -179,6 +225,10 @@ const remove = (id: string) => {
   @extend %label-row;
 
   margin-bottom: var(--size-4-2);
+
+  >.invert {
+    @extend .fp-invert;
+  }
 }
 
 .label-input {

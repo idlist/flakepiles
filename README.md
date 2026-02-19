@@ -48,7 +48,7 @@ Inside a flakepile:
   - [x] Code flake
 - [x] Search filter inside a flakepile
 - [ ] Flake labels
-  - [ ] Label creation, update, deletion
+  - [x] Label creation, update, deletion
   - [ ] Add / remove label to flake
   - [ ] Label color
   - [ ] Simple display of labels in flakes (display as `+N`)

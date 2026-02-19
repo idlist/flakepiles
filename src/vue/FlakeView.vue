@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch, watchEffect, type Ref } from 'vue'
+import { useDebounceFn, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
 import { moment, Notice } from 'obsidian'
-import { until, useDebounceFn, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
-import type { ImageRawSize, PileActions } from '@/view'
-import type { Flake } from '@/data'
 import { ObIcon } from '@/components'
-import { useCssIf, px, useCssWith, CausedError, useElementBorderSize } from '@/utils'
+import type { Flake } from '@/data'
+import type { ImageRawSize, PileActions } from '@/view'
+import { CausedError, px, useCssIf, useCssWith, useElementBorderSize, vFocus } from '@/utils'
 
 const props = defineProps<{
   flake: Flake
@@ -181,16 +181,10 @@ const editFinish = async () => {
   emit('edit-finish', props.flake.id)
 }
 
-const requestFocusEditArea = async () => {
-  await until(textareaRef).toBeTruthy({ timeout: 1000 })
-  textareaRef.value!.focus()
-}
-
 watch(() => props.isEdit, () => {
   if (props.isEdit) {
     editName.value = props.flake.name
     editContent.value = props.flake.content
-    requestFocusEditArea()
   }
   else {
     props.flake.name = editName.value.trim()
@@ -331,6 +325,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
         <textarea v-if="isEdit"
           ref="el-textarea"
           v-model="editContent"
+          v-focus
           :class="['edit', cssIsImage, cssIsCode, cssNoWrap]"
           :placeholder="textareaPlaceholder">
     </textarea>
