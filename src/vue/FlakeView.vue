@@ -5,7 +5,7 @@ import { moment, Notice } from 'obsidian'
 import { ObIcon } from '@/components'
 import type { Flake } from '@/data'
 import type { ImageRawSize, PileActions } from '@/view'
-import { CausedError, px, useCssIf, useCssWith, useElementBorderSize, vFocus } from '@/utils'
+import { CausedError, px, useCssIf, useCssWith, vFocus } from '@/utils'
 
 const props = defineProps<{
   flake: Flake
@@ -100,40 +100,77 @@ useEventListener(textareaRef, 'input', () => {
   syncTextareaWidth()
 })
 
-const nameSize = useElementBorderSize(nameRef)
-const contentSize = useElementBorderSize(contentRef)
-const footerSize = useElementBorderSize(footerRef)
+const borderHeight = ref(0)
+const nameHeight = ref(0)
+const contentHeight = ref(0)
+const footerHeight = ref(0)
 const scrollBarHeight = ref(0)
 
-useResizeObserver(scrollableRef, (entries) => {
-  const entry = entries[0]!
-  const el = entry.target as HTMLElement
-  scrollBarHeight.value = el.offsetHeight - el.clientHeight
-})
+const contentAppliedHeight = ref(0)
 
-const contentHeight = ref(0)
+const getBorderHeight = (el: HTMLElement) => {
+  const style = getComputedStyle(el)
+  const top = parseFloat(style.borderTopWidth)
+  const bottom = parseFloat(style.borderBottomWidth)
+  return top + bottom
+}
+
+const getScrollbarHeight = (el: HTMLElement) => {
+  return el.offsetHeight - el.clientHeight
+}
+
+useResizeObserver([
+  flakeRef,
+  nameRef,
+  contentRef,
+  footerRef,
+  scrollableRef,
+], (entries) => {
+  for (const entry of entries) {
+    const el = entry.target as HTMLElement
+    const h = entry.borderBoxSize[0]?.blockSize ?? 0
+
+    switch (el) {
+      case flakeRef.value:
+        borderHeight.value = getBorderHeight(el)
+        break
+      case nameRef.value:
+        nameHeight.value = h
+        break
+      case contentRef.value:
+        contentHeight.value = h
+        break
+      case footerRef.value:
+        footerHeight.value = h
+        break
+      case scrollableRef.value:
+        scrollBarHeight.value = getScrollbarHeight(el)
+        break
+    }
+  }
+})
 
 watchEffect(async () => {
   if (isView.value && isImage.value && imageRawSize.value) {
     if (props.flake.enableRatio && props.flake.ratio) {
       const ratio = Math.clamp(props.flake.ratio, 0.25, 4)
-      contentHeight.value = props.width * ratio
+      contentAppliedHeight.value = props.width * ratio
     }
     else {
       const { width: w, height: h } = imageRawSize.value
-      contentHeight.value = props.width / w * h
+      contentAppliedHeight.value = props.width / w * h
     }
   }
   else {
-    contentHeight.value = contentSize.height.value
+    contentAppliedHeight.value = contentHeight.value
   }
 })
 
 const height = computed(() => {
-  return 2 // Slightly larger than the border size
-    + nameSize.height.value
-    + contentHeight.value
-    + footerSize.height.value
+  return borderHeight.value
+    + nameHeight.value
+    + contentAppliedHeight.value
+    + footerHeight.value
     + scrollBarHeight.value
 })
 
@@ -284,7 +321,7 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 
 <template>
   <div ref="el-flake"
-    :class="['flake-view', 'fp-flake-theme', cssTheme, cssIsEdit, cssLight]">
+    :class="['fp-flake-theme', 'flake-view', cssTheme, cssIsEdit, cssLight]">
     <div v-if="!imageOnly" ref="el-name" class="flake-name">
       <div v-if="isText" class="noicon"></div>
 

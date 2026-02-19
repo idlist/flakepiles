@@ -1,4 +1,3 @@
-import { useElementSize, type MaybeComputedElementRef } from '@vueuse/core'
 import { computed, toValue, type Directive, type MaybeRefOrGetter } from 'vue'
 
 export const px = (x: number) => `${x}px`
@@ -20,10 +19,6 @@ export const useCssWith = <T>(
     const value = toValue(cond)
     return value ? formatter(value) : ''
   })
-}
-
-export const useElementBorderSize = (target: MaybeComputedElementRef) => {
-  return useElementSize(target, { width: 0, height: 0 }, { box: 'border-box' })
 }
 
 export const noopAsync = async () => await Promise.resolve()
