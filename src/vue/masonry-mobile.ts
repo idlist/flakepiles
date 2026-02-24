@@ -32,7 +32,7 @@ export const resolveMasonryMobile = (
   }
 
   styled.masonry.width = options.canvasWidth
-  styled.masonry.height = columnHeight + GAP_Y + 2 * PAD_Y
+  styled.masonry.height = columnHeight + GAP_Y + 2 * PAD_Y + 80
 
   return styled
 }

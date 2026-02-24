@@ -24,6 +24,10 @@ const toggleInvertFilter = () => {
   actions.save()
 }
 
+const sortByName = (a: FlakeLabel, b: FlakeLabel) => {
+  return a.name.localeCompare(b.name)
+}
+
 const addLabel = () => {
   var name = newLabelName.value.trim()
   if (name == '') return
@@ -32,6 +36,7 @@ const addLabel = () => {
     ...createLabel(),
     name,
   })
+  props.pile.labels.sort(sortByName)
 
   actions.save()
   newLabelName.value = ''
@@ -107,7 +112,8 @@ const cssFilterInvert = useCssIf(() => filterInvert.value, 'invert')
 
       <input v-model="newLabelName"
         type="text"
-        class="expand label-input" />
+        class="expand label-input"
+        placeholder="New label..." />
 
       <button
         class="fp-btn-icon"
@@ -190,7 +196,8 @@ const cssFilterInvert = useCssIf(() => filterInvert.value, 'invert')
             <input v-model="editLabelName"
               v-focus:select
               type="text"
-              class="expand" />
+              class="expand"
+              placeholder="Edit label..." />
 
             <button
               class="fp-btn-icon"

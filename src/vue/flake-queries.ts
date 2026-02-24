@@ -24,7 +24,7 @@ export const searchFlakes = (flakes: Flake[], query: string): Flake[] => {
   })
 }
 
-/** In-place sort of flakes. */
+/** In-place sorting of flakes. */
 export const sortFlakes = (flakes: Flake[], sortBy: SortCondition, sortOrder: SortOrder) => {
   flakes.sort((a, b) => {
     if (sortBy == 'name') {

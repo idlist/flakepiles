@@ -2,7 +2,7 @@
 
 An Obsidian plugin to put small notes / stickies / cards in a dedicated file, and manage them in masonry layout.
 
-A "flake" refers to a small piece of note, and a "flakepile" is a pile of those flakes. Forseeable use cases of the plugin includes collecting ideas, writing small diaries, storing code snippets, and more.
+A "flake" refers to a small piece of note, and a "flakepile" is a pile of those flakes. Forseeable use cases of the plugin includes collecting ideas, getting down short diaries, storing code snippets, and more.
 
 *The preview image is in horizontal layout. You can change this to vertical layout.*
 

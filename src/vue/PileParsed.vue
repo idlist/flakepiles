@@ -7,7 +7,7 @@ import { createFlake, type Flake, type IsDevRef, type PileAdaptiveFlow } from '@
 import type { FileInfo, Parsing, PileActions, PileRef } from '@/view'
 import { ObIcon, ObSearch } from '@/components'
 import { useCssIf, useCssWith } from '@/utils'
-import { searchFlakes, sortFlakes } from './flake-filters'
+import { searchFlakes, sortFlakes } from './flake-queries'
 import type { MasonryOptions } from './masonry-common'
 
 import MenuButton from './MenuButton.vue'
