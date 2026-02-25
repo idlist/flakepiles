@@ -30,7 +30,7 @@ The underlying file format (`.flakes`) is JSON. See the [non-goals](#non-goals) 
 
 ## Roadmap
 
-Inside a flakepile:
+Flakepile:
 
 - [x] Mount Vue into Obsidian
 - [x] Flakepile
@@ -55,7 +55,7 @@ Inside a flakepile:
   - [ ] Hide flake with labels
 - [ ] Flake colors
 
-Obsidian-wise:
+Obsidian:
 
 - [x] "New flakepile" command & file menu option.
 - [x] "Flake count" status bar item [1]
@@ -68,7 +68,8 @@ Obsidian-wise:
 ## Long term goals
 
 - Search keywords highlighting
-- Copy flake across flakepiles (the "copy raw" botton is for this)
+- Move and copy one or multiple flakes across flakepiles
+- Embed a flake into a markdown file
 - Export files to markdown files
   - Export as a single markdown file
   - Export as a `.zip` archive, each flake as a markdown file

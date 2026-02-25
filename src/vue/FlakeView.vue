@@ -245,16 +245,6 @@ const copyContent = async () => {
   }
 }
 
-const copyJson = async () => {
-  try {
-    await navigator.clipboard.writeText(JSON.stringify(props.flake, null, 2))
-    new Notice('Raw JSON copied.', 1000)
-  } catch (e) {
-    console.warn(`Failed to copy the raw JSON of flake ${props.flake.id}: `, e)
-    new Notice('Failed to copy raw JSON. Check dev console for detail.', 0)
-  }
-}
-
 const textareaPlaceholder = computed<string>(() => {
   if (isCode.value) {
     return 'Code here...'
@@ -442,9 +432,6 @@ const cssTypeIsImage = useCssIf(isImage, 'selected')
 
       <div class="grow"></div>
 
-      <button v-if="isView" class="fp-btn-icon" @click="copyJson">
-        <ObIcon name="braces" />
-      </button>
       <button v-if="isView" class="fp-btn-icon" @click="copyContent">
         <ObIcon name="copy" />
       </button>
