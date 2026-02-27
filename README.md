@@ -22,6 +22,16 @@ The plugin is not published as Obsidian's community plugin [yet](https://github.
 
 Please use [BRAT](https://github.com/TfTHacker/obsidian42-brat) to install the plugin, or copy the files under the release tag to the plugin folder of your Obsidian application. You can also [build it from source](#build-from-source).
 
+<details>
+<summary>For users not familiar with Obsidian and/or its third-party plugins</summary>
+
+1. Install [Obsidian](https://obsidian.md/).
+2. *Turn on community plugins* in *Settings > Community plugins*.
+3. *Browse* community plugins and install [BRAT](https://github.com/TfTHacker/obsidian42-brat) from there.
+4. In the settings of BRAT, press the *Add beta plugin* button. The dialogue should be self-explanatory.
+5. Try out Flakepiles in beta stage!
+</details>
+
 ## Tech Stack
 
 Vite + Vue 3 + TypeScript + Sass
@@ -46,6 +56,7 @@ Flakepile:
   - [x] Text flake
   - [x] Image flake
   - [x] Code flake
+  - [x] Copy flake content to clipboard
 - [x] Search filter inside a flakepile
 - [ ] Flake labels
   - [x] Label creation, update, deletion
