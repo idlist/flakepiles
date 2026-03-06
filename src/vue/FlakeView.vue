@@ -3,7 +3,7 @@ import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch, wa
 import { useDebounceFn, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
 import { Notice } from 'obsidian'
 import { ObIcon } from '@/components'
-import type { Flake, FlakeType } from '@/data'
+import type { Flake } from '@/data'
 import type { ImageRawSize, PileActions } from '@/view'
 import { CausedError, px, useCssIf, useCssWith, vFocus } from '@/utils'
 
@@ -22,12 +22,6 @@ const emit = defineEmits<{
 
 const isDev = inject('isDev') as Ref<boolean>
 const isView = computed(() => !props.isEdit)
-
-// type ExtendedFlakeType = FlakeType | 'empty'
-
-// const type = computed<ExtendedFlakeType>(() => {
-//   return !props.flake.content ? 'empty' : props.flake.type
-// })
 
 const isEmpty = computed(() => !props.flake.content)
 const isText = computed(() => props.flake.type == 'text')
@@ -301,9 +295,9 @@ defineExpose({
   highlight,
 })
 
-const cssTheme = useCssWith(() => props.flake.theme, (v) => `-${v}`)
+const cssTheme = useCssWith(() => props.flake.theme, (s) => `-${s}`)
 const cssIsEdit = useCssIf(() => props.isEdit, '-editing')
-const cssLight = useCssWith(light, (v) => `-light${v}`)
+const cssLight = useCssWith(light, (s) => `-light${s}`)
 
 const cssIsCode = useCssIf(isCode, '-code')
 const cssIsImage = useCssIf(isImage, '-image')

@@ -55,7 +55,7 @@
 // Mimics an obsidian panel (except border radius).
 :where(.fp-obsidian-panel) {
   background-color: var(--background-primary);
-  border: var(--border-width) solid var(--background-modifier-border);
+  border: var(--fp-border);
   border-radius: var(--radius-m);
   box-shadow: var(--input-shadow);
 

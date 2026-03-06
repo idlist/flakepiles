@@ -1,6 +1,7 @@
 import { Notice, Plugin, TFolder } from 'obsidian'
 import { FlakepileView, VIEW_TYPE } from './view'
 import { createFlakepile } from './data'
+import './colors.scss'
 import './globals.scss'
 
 export default class Flakepiles extends Plugin {

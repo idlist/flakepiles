@@ -3,11 +3,15 @@ import type { Ref } from 'vue'
 
 export type FlakeType = 'text' | 'image' | 'code'
 
+export const FlakeThemes = ['default'] as const
+
+export type FlakeTheme = typeof FlakeThemes[number]
+
 export interface Flake {
   id: string
   createdAt: number
   modifiedAt: number
-  theme: string
+  theme: FlakeTheme
   name: string
   type: FlakeType
   content: string
@@ -37,7 +41,9 @@ export const createFlake = (): Flake => {
   }
 }
 
-type FlakeLabelColor = 'none'
+export const FlakeLabelColors = ['none'] as const
+
+export type FlakeLabelColor = typeof FlakeLabelColors[number]
 
 export interface FlakeLabel {
   id: string

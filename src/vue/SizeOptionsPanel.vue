@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PileAdaptiveFlow } from '@/data'
 import { ObSlider } from '@/components'
+import { useCssIf } from '@/utils'
 
 defineProps<{
   flow: PileAdaptiveFlow
@@ -11,6 +12,8 @@ const elasticWidth = defineModel<boolean>('elastic-width')
 const enableMaxHeight = defineModel<boolean>('enable-max-height')
 const maxHeight = defineModel<number>('max-height')
 const elasticHeight = defineModel<boolean>('elastic-height')
+
+const cssIsDisabled = useCssIf(() => !enableMaxHeight.value, '-disabled')
 </script>
 
 <template>
@@ -37,7 +40,7 @@ const elasticHeight = defineModel<boolean>('elastic-height')
       <input v-model="enableMaxHeight" type="checkbox" />
     </label>
 
-    <div :class="['size-option', enableMaxHeight ? '' : '-disabled']">
+    <div :class="['size-option', cssIsDisabled]">
       <span class="label">Height</span>
       <ObSlider v-model="maxHeight"
         :default="1"
@@ -49,7 +52,7 @@ const elasticHeight = defineModel<boolean>('elastic-height')
     </div>
 
     <label v-if="flow == 'horizontal'"
-      :class="['size-option', enableMaxHeight ? '' : '-disabled']">
+      :class="['size-option', cssIsDisabled]">
       <span class="label">Elastic height</span>
       <input v-model="elasticHeight"
         type="checkbox"

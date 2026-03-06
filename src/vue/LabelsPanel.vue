@@ -4,11 +4,12 @@ import type { PileActions } from '@/view'
 import { createLabel, type FlakeLabel, type Flakepile } from '@/data'
 import { ObIcon } from '@/components'
 import { vFocus, useCssIf } from '@/utils'
+import ColorSelector from './ColorSelector.vue'
 
 const props = defineProps<{ pile: Flakepile }>()
 const actions = inject('actions') as PileActions
 
-interface LabelEditingStatus {
+interface LabelEditingState {
   state: 'idle' | 'name' | 'color'
   target: string
 }
@@ -16,7 +17,7 @@ interface LabelEditingStatus {
 const moreTools = ref(false)
 const newLabelName = ref('')
 const editLabelName = ref('')
-const editing = reactive<LabelEditingStatus>({ target: '', state: 'idle' })
+const editing = reactive<LabelEditingState>({ target: '', state: 'idle' })
 const filterInvert = computed(() => props.pile.filterInvert)
 
 const toggleInvertFilter = () => {
@@ -221,9 +222,14 @@ const cssFilterInvert = useCssIf(() => filterInvert.value, 'invert')
                   <ObIcon name="square-pen" />
                 </button>
 
-                <button
+                <button v-if="editing.state != 'color' || editing.target != label.id"
                   class="fp-btn-icon"
                   @click="() => editColorBegin(label.id)">
+                  <ObIcon name="palette" />
+                </button>
+                <button v-else
+                  class="fp-btn-icon invert"
+                  @click="() => editColorFinish()">
                   <ObIcon name="palette" />
                 </button>
 
@@ -241,13 +247,12 @@ const cssFilterInvert = useCssIf(() => filterInvert.value, 'invert')
 
               <div v-if="editing.state == 'color' && editing.target == label.id"
                 class="label-item -colorpicker">
-                <div class="expand"></div>
+                <ColorSelector color="none" :selected="label.color == 'none'" />
 
-                <button
-                  class="fp-btn-icon"
-                  @click="editColorFinish">
-                  <ObIcon name="check" />
-                </button>
+                <div class="divider"></div>
+
+                <ColorSelector color="none" />
+                <ColorSelector color="none" />
               </div>
             </div>
 
@@ -327,7 +332,6 @@ const cssFilterInvert = useCssIf(() => filterInvert.value, 'invert')
 .label-item {
   @extend %label-row;
 
-  min-height: 30px;
   min-width: 0;
   padding-left: var(--size-4-3);
 
@@ -335,8 +339,8 @@ const cssFilterInvert = useCssIf(() => filterInvert.value, 'invert')
     margin-top: var(--size-4-1);
     padding-top: var(--size-4-1);
     padding-bottom: var(--size-4-1);
-    border-top: var(--border-width) solid var(--background-modifier-border);
-    border-bottom: var(--border-width) solid var(--background-modifier-border);
+    border-top: var(--fp-border);
+    border-bottom: var(--fp-border);
     background-color: var(--background-primary-alt);
   }
 
@@ -363,6 +367,11 @@ const cssFilterInvert = useCssIf(() => filterInvert.value, 'invert')
 
   >.invert {
     @extend .fp-invert;
+  }
+
+  >.divider {
+    border-right: var(--fp-border);
+    height: var(--size-4-6);
   }
 }
 </style>

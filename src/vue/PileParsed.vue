@@ -347,7 +347,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
 
     padding: var(--size-4-2) var(--size-4-4);
     background-color: var(--background-primary);
-    border-bottom: var(--border-width) solid var(--background-modifier-border);
+    border-bottom: var(--fp-border);
   }
 
   .is-phone &>.header,
