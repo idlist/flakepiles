@@ -2,11 +2,11 @@
 import { Platform } from 'obsidian'
 import { computed, inject, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
 import { refDebounced, until, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
-import { offset, shift, useFloating, autoUpdate } from '@floating-ui/vue'
+import { autoUpdate, offset, shift, size, useFloating } from '@floating-ui/vue'
+import { ObIcon, ObSearch } from '@/components'
 import { createFlake, type Flake, type IsDevRef, type PileAdaptiveFlow } from '@/data'
 import type { FileInfo, Parsing, PileActions, PileRef } from '@/view'
-import { ObIcon, ObSearch } from '@/components'
-import { useCssIf, useCssWith } from '@/utils'
+import { px, useCssIf, useCssWith } from '@/utils'
 import { searchFlakes, sortFlakes } from './flake-queries'
 import type { MasonryOptions } from './masonry-common'
 
@@ -117,7 +117,10 @@ const {
   floatingStyles: sizeOptionsPanelStyles,
 } = useFloating(sizeOptionsButtonRef, sizeOptionsPanelRef, {
   placement: 'bottom-end',
-  middleware: [offset(4), shift({ padding: 8 })],
+  middleware: [
+    offset(4),
+    shift({ padding: 8 }),
+  ],
   whileElementsMounted: autoUpdate,
 })
 
@@ -127,7 +130,15 @@ const {
   floatingStyles: labelPanelStyles,
 } = useFloating(labelsButtonRef, labelsPanelRef, {
   placement: 'bottom-start',
-  middleware: [offset(4), shift({ padding: 8 })],
+  middleware: [
+    offset(4),
+    size({
+      apply({ availableHeight, elements }) {
+        const height = Math.max(0, availableHeight - 8)
+        elements.floating.style.maxHeight = px(height)
+      },
+    }),
+  ],
   whileElementsMounted: autoUpdate,
 })
 

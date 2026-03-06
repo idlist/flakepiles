@@ -1,4 +1,3 @@
-import { moment } from 'obsidian'
 import { nanoid } from 'nanoid'
 import type { Ref } from 'vue'
 
@@ -23,8 +22,8 @@ export interface Flake {
 export const createFlake = (): Flake => {
   return {
     id: nanoid(16),
-    createdAt: moment.now(),
-    modifiedAt: moment.now(),
+    createdAt: Date.now(),
+    modifiedAt: Date.now(),
     theme: 'default',
     name: 'New Flake',
     type: 'text',
@@ -42,6 +41,7 @@ type FlakeLabelColor = 'none'
 
 export interface FlakeLabel {
   id: string
+  createdAt: number
   name: string
   color: FlakeLabelColor
   listed: boolean
@@ -51,6 +51,7 @@ export interface FlakeLabel {
 export const createLabel = (): FlakeLabel => {
   return {
     id: nanoid(8),
+    createdAt: Date.now(),
     name: '',
     color: 'none',
     listed: true,

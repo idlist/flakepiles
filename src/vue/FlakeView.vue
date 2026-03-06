@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, onUnmounted, ref, useTemplateRef, watch, watchEffect, type Ref } from 'vue'
 import { useDebounceFn, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
-import { moment, Notice } from 'obsidian'
+import { Notice } from 'obsidian'
 import { ObIcon } from '@/components'
-import type { Flake } from '@/data'
+import type { Flake, FlakeType } from '@/data'
 import type { ImageRawSize, PileActions } from '@/view'
 import { CausedError, px, useCssIf, useCssWith, vFocus } from '@/utils'
 
@@ -22,6 +22,12 @@ const emit = defineEmits<{
 
 const isDev = inject('isDev') as Ref<boolean>
 const isView = computed(() => !props.isEdit)
+
+// type ExtendedFlakeType = FlakeType | 'empty'
+
+// const type = computed<ExtendedFlakeType>(() => {
+//   return !props.flake.content ? 'empty' : props.flake.type
+// })
 
 const isEmpty = computed(() => !props.flake.content)
 const isText = computed(() => props.flake.type == 'text')
@@ -226,7 +232,7 @@ watch(() => props.isEdit, () => {
   else {
     props.flake.name = editName.value.trim()
     props.flake.content = editContent.value.trim()
-    props.flake.modifiedAt = moment.now()
+    props.flake.modifiedAt = Date.now()
     actions.save()
   }
 })
