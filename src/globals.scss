@@ -1,0 +1,144 @@
+/* Utilities */
+
+.fp-inset {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.fp-danger {
+  color: var(--color-base-00);
+  background-color: var(--text-error);
+}
+
+.fp-invert {
+  color: var(--color-base-00);
+  background-color: var(--text-normal);
+}
+
+/* Reusable components */
+
+.fp-btn-icon {
+  padding: var(--size-4-1);
+  width: var(--input-height);
+
+  flex-shrink: 0;
+}
+
+.fp-btn-icon-label {
+  display: flex;
+  align-items: center;
+  column-gap: var(--size-4-1);
+  padding-left: var(--size-4-2);
+
+  .is-tablet & {
+    padding-left: var(--size-4-3);
+    padding-right: var(--size-4-4);
+  }
+
+  &.-nolabel {
+    @extend .fp-btn-icon;
+  }
+
+  &.-nolabel .label {
+    display: none;
+  }
+}
+
+.fp-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+// Mimics an obsidian panel (except border radius).
+:where(.fp-obsidian-panel) {
+  background-color: var(--background-primary);
+  border: var(--fp-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--input-shadow);
+
+  font-size: var(--font-ui-small);
+  padding: var(--size-4-2) var(--size-4-3);
+  pointer-events: painted;
+}
+
+/* Adjustment to markdown styles */
+
+.fp-markdown {
+  p,
+  pre,
+  ul,
+  ol {
+    margin: 0.5rem 0;
+  }
+
+  ul,
+  ol {
+    padding-inline-start: 2rem;
+  }
+
+  li.task-list-item > input {
+    vertical-align: middle;
+    transform: translateY(-2px);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0.75rem 0 0.5em 0;
+  }
+
+  img {
+    border-radius: var(--radius-m);
+  }
+
+  pre {
+    border-radius: var(--radius-m);
+    background-color: var(--code-background);
+
+    position: relative;
+    margin: 0.5rem 0;
+    padding: 0.25rem 0.5rem;
+  }
+
+  pre .copy-code-button {
+    @extend .fp-btn-icon;
+
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: none;
+  }
+
+  pre:hover .copy-code-button {
+    display: flex;
+  }
+
+  code,
+  pre code {
+    font-family: var(--font-monospace);
+    font-size: 13px;
+    white-space: pre-wrap;
+
+    line-height: 1.5;
+    letter-spacing: -0.2px;
+  }
+}
+
+/* Overwrite global styles */
+
+.is-flakepile .status-bar {
+  > .status-bar-item {
+    display: none;
+  }
+
+  > .plugin-flakepiles,
+  > .plugin-remotely-save {
+    display: block;
+  }
+}

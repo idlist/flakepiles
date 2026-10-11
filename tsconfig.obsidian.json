@@ -1,0 +1,31 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "composite": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "module": "esnext",
+    "target": "es6",
+    "allowJs": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "noUncheckedIndexedAccess": true,
+    "isolatedModules": true,
+    "strictNullChecks": true,
+    "strictBindCallApply": true,
+    "allowSyntheticDefaultImports": true,
+    "useUnknownInCatchVariables": true,
+    "lib": ["dom", "es5", "es6", "es7"],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.vue"
+  ]
+}

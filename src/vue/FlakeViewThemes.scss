@@ -1,0 +1,10 @@
+.fp-flake-theme {
+  --flake-primary: var(--fp-accent);
+  --flake-border: hsla(var(--fp-accent-hsl) / 0.25);
+  --flake-shadow: hsla(var(--fp-accent-hsl) / 0.25);
+  --flake-shadow-heavy: hsla(var(--fp-accent-hsl) / 0.75);
+  --flake-name: var(--text-accent);
+  --flake-name-bg: var(--background-primary-alt);
+  --flake-text: var(--text-normal);
+  --flake-text-bg: var(--background-primary);
+}

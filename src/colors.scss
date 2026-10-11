@@ -1,0 +1,11 @@
+:root * {
+  --fp-accent-hsl: var(--accent-h) var(--accent-s) var(--accent-l);
+  --fp-accent: hsl(var(--fp-accent-hsl));
+  --fp-border: var(--border-width) solid var(--background-modifier-border);
+
+  --fp-color-none: #333333;
+}
+
+.fp-none {
+  background-color: var(--fp-color-none);
+}
