@@ -8,13 +8,13 @@ const props = defineProps<{
   placeholder?: string
 }>()
 
-const searchRef = useTemplateRef('el-search')
-let component: SearchComponent | null = null
+const $anchor = useTemplateRef('$anchor')
+let search: SearchComponent | null = null
 
 onMounted(() => {
-  if (!searchRef.value) return
+  if (!$anchor.value) return
 
-  component = new SearchComponent(searchRef.value)
+  search = new SearchComponent($anchor.value)
     .setPlaceholder(props.placeholder ?? 'Search...')
     .setValue(model.value)
     .onChange((value: string) => {
@@ -23,18 +23,18 @@ onMounted(() => {
 })
 
 watch(() => model.value, (next) => {
-  if (component && component.getValue() !== next) {
-    component.setValue(next)
+  if (search && search.getValue() !== next) {
+    search.setValue(next)
   }
 })
 </script>
 
 <template>
-  <div ref="el-search" class="ob-search-wrapper" @keydown.stop></div>
+  <div ref="$anchor" class="ob-search-anchor" @keydown.stop></div>
 </template>
 
-<style>
-.ob-search-wrapper > .search-input-container {
+<style scoped>
+.ob-search-anchor :deep(.search-input-container) {
   width: 100%;
   display: flex;
 }

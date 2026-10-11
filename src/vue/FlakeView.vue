@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { FlakepileActions, ImageRawSize } from '@/custom-view'
 import type { Flake } from '@/data'
 import { CausedError, px, useCssIf, useCssWith, vFocus } from '@/utils'
-import type { ImageRawSize, PileActions } from '@/view'
 import { ObIcon } from '@/wrappers'
 import { useDebounceFn, useEventListener, useResizeObserver, useTextareaAutosize } from '@vueuse/core'
 import { Notice } from 'obsidian'
@@ -28,7 +28,7 @@ const isText = computed(() => props.flake.type == 'text')
 const isCode = computed(() => props.flake.type == 'code')
 const isImage = computed(() => props.flake.type == 'image')
 
-const actions = inject('actions') as PileActions
+const actions = inject('actions') as FlakepileActions
 const imageRawSize = ref<ImageRawSize | null>(null)
 
 type MountErrorCause = null | 'image' | 'markdown'

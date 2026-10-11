@@ -1,5 +1,3 @@
-import 'obsidian'
-
 // Only mock the internal types actually used in this plugin
 // instead of importing the whole "obsidian-typings" package.
 declare module 'obsidian' {

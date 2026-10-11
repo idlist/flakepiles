@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { FileInfo, Parsing } from '@/view'
+import type { FileInfo, LoadingResult } from '@/custom-view'
 import ObIcon from '@/wrappers/ObIcon.vue'
 import { inject } from 'vue'
 
 const file = inject('file') as FileInfo
-const parsing = inject('parsing') as Parsing
+const parsing = inject('parsing') as LoadingResult
 </script>
 
 <template>
@@ -23,7 +23,7 @@ const parsing = inject('parsing') as Parsing
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .flakepile-failed {
   font-size: var(--font-ui-medium);
 }

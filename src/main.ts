@@ -1,11 +1,11 @@
+import './styles/colors.scss'
+import './styles/globals.scss'
 import { Notice, Plugin, TFolder } from 'obsidian'
+import { FlakepileView, VIEW_TYPE } from './custom-view'
 import { createFlakepile } from './data'
-import { FlakepileView, VIEW_TYPE } from './view'
-import './colors.scss'
-import './globals.scss'
 
 export default class Flakepiles extends Plugin {
-  flakeCount?: HTMLElement
+  $flakeCount?: HTMLElement
 
   onload() {
     // Register Flakepile view.
@@ -23,7 +23,7 @@ export default class Flakepiles extends Plugin {
 
       menu.addItem((item) => {
         item
-          .setTitle('New flakepile')
+          .setTitle('New Flakepile')
           .setIcon('sticker')
           .onClick(async () => {
             await this.createFlakepileFile(file)
@@ -34,14 +34,14 @@ export default class Flakepiles extends Plugin {
     // Register "New flakepile" command.
     this.addCommand({
       id: 'new',
-      name: 'Create a new flakepile',
+      name: 'Create a new Flakepile',
       callback: async () => {
         await this.createFlakepileFile()
       },
     })
 
     // Register status bar item.
-    this.flakeCount = this.addStatusBarItem()
+    this.$flakeCount = this.addStatusBarItem()
 
     this.registerInterval(window.setInterval(() => {
       this.updateFlakeCount()
@@ -49,12 +49,12 @@ export default class Flakepiles extends Plugin {
 
     // Hide other status bar items as most of them are not useful in the custom view.
     this.registerEvent(this.app.workspace.on('file-open', () => {
-      this.adjustStatusBar()
+      this.updateStatusBar()
     }))
   }
 
   onunload() {
-    document.body.removeClass('is-flakepile')
+    this.removeCssMarker()
   }
 
   async createFlakepileFile(folder?: TFolder) {
@@ -67,49 +67,61 @@ export default class Flakepiles extends Plugin {
       targetFolder = activeFile?.parent ?? this.app.vault.getRoot()
     }
 
-    const fileBase = 'Untitled'
-    const fileExt = 'flakes'
-    let fileName = `${fileBase}.${fileExt}`
-    const filePath = () =>
-      targetFolder.isRoot()
-        ? fileName
-        : `${targetFolder.path}/${fileName}`
+    const basename = 'Untitled'
+    const extension = 'flakes'
+    let filename = `${basename}.${extension}`
 
-    let suffix = 1
-    while (this.app.vault.getAbstractFileByPath(filePath())) {
-      fileName = `${fileBase} ${suffix}.${fileExt}`
-      suffix++
+    const assembleFilePath = () =>
+      targetFolder.isRoot()
+        ? filename
+        : `${targetFolder.path}/${filename}`
+
+    let count = 1
+    while (this.app.vault.getAbstractFileByPath(assembleFilePath())) {
+      filename = `${basename} ${count}.${extension}`
+      count++
     }
 
     try {
       const newFile = await this.app.vault.create(
-        filePath(),
+        assembleFilePath(),
         JSON.stringify(createFlakepile()),
       )
 
       await this.app.workspace.getLeaf().openFile(newFile)
     } catch (e) {
-      new Notice('Failed to create flakepile. Check dev console for more info.', 0)
+      new Notice('Failed to create Flakepile. Check dev console for more information.', 0)
       console.error('Failed to create flakepile: ', e)
     }
   }
 
-  adjustStatusBar() {
-    const flakepile = this.app.workspace.getActiveViewOfType(FlakepileView)
+  injectCssMarker() {
+    document.body.addClass('is-flakepile')
+  }
 
-    if (flakepile) {
-      document.body.addClass('is-flakepile')
-      this.flakeCount?.show()
+  removeCssMarker() {
+    document.body.removeClass('is-flakepile')
+  }
+
+  updateStatusBar() {
+    const view = this.app.workspace.getActiveViewOfType(FlakepileView)
+
+    if (view) {
+      this.injectCssMarker()
+      this.$flakeCount?.show()
     } else {
-      document.body.removeClass('is-flakepile')
-      this.flakeCount?.hide()
+      this.removeCssMarker()
+      this.$flakeCount?.hide()
     }
   }
 
   updateFlakeCount() {
-    const flakepile = this.app.workspace.getActiveViewOfType(FlakepileView)
-    if (!flakepile) return
+    const view = this.app.workspace.getActiveViewOfType(FlakepileView)
+    if (!view) return
+    if (!view.flakepile.value) return
 
-    this.flakeCount?.setText(`${flakepile.pile.value.flakes.length} flake(s)`)
+    // TODO: adapt with tag filters.
+    const count = view.flakepile.value.flakes.length
+    this.$flakeCount?.setText(`${count} flake${count === 1 ? '' : 's'}`)
   }
 }

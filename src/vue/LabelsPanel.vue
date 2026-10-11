@@ -1,13 +1,13 @@
 <script setup lang="ts">
+import type { FlakepileActions } from '@/custom-view.ts'
 import { createLabel, type FlakeLabel, type Flakepile } from '@/data'
 import { useCssIf, vFocus } from '@/utils'
-import type { PileActions } from '@/view'
 import { ObIcon } from '@/wrappers'
 import { computed, inject, reactive, ref } from 'vue'
 import ColorSelector from './ColorSelector.vue'
 
 const props = defineProps<{ pile: Flakepile }>()
-const actions = inject('actions') as PileActions
+const actions = inject('actions') as FlakepileActions
 
 interface LabelEditingState {
   state: 'idle' | 'name' | 'color'

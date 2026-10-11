@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FileInfo } from '@/view'
+import type { FileInfo } from '@/custom-view'
 import { inject } from 'vue'
 
 const file = inject('file') as FileInfo

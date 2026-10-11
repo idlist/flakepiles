@@ -16,6 +16,8 @@ export default defineConfig(
       'version-bump.mjs',
       'versions.json',
       'main.js',
+      // * Temporarily ignore before refactoring finished
+      'src/vue',
     ],
   },
   ...obsidianmd.configs.recommended,
@@ -38,7 +40,7 @@ export default defineConfig(
   {
     files: ['**/*.ts'],
     extends: [
-      ...ts.configs.recommended,
+      ts.configs.recommended,
     ],
     languageOptions: {
       globals: {
@@ -55,7 +57,9 @@ export default defineConfig(
       },
     },
     rules: {
-      'obsidianmd/ui/sentence-case': 'warn',
+      'obsidianmd/ui/sentence-case': ['warn', {
+        brands: ['Flakepile', 'Flakepiles'],
+      }],
     },
   },
   {

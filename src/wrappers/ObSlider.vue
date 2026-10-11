@@ -27,14 +27,14 @@ const props = withDefaults(
 
 const model = defineModel<number>()
 
-const sliderRef = useTemplateRef('el-slider')
-let component: SliderComponent | null = null
+const $anchor = useTemplateRef('$anchor')
+let slider: SliderComponent | null = null
 
 onMounted(() => {
   model.value ??= props.default
 
-  if (sliderRef.value) {
-    component = new SliderComponent(sliderRef.value)
+  if ($anchor.value) {
+    slider = new SliderComponent($anchor.value)
       .setLimits(props.min, props.max, props.step)
       .setValue(model.value)
       .setDisabled(props.disabled)
@@ -44,14 +44,14 @@ onMounted(() => {
       })
 
     if (props.showTooltip) {
-      component.setDynamicTooltip()
+      slider.setDynamicTooltip()
     }
   }
 })
 
 watch(() => model.value, (next) => {
-  if (exists(next) && component && component.getValue() !== next) {
-    component.setValue(next)
+  if (exists(next) && slider && slider.getValue() !== next) {
+    slider.setValue(next)
   }
 })
 
@@ -60,15 +60,15 @@ watch([
   () => props.max,
   () => props.step,
 ], ([nextMin, nextMax, nextStep]) => {
-  component?.setLimits(nextMin, nextMax, nextStep)
+  slider?.setLimits(nextMin, nextMax, nextStep)
 })
 
 watch(() => props.instant, (next) => {
-  component?.setInstant(next)
+  slider?.setInstant(next)
 })
 
 watch(() => props.disabled, (next) => {
-  component?.setDisabled(next)
+  slider?.setDisabled(next)
 })
 
 const reset = () => {
@@ -83,11 +83,11 @@ const cssDisabled = useCssIf(() => props.disabled, '-disabled')
     <div :class="['clickable-icon', cssDisabled]" @click="reset">
       <ObIcon name="rotate-ccw" />
     </div>
-    <div ref="el-slider" class="ob-slider-wrapper"></div>
+    <div ref="$anchor" class="ob-slider-anchor"></div>
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .clickable-icon {
   padding: var(--size-4-1);
 
@@ -101,15 +101,13 @@ const cssDisabled = useCssIf(() => props.disabled, '-disabled')
   align-items: center;
 }
 
-.ob-slider-wrapper {
+.ob-slider-anchor {
   display: flex;
   align-items: center;
   width: 100%;
-}
-</style>
 
-<style>
-.ob-slider-wrapper > .slider {
-  width: 100%;
+  & :deep(.slider) {
+    width: 100%;
+  }
 }
 </style>

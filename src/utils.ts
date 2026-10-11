@@ -24,11 +24,11 @@ export const useCssWith = <T>(
 export const noopAsync = async () => await Promise.resolve()
 
 export const vFocus: Directive<HTMLInputElement> = {
-  mounted: (el, binding) => {
-    el.focus()
+  mounted: ($element, binding) => {
+    $element.focus()
 
-    if (binding.arg == 'select') {
-      el.select()
+    if (binding.arg === 'select') {
+      $element.select()
     }
   },
 }

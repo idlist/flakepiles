@@ -4,12 +4,12 @@ import { onMounted, useTemplateRef, watch } from 'vue'
 
 const model = defineModel<string>({ required: true })
 
-const colorRef = useTemplateRef('el-color')
-let component: ColorComponent | null = null
+const $anchor = useTemplateRef('$anchor')
+let color: ColorComponent | null = null
 
 onMounted(() => {
-  if (colorRef.value) {
-    component = new ColorComponent(colorRef.value)
+  if ($anchor.value) {
+    color = new ColorComponent($anchor.value)
       .setValue(model.value)
       .onChange((value) => {
         model.value = value
@@ -18,18 +18,18 @@ onMounted(() => {
 })
 
 watch(() => model.value, (value) => {
-  if (component && value != component.getValue()) {
-    component.setValue(value)
+  if (color && value != color.getValue()) {
+    color.setValue(value)
   }
 })
 </script>
 
 <template>
-  <div ref="el-color" class="ob-color-wrapper"></div>
+  <div ref="$anchor" class="ob-color-anchor"></div>
 </template>
 
 <style scoped>
-.obs-color-wrapper {
+.ob-color-anchor {
   display: inline-flex;
   vertical-align: middle;
 }

@@ -2,11 +2,15 @@
 
 An Obsidian plugin to put small notes / stickies / cards in a single file, and manage them in masonry layout.
 
-A "flake" refers to a small piece of note, and a "flakepile" is a pile of those flakes. Forseeable use cases of the plugin includes collecting ideas, getting down short diaries, storing code snippets, and more.
+> This is a refactor of the original [Flakepiles (Legacy)](https://github.com/idlist/flakepiles-legacy) with a change in license.
 
 ## Why
 
 I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about information density.
+
+## Features
+
+- UI design that aligns with Obsidian. It doesn't feel like another App is in your Obsidian.
 
 ## Tech Stack
 
@@ -18,7 +22,6 @@ The underlying file format (`.flakes`) is JSON. See the [non-goals](#non-goals) 
 
 Flakepile:
 
-- [x] Mount Vue into Obsidian
 - [x] Flakepile
   - [x] Masonry layout
   - [x] Masonry direction (vertical / horizontal)
@@ -29,18 +32,14 @@ Flakepile:
 - [x] Flake
   - [x] Flake creation, update, deletion
   - [x] Flake markdown rendering
-  - [x] Text flake
-  - [x] Image flake
-  - [x] Code flake
   - [x] Copy flake content to clipboard
 - [x] Search filter inside a flakepile
 - [ ] Flake labels
   - [x] Label creation, update, deletion
   - [ ] Add / remove label to flake
   - [ ] Label color
-  - [ ] Simple display of labels in flakes (display as `+N`)
+  - [ ] Short display of labels in flakes (display as `+N`)
   - [ ] Hide flake with labels
-- [ ] Flake colors
 
 Obsidian:
 
@@ -78,7 +77,7 @@ Also, this plugin is primarily to fulfill my specific need. For this reason, I w
 
 ## Build from source
 
-If you want to take a look inside the development of the plugin, or just want to ensure maximum safety, you can clone this repository and build from source:
+If you want to take a look inside the development of the plugin, or just want to ensure maximum safety, you can clone this repository and build it from source:
 
 ```
 npm i
@@ -94,3 +93,6 @@ WHen running `npm run build`, the output files will be copied to `dist` folder.
 ## License
 
 [PolyForm Internal Use](https://polyformproject.org/licenses/internal-use/1.0.0) (c) i'DLisT 2026
+
+- This is not open-source, but a source-available plugin.
+- In short, you may freely use the plugin or modify the code for your own use, but you cannot redistribute it.

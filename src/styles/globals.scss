@@ -1,10 +1,19 @@
+/* CSS Resets */
+
+.flakepile-reset {
+  p, h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: break-word;
+  }
+
+  input, button, textarea, select {
+    font: inherit;
+  }
+}
+
 /* Utilities */
 
 .fp-inset {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
 }
 
 .fp-danger {
@@ -67,15 +76,11 @@
 /* Adjustment to markdown styles */
 
 .fp-markdown {
-  p,
-  pre,
-  ul,
-  ol {
+  p, pre, ul, ol {
     margin: 0.5rem 0;
   }
 
-  ul,
-  ol {
+  ul, ol {
     padding-inline-start: 2rem;
   }
 
@@ -84,12 +89,7 @@
     transform: translateY(-2px);
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     margin: 0.75rem 0 0.5em 0;
   }
 
@@ -119,8 +119,7 @@
     display: flex;
   }
 
-  code,
-  pre code {
+  code, pre code {
     font-family: var(--font-monospace);
     font-size: 13px;
     white-space: pre-wrap;

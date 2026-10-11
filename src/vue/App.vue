@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { Parsing, PileRef } from '@/view'
+import type { FlakepileRef, LoadingResult } from '@/custom-view.ts'
 import { inject, provide, ref } from 'vue'
 
 import PileFailed from './PileFailed.vue'
 import PileLoading from './PileLoading.vue'
 import PileParsed from './PileParsed.vue'
 
-defineProps<{ pile: PileRef }>()
-const parsing = inject('parsing') as Parsing
+defineProps<{ pile: FlakepileRef }>()
+const parsing = inject('parsing') as LoadingResult
 
 const isDev = ref(false)
 provide('isDev', isDev)

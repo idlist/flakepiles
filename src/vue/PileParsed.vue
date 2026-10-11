@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { FileInfo, FlakepileActions, FlakepileRef, LoadingResult } from '@/custom-view.ts'
 import { createFlake, type Flake, type IsDevRef, type PileAdaptiveFlow } from '@/data'
 import { px, useCssIf, useCssWith } from '@/utils'
-import type { FileInfo, Parsing, PileActions, PileRef } from '@/view'
 import { ObIcon, ObSearch } from '@/wrappers'
 import { autoUpdate, offset, shift, size, useFloating } from '@floating-ui/vue'
 import { refDebounced, until, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
@@ -15,12 +15,12 @@ import MasonryUnified from './MasonryUnified.vue'
 import MenuButton from './MenuButton.vue'
 import SizeOptionsPanel from './SizeOptionsPanel.vue'
 
-const props = defineProps<{ pile: PileRef }>()
+const props = defineProps<{ pile: FlakepileRef }>()
 
 const pile = props.pile
 const file = inject('file') as FileInfo
-const parsing = inject('parsing') as Parsing
-const actions = inject('actions') as PileActions
+const parsing = inject('parsing') as LoadingResult
+const actions = inject('actions') as FlakepileActions
 
 const isDev = inject('isDev') as IsDevRef
 

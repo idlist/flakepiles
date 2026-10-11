@@ -1,0 +1,197 @@
+import type { Flakepile } from '@/schemes/v1'
+import { Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
+import { type App as VueApp, type Component, createApp, reactive, shallowRef } from 'vue'
+import FlakepileApp from './App.vue'
+import { noopAsync } from './utils'
+
+export const VIEW_TYPE = 'flakepile'
+
+type LoadingState = 'loading' | 'swapping' | 'success' | 'invalid'
+
+export interface AppMeta {
+  loadingState: LoadingState
+  loadingError: Error | null
+  filename: string
+}
+
+function createAppMeta(): AppMeta {
+  return {
+    loadingState: 'loading',
+    loadingError: null,
+    filename: '',
+  }
+}
+
+export class FlakepileView extends TextFileView {
+  vueApp: VueApp | null = null
+  rawData: string = ''
+  meta: AppMeta = reactive(createAppMeta())
+  flakepile = shallowRef<Flakepile | null>(null)
+
+  constructor(leaf: WorkspaceLeaf) {
+    super(leaf)
+  }
+
+  getViewType() {
+    return VIEW_TYPE
+  }
+
+  getDisplayText() {
+    return this.file?.basename || 'Flakepile View'
+  }
+
+  async onOpen() {
+    const $container = this.contentEl
+    $container.empty()
+    const $anchor = $container.createDiv()
+
+    this.vueApp = createApp(FlakepileApp as Component)
+    this.vueApp.provide('plugin', this)
+    this.vueApp.mount($anchor)
+
+    this.registerEvent(this.app.vault.on('rename', () => {
+      this.updateFileInfo()
+    }))
+
+    // Comply with Auto-review bot.
+    await noopAsync()
+  }
+
+  async onClose() {
+    if (this.vueApp) {
+      this.vueApp.unmount()
+      this.vueApp = null
+    }
+
+    this.flakepile.value = null
+    await noopAsync()
+  }
+
+  setViewData(data: string) {
+    this.rawData = data
+    this.flakepile.value = null
+    this.meta.loadingError = null
+    this.updateFileInfo()
+
+    if (this.meta.loadingState === 'invalid') {
+      this.meta.loadingState = 'loading'
+    }
+    if (this.meta.loadingState === 'success') {
+      this.meta.loadingState = 'swapping'
+    }
+
+    try {
+      const updatedPile = JSON.parse(data) as Flakepile
+
+      this.meta.loadingState = 'success'
+      this.flakepile = shallowRef(updatedPile)
+    } catch (e) {
+      this.meta.loadingState = 'invalid'
+
+      if (e instanceof Error) {
+        this.meta.loadingError = e
+      } else {
+        new Notice('Cannot parse the Flakepile. Check the dev console for more information.')
+        console.error('Cannot parse Flakepile: ', e)
+      }
+    }
+  }
+
+  getViewData(): string {
+    if (this.meta.loadingState === 'success' && this.flakepile != null) {
+      return JSON.stringify(this.flakepile.value, null, 2)
+    } else {
+      return this.rawData
+    }
+  }
+
+  clear() {
+    this.vueApp = null
+    this.flakepile.value = null
+  }
+
+  trySave() {
+    if (this.meta.loadingState !== 'success') return
+    void this.save()
+  }
+
+  trySaveLazy() {
+    if (this.meta.loadingState !== 'success') return
+    this.requestSave()
+  }
+
+  updateFileInfo() {
+    this.meta.filename = this.file?.basename ?? ''
+  }
+
+  async renderContent($anchor: HTMLElement, content: string) {
+    await this.renderMarkdown($anchor, content)
+
+    // TODO: Adjust the markdown when the rendered content is only image, only code or general content.
+    this.postprocessMarkdown($anchor)
+  }
+
+  async renderMarkdown($anchor: HTMLElement, content: string) {
+    await MarkdownRenderer.render(
+      this.app,
+      content,
+      $anchor,
+      this.file!.path,
+      this,
+    )
+  }
+
+  postprocessMarkdown($anchor: HTMLElement) {
+    const sourcePath = this.file!.path
+
+    // Disable input of task item checkbox.
+    const taskItemChechboxes = $anchor.querySelectorAll('.task-list-item>input')
+
+    taskItemChechboxes.forEach((element) => {
+      element.setAttrs({ disabled: true })
+    })
+
+    // Support internal links.
+    $anchor.on('click', 'a.internal-link', (event, $target) => {
+      const linktext = $target.getAttribute('data-href')
+      if (!linktext) return
+
+      void this.app.workspace.openLinkText(linktext, sourcePath, Keymap.isModEvent(event))
+    })
+
+    // Support previewing other pages inside a Flakepile.
+    // Reference: https://gist.github.com/Quorafind/16202a6b07319a63846e7e534e64d8b2
+    $anchor.on('mouseover', 'a.internal-link', (event, $target) => {
+      const linktext = $target.getAttribute('data-href')
+      if (!linktext) return
+
+      this.app.workspace.trigger('hover-link', {
+        event,
+        source: 'preview',
+        hoverParent: $anchor,
+        targetEl: event.currentTarget,
+        linktext,
+        sourcePath,
+      })
+    })
+
+    // Support jumping to global search when clicking on a tag.
+    // Currently not possible to register tags in custom file type to global search.
+    $anchor.on('click', 'a.tag', (_, target) => {
+      const searchPlugin = this.app.internalPlugins.getEnabledPluginById('global-search')
+      if (!searchPlugin) return
+
+      const tagname = target.innerText.trim()
+      searchPlugin.openGlobalSearch(`tag:${tagname}`)
+    })
+  }
+}
+
+export type FlakepilePlugin = Pick<
+  FlakepileView,
+  | 'meta'
+  | 'flakepile'
+  | 'trySave'
+  | 'trySaveLazy'
+  | 'renderContent'
+>

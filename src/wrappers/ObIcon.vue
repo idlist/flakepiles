@@ -7,10 +7,10 @@ const props = defineProps<{
   cssColor?: string
 }>()
 
-const iconRef = useTemplateRef('el-icon')
+const $icon = useTemplateRef('$icon')
 
 onMounted(() => {
-  setIcon(iconRef.value!, props.name)
+  setIcon($icon.value!, props.name)
 })
 
 const styles = computed(() => {
@@ -20,16 +20,16 @@ const styles = computed(() => {
 })
 
 watch(() => props.name, () => {
-  setIcon(iconRef.value!, props.name)
+  setIcon($icon.value!, props.name)
 })
 </script>
 
 <template>
-  <div ref="el-icon" class="ob-icon-wrapper" :style="styles"></div>
+  <div ref="$icon" class="ob-icon-anchor" :style="styles"></div>
 </template>
 
 <style scoped>
-.ob-icon-wrapper {
+.ob-icon-anchor {
   display: flex;
 }
 </style>
