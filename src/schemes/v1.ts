@@ -16,7 +16,6 @@ export interface Flake {
   meta: FlakeMeta
   cache: FlakeCache
   labels: string[]
-  name: string
   content: string
 }
 
@@ -33,7 +32,6 @@ export function createFlake(): Flake {
       height: 0,
     },
     labels: [],
-    name: '',
     content: '',
   }
 }
@@ -62,6 +60,8 @@ export function createFlakeLabel(): FlakeLabel {
   }
 }
 
+export type FlakepileMenuState = 'default' | 'shrinked' | 'expanded'
+
 export type FlakepileFlow = 'vertical' | 'horizontal'
 
 export type FlakepileAdaptiveFlow = FlakepileFlow | 'mobile'
@@ -71,6 +71,7 @@ export type SortCondition = 'name' | 'createdAt' | 'modifiedAt'
 export type SortOrder = 'asc' | 'desc'
 
 export interface FlakepileMeta {
+  menu: FlakepileMenuState
   flow: FlakepileFlow
   sortBy: SortCondition
   sortOrder: SortOrder
@@ -92,6 +93,7 @@ export function createFlakepile(): Flakepile {
   return {
     id: nanoid(16),
     meta: {
+      menu: 'default',
       flow: 'horizontal',
       sortBy: 'createdAt',
       sortOrder: 'desc',

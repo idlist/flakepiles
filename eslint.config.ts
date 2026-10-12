@@ -36,6 +36,9 @@ export default defineConfig(
         ...globals.browser,
       },
     },
+    rules: {
+      'vue/no-mutating-props': 'warn',
+    },
   },
   {
     files: ['**/*.ts'],
@@ -69,7 +72,10 @@ export default defineConfig(
       '@typescript-eslint/no-empty-interface': 'off',
 
       '@typescript-eslint/no-empty-function': 'warn',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      }],
       'prefer-const': 'warn',
     },
   },

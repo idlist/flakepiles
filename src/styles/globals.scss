@@ -28,6 +28,14 @@
 
 /* Reusable components */
 
+.fp-filename {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: text;
+}
+
 .fp-btn-icon {
   padding: var(--size-4-1);
   width: var(--input-height);
@@ -46,11 +54,11 @@
     padding-right: var(--size-4-4);
   }
 
-  &.-nolabel {
+  &.-icononly {
     @extend .fp-btn-icon;
   }
 
-  &.-nolabel .label {
+  &.-icononly .label {
     display: none;
   }
 }

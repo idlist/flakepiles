@@ -2,7 +2,7 @@ import './styles/colors.scss'
 import './styles/globals.scss'
 import { Notice, Plugin, TFolder } from 'obsidian'
 import { FlakepileView, VIEW_TYPE } from './custom-view'
-import { createFlakepile } from './data'
+import { createFlakepile } from './schemes/v1'
 
 export default class Flakepiles extends Plugin {
   $flakeCount?: HTMLElement

@@ -1,12 +1,16 @@
 import { nanoid } from 'nanoid'
 import type { Ref } from 'vue'
 
+/** @deprecated */
 export type FlakeType = 'text' | 'image' | 'code'
 
+/** @deprecated */
 export const FlakeThemes = ['default'] as const
 
+/** @deprecated */
 export type FlakeTheme = typeof FlakeThemes[number]
 
+/** @deprecated */
 export interface Flake {
   id: string
   createdAt: number
@@ -23,6 +27,7 @@ export interface Flake {
   labels: string[]
 }
 
+/** @deprecated */
 export const createFlake = (): Flake => {
   return {
     id: nanoid(16),
@@ -41,10 +46,13 @@ export const createFlake = (): Flake => {
   }
 }
 
+/** @deprecated */
 export const FlakeLabelColors = ['none'] as const
 
+/** @deprecated */
 export type FlakeLabelColor = typeof FlakeLabelColors[number]
 
+/** @deprecated */
 export interface FlakeLabel {
   id: string
   createdAt: number
@@ -54,6 +62,7 @@ export interface FlakeLabel {
   filter: boolean
 }
 
+/** @deprecated */
 export const createLabel = (): FlakeLabel => {
   return {
     id: nanoid(8),
@@ -65,14 +74,19 @@ export const createLabel = (): FlakeLabel => {
   }
 }
 
+/** @deprecated */
 export type PileFlow = 'vertical' | 'horizontal'
 
+/** @deprecated */
 export type PileAdaptiveFlow = PileFlow | 'mobile'
 
+/** @deprecated */
 export type SortCondition = 'name' | 'createdAt' | 'modifiedAt'
 
+/** @deprecated */
 export type SortOrder = 'asc' | 'desc'
 
+/** @deprecated */
 export interface Flakepile {
   id: string
   flow: PileFlow
@@ -88,6 +102,7 @@ export interface Flakepile {
   flakes: Flake[]
 }
 
+/** @deprecated */
 export const createFlakepile = (): Flakepile => {
   return {
     id: nanoid(16),
@@ -105,6 +120,8 @@ export const createFlakepile = (): Flakepile => {
   }
 }
 
+/** @deprecated */
 export type EditingRef = Ref<string | null>
 
+/** @deprecated */
 export type IsDevRef = Ref<boolean>

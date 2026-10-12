@@ -1,6 +1,6 @@
-import type { Flakepile } from '@/schemes/v1'
+import { type Flakepile } from '@/schemes/v1'
 import { Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
-import { type App as VueApp, type Component, createApp, reactive, shallowRef } from 'vue'
+import { type App as VueApp, type Component, createApp, reactive, ref } from 'vue'
 import FlakepileApp from './App.vue'
 import { noopAsync } from './utils'
 
@@ -8,13 +8,13 @@ export const VIEW_TYPE = 'flakepile'
 
 type LoadingState = 'loading' | 'swapping' | 'success' | 'invalid'
 
-export interface AppMeta {
+export interface PluginMeta {
   loadingState: LoadingState
   loadingError: Error | null
   filename: string
 }
 
-function createAppMeta(): AppMeta {
+function createAppMeta(): PluginMeta {
   return {
     loadingState: 'loading',
     loadingError: null,
@@ -25,8 +25,8 @@ function createAppMeta(): AppMeta {
 export class FlakepileView extends TextFileView {
   vueApp: VueApp | null = null
   rawData: string = ''
-  meta: AppMeta = reactive(createAppMeta())
-  flakepile = shallowRef<Flakepile | null>(null)
+  meta: PluginMeta = reactive(createAppMeta())
+  flakepile = ref<Flakepile | null>(null)
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf)
@@ -43,9 +43,12 @@ export class FlakepileView extends TextFileView {
   async onOpen() {
     const $container = this.contentEl
     $container.empty()
-    const $anchor = $container.createDiv()
+    const $anchor = $container.createDiv({ cls: 'flakepile-reset' })
 
-    this.vueApp = createApp(FlakepileApp as Component)
+    this.vueApp = createApp(FlakepileApp as Component, {
+      flakepile: this.flakepile,
+    })
+
     this.vueApp.provide('plugin', this)
     this.vueApp.mount($anchor)
 
@@ -69,7 +72,6 @@ export class FlakepileView extends TextFileView {
 
   setViewData(data: string) {
     this.rawData = data
-    this.flakepile.value = null
     this.meta.loadingError = null
     this.updateFileInfo()
 
@@ -81,10 +83,10 @@ export class FlakepileView extends TextFileView {
     }
 
     try {
-      const updatedPile = JSON.parse(data) as Flakepile
+      const nextFlakepile = JSON.parse(data) as Flakepile
 
       this.meta.loadingState = 'success'
-      this.flakepile = shallowRef(updatedPile)
+      this.flakepile.value = nextFlakepile
     } catch (e) {
       this.meta.loadingState = 'invalid'
 
@@ -110,6 +112,10 @@ export class FlakepileView extends TextFileView {
     this.flakepile.value = null
   }
 
+  updateFileInfo() {
+    this.meta.filename = this.file?.basename ?? ''
+  }
+
   trySave() {
     if (this.meta.loadingState !== 'success') return
     void this.save()
@@ -118,10 +124,6 @@ export class FlakepileView extends TextFileView {
   trySaveLazy() {
     if (this.meta.loadingState !== 'success') return
     this.requestSave()
-  }
-
-  updateFileInfo() {
-    this.meta.filename = this.file?.basename ?? ''
   }
 
   async renderContent($anchor: HTMLElement, content: string) {
@@ -174,23 +176,12 @@ export class FlakepileView extends TextFileView {
         sourcePath,
       })
     })
-
-    // Support jumping to global search when clicking on a tag.
-    // Currently not possible to register tags in custom file type to global search.
-    $anchor.on('click', 'a.tag', (_, target) => {
-      const searchPlugin = this.app.internalPlugins.getEnabledPluginById('global-search')
-      if (!searchPlugin) return
-
-      const tagname = target.innerText.trim()
-      searchPlugin.openGlobalSearch(`tag:${tagname}`)
-    })
   }
 }
 
 export type FlakepilePlugin = Pick<
   FlakepileView,
   | 'meta'
-  | 'flakepile'
   | 'trySave'
   | 'trySaveLazy'
   | 'renderContent'
