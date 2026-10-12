@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { IsDev } from '@/App.vue'
 import type { FlakepilePlugin } from '@/custom-view'
 import type { Flake } from '@/schemes/v1'
 import { ObIcon } from '@/wrappers'
-import { Notice } from 'obsidian'
 import { inject, nextTick, onMounted, useTemplateRef, watch } from 'vue'
 import FlakeFrame from './FlakeFrame.vue'
 
@@ -11,13 +11,16 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  pin: [id: string]
   edit: [id: string]
   delete: [id: string]
 }>()
 
+const plugin = inject('plugin') as FlakepilePlugin
+const isDev = inject('isDev') as IsDev
+
 const $flake = useTemplateRef('$flake')
 const $anchor = useTemplateRef('$anchor')
-const plugin = inject('plugin') as FlakepilePlugin
 
 function tryCacheFlakeSize() {
   if (!$flake.value) return
@@ -50,29 +53,30 @@ onMounted(async () => {
 async function copyContent() {
   try {
     await navigator.clipboard.writeText(props.flake.content)
-    new Notice('Content copied.', 1000)
+    plugin.notice('Content copied.', 1000)
   } catch (e) {
     console.warn(`Failed to copy the content of Flake ${props.flake.id}: `, e)
-    new Notice('Failed to copy content. Check dev console for detail.', 0)
+    plugin.notice('Failed to copy content. Check dev console for detail.', 0)
   }
 }
 </script>
 
 <template>
   <FlakeFrame ref="$flake" class="flake-view">
-    <div class="flake-content">
-      <div ref="$anchor" class="fp-markdown"></div>
-    </div>
+    <div ref="$anchor" class="fp-markdown"></div>
 
     <div class="flake-tooltip">
       <button class="fp-btn-icon fp-danger" @click="emit('delete', flake.id)">
         <ObIcon name="trash-2" />
       </button>
 
-      <div class="grow"></div>
+      <div class="gap"></div>
 
       <button class="fp-btn-icon" @click="copyContent">
         <ObIcon name="copy" />
+      </button>
+      <button v-if="isDev" class="fp-btn-icon" @click="emit('pin', flake.id)">
+        <ObIcon name="pin" />
       </button>
       <button class="fp-btn-icon" @click="emit('edit', flake.id)">
         <ObIcon name="pencil-line" />
@@ -82,15 +86,19 @@ async function copyContent() {
 </template>
 
 <style scoped lang="scss">
+.flake-view {
+  display: flex;
+  align-items: center;
+}
+
 .flake-tooltip {
   position: absolute;
   top: var(--size-4-1);
   left: var(--size-4-1);
   right: var(--size-4-1);
-  z-index: 20;
+  z-index: 16;
 
   display: none; // flex when hovered
-  flex-direction: row;
   column-gap: var(--size-4-1);
   pointer-events: none;
 
@@ -98,7 +106,7 @@ async function copyContent() {
     pointer-events: visible;
   }
 
-  > .grow {
+  > .gap {
     flex-grow: 1;
   }
 }

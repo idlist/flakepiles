@@ -12,7 +12,7 @@ const plugin = inject('plugin') as FlakepilePlugin
   <div class="menu-shrinked">
     <button
       class="fp-btn-icon"
-      @click="() => meta.menu = 'default'"
+      @click="meta.menu = 'default'"
     >
       <ObIcon name="chevrons-up-down" />
     </button>

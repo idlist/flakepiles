@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { FlakepilePlugin } from '@/custom-view.ts'
 import type { Flake, FlakepileMeta } from '@/schemes/v1.ts'
 import type { FlakeIdEditing, ScrollAxis } from '@/ui/FlakepileApp.vue'
 import { px } from '@/utils.ts'
@@ -14,6 +15,7 @@ const props = defineProps<{
   flakes: Flake[]
 }>()
 
+const plugin = inject('plugin') as FlakepilePlugin
 const flakeIdEditing = inject('flakeIdEditing') as FlakeIdEditing
 
 const flakesViewing = computed<Flake[]>(() => {
@@ -33,6 +35,18 @@ const stylesViewing = computed<Map<string, StyleValue>>(() => {
 const flakeEditing = computed<Flake | undefined>(() => {
   return props.flakes.find((flake) => flake.id === flakeIdEditing.value)
 })
+
+const styleViewing = computed<StyleValue>(() => {
+  return { width: px(240) }
+})
+
+function deleteFlake(id: string) {
+  plugin.deleteFlake(id)
+}
+
+function finishEditing(_id: string) {
+  flakeIdEditing.value = null
+}
 </script>
 
 <template>
@@ -42,10 +56,14 @@ const flakeEditing = computed<Flake | undefined>(() => {
       :key="flake.id"
       :flake="flake"
       :style="stylesViewing.get(flake.id)"
+      @edit="(id) => flakeIdEditing = id"
+      @delete="deleteFlake"
     />
     <FlakeEdit
       v-if="flakeEditing"
       :flake="flakeEditing"
+      :style="styleViewing"
+      @finish="finishEditing"
     />
   </div>
 </template>

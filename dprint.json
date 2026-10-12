@@ -7,10 +7,12 @@
   "json": {
   },
   "malva": {
+    "printWidth": 80
   },
   "markup": {
   },
   "excludes": [
+    "src/vue",
     "**/node_modules",
     "**/*-lock.json"
   ],

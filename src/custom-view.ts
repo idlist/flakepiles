@@ -173,6 +173,10 @@ export class FlakepileView extends TextFileView {
     })
   }
 
+  notice(message: string | DocumentFragment, duration?: number) {
+    new Notice(message, duration)
+  }
+
   initializeFlakeMap() {
     if (!this.flakepile.value) return
 
@@ -191,6 +195,29 @@ export class FlakepileView extends TextFileView {
     this.trySave()
 
     return flake.id
+  }
+
+  deleteFlake(id: string) {
+    if (!this.flakepile.value) return
+
+    const flakes = this.flakepile.value.flakes
+    const index = flakes.findIndex((flake) => flake.id === id)
+    if (index === -1) return
+
+    this.flakepile.value.flakes.splice(index, 1)
+    this.flakeMap.delete(id)
+    this.trySave()
+  }
+
+  updateFlakeContent(id: string, content: string) {
+    if (!this.flakepile.value) return
+
+    const flake = this.flakeMap.get(id)
+    if (!flake) return
+
+    flake.content = content
+    flake.meta.modifiedAt = Date.now()
+    this.trySave()
   }
 
   updateFlakeSizeCache(id: string, width: number, height: number) {
@@ -221,8 +248,12 @@ export type FlakepilePlugin = Pick<
   | 'meta'
   | 'trySave'
   | 'trySaveLazy'
+  | 'notice'
   | 'renderContent'
+  | 'flakeMap'
   | 'addFlake'
+  | 'deleteFlake'
+  | 'updateFlakeContent'
   | 'updateFlakeSizeCache'
   | 'clearAllFlakeSizeCache'
 >

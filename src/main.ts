@@ -1,5 +1,6 @@
 import './styles/colors.scss'
 import './styles/globals.scss'
+import './styles/markdown.scss'
 import { Notice, Plugin, TFolder } from 'obsidian'
 import { FlakepileView, VIEW_TYPE } from './custom-view'
 import { createFlakepile } from './schemes/v1'

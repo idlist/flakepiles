@@ -5,6 +5,8 @@ export interface FlakeMeta {
   createdAt: number
   modifiedAt: number
   pinned: boolean
+  textWrap: boolean
+  desiredHeight: number
 }
 
 export interface FlakeCache {
@@ -28,6 +30,8 @@ export function createFlake(): Flake {
       createdAt: Date.now(),
       modifiedAt: Date.now(),
       pinned: false,
+      textWrap: true,
+      desiredHeight: 0,
     },
     cache: {
       width: 0,

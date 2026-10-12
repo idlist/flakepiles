@@ -81,62 +81,6 @@ button.fp-danger {
   pointer-events: painted;
 }
 
-/* Adjustment to markdown styles */
-
-.fp-markdown {
-  p, pre, ul, ol {
-    margin: 0.5rem 0;
-  }
-
-  ul, ol {
-    padding-inline-start: 2rem;
-  }
-
-  li.task-list-item > input {
-    vertical-align: middle;
-    transform: translateY(-2px);
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    margin: 0.75rem 0 0.5em 0;
-  }
-
-  img {
-    border-radius: var(--radius-m);
-  }
-
-  pre {
-    border-radius: var(--radius-m);
-    background-color: var(--code-background);
-
-    position: relative;
-    margin: 0.5rem 0;
-    padding: 0.25rem 0.5rem;
-  }
-
-  pre .copy-code-button {
-    @extend .fp-btn-icon;
-
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    display: none;
-  }
-
-  pre:hover .copy-code-button {
-    display: flex;
-  }
-
-  code, pre code {
-    font-family: var(--font-monospace);
-    font-size: 13px;
-    white-space: pre-wrap;
-
-    line-height: 1.5;
-    letter-spacing: -0.2px;
-  }
-}
-
 /* Overwrite global styles */
 
 .is-flakepile .status-bar {

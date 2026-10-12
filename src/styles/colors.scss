@@ -1,11 +1,27 @@
 .fp-flake-frame {
-  border: var(--border-width) solid var(--flake-border);
+  border: var(--border-width) solid
+    color-mix(in oklch, var(--color-primary) 25%, transparent);
   border-radius: var(--radius-m);
-  box-shadow: var(--box-shadow);
+  box-shadow: var(--shadow-normal);
 
   color: var(--flake-text);
-  background-color: var(--flake-text-bg);
+  background-color: var(--flake-background);
 
-  --box-shadow: 0 0 4px var(--flake-shadow), 1px 1px 2px var(--flake-shadow);
-  --box-shadow-heavy: 0 0 8px var(--flake-shadow-heavy), 1px 1px 4px var(--flake-shadow);
+  --shadow-normal:
+    0 0 4px color-mix(in oklch, var(--color-primary) 20%, transparent),
+    0 1px 2px color-mix(in oklch, var(--color-primary) 10%, transparent);
+  --shadow-heavy:
+    0 0 8px color-mix(in oklch, var(--color-primary) 50%, transparent),
+    0 1px 4px color-mix(in oklch, var(--color-primary) 25%, transparent);
+
+  &.-highlight {
+    box-shadow: var(--shadow-heavy);
+  }
+
+  &.-none {
+    --color-tag: var(--color-base-100);
+    --color-primary: var(--color-base-70);
+    --flake-text: var(--text-normal);
+    --flake-background: var(--background-primary);
+  }
 }

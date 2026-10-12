@@ -29,7 +29,7 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
     <button
       v-if="!Platform.isPhone"
       class="fp-btn-icon"
-      @click="() => meta.menu = 'shrinked'"
+      @click="meta.menu = 'shrinked'"
     >
       <ObIcon name="chevrons-down-up" />
     </button>
@@ -45,7 +45,7 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
 
     <button
       class="fp-btn-icon"
-      @click="() => meta.menu = 'expanded'"
+      @click="meta.menu = 'expanded'"
     >
       <ObIcon name="square-menu" />
     </button>
