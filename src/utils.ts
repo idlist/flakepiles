@@ -46,3 +46,16 @@ export class CausedError<T> extends Error {
     this.data = data
   }
 }
+
+export interface Point {
+  x: number
+  y: number
+}
+
+export interface Size {
+  width: number
+  height: number
+}
+
+export interface Rect extends Point, Size {
+}

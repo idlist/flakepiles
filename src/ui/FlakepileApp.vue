@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { FlakepilePlugin } from '@/custom-view.ts'
+import type { FlakepilePlugin } from '@/custom-view'
 import { type Flakepile, type FlakepileAdaptiveFlow } from '@/schemes/v1'
-import { useCssWith } from '@/utils'
+import { type Point, type Size, useCssWith } from '@/utils'
 import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import LayoutMasonry from './flakepile-app/LayoutMasonry.vue'
 import MenuDefault from './flakepile-app/MenuDefault.vue'
@@ -52,6 +52,10 @@ export type Environment = ComputedRef<EnvironmentValues>
 
 const flakeIdEditing = ref<string | null>(null)
 
+watch(() => props.pile.id, () => {
+  flakeIdEditing.value = null
+})
+
 provide('flakeIdEditing', flakeIdEditing)
 export type FlakeIdEditing = Ref<string | null>
 
@@ -61,30 +65,31 @@ const _searchQueryDebounced = refDebounced(searchQuery, 100)
 const showOptions = ref(false)
 const showLabels = ref(false)
 
-const useFlow = useCssWith<FlakepileAdaptiveFlow>(
-  () => env.value.size === 'small' ? 'mobile' : meta.value.flow,
-  (v) => `-${v}`,
-)
+const adaptiveFlow = computed<FlakepileAdaptiveFlow>(() => {
+  return env.value.size === 'small' ? 'mobile' : meta.value.flow
+})
+const useFlow = useCssWith(adaptiveFlow, (v) => `-${v}`)
 
 const $usable = useTemplateRef('$usable')
 const usableBounding = useElementBounding($usable)
-const usableSize = useElementSize($usable)
 
 const $masonry = useTemplateRef('$masonry')
 const masonryBounding = useElementBounding($masonry)
 
-export interface ScrollAxis {
-  x: number
-  y: number
-}
-
-const scroll = computed<ScrollAxis>(() => ({
+const scroll = computed<Point>(() => ({
   x: usableBounding.left.value - masonryBounding.left.value,
   y: usableBounding.top.value - masonryBounding.top.value,
 }))
 
+const usableSize = useElementSize($usable)
+const usableSizeValues = computed<Size>(() => ({
+  width: usableSize.width.value,
+  height: usableSize.height.value,
+}))
+
 function newFlake() {
-  const _flakeId = plugin.addFlake()
+  const flakeId = plugin.addFlake()
+  if (!flakeId) return
 }
 </script>
 
@@ -134,8 +139,10 @@ function newFlake() {
         <LayoutMasonry
           v-if="loadingState === 'success' && hasFlake"
           ref="$masonry"
+          :id="pile.id"
           :meta="meta"
-          :usable-size="usableSize"
+          :flow="adaptiveFlow"
+          :usable-size="usableSizeValues"
           :scroll="scroll"
           :flakes="pile.flakes"
         />

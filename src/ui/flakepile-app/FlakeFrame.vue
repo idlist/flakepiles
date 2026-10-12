@@ -9,10 +9,9 @@
 
 <style scoped lang="scss">
 .fp-flake-frame {
-  overflow: hidden;
-  content-visibility: auto;
-
   position: relative;
+  overflow: hidden;
+
   min-height: 2.5rem;
   max-height: 100%;
 }

@@ -189,8 +189,10 @@ export class FlakepileView extends TextFileView {
   addFlake(): string | null {
     if (!this.flakepile.value) return null
 
-    const flake = createFlake()
-    this.flakepile.value.flakes.push(flake)
+    const flakes = this.flakepile.value.flakes
+    flakes.push(createFlake())
+
+    const flake = flakes[flakes.length - 1]!
     this.flakeMap.set(flake.id, flake)
     this.trySave()
 
@@ -217,6 +219,7 @@ export class FlakepileView extends TextFileView {
 
     flake.content = content
     flake.meta.modifiedAt = Date.now()
+    this.clearFlakeSizeCache(id)
     this.trySave()
   }
 
@@ -228,7 +231,11 @@ export class FlakepileView extends TextFileView {
 
     flake.cache.width = width
     flake.cache.height = height
-    this.trySave()
+    this.trySaveLazy()
+  }
+
+  clearFlakeSizeCache(id: string) {
+    this.updateFlakeSizeCache(id, 0, 0)
   }
 
   clearAllFlakeSizeCache() {
@@ -239,7 +246,7 @@ export class FlakepileView extends TextFileView {
       flake.cache.height = 0
     }
 
-    this.trySave()
+    this.trySaveLazy()
   }
 }
 
@@ -255,5 +262,6 @@ export type FlakepilePlugin = Pick<
   | 'deleteFlake'
   | 'updateFlakeContent'
   | 'updateFlakeSizeCache'
+  | 'clearFlakeSizeCache'
   | 'clearAllFlakeSizeCache'
 >

@@ -3,7 +3,8 @@ import type { IsDev } from '@/App.vue'
 import type { FlakepilePlugin } from '@/custom-view'
 import type { Flake } from '@/schemes/v1'
 import { ObIcon } from '@/wrappers'
-import { inject, nextTick, onMounted, useTemplateRef, watch } from 'vue'
+import { useDebounceFn, useResizeObserver } from '@vueuse/core'
+import { inject, nextTick, onMounted, useTemplateRef } from 'vue'
 import FlakeFrame from './FlakeFrame.vue'
 
 const props = defineProps<{
@@ -22,32 +23,38 @@ const isDev = inject('isDev') as IsDev
 const $flake = useTemplateRef('$flake')
 const $anchor = useTemplateRef('$anchor')
 
-function tryCacheFlakeSize() {
+function updateSizeCache() {
   if (!$flake.value) return
-  if (props.flake.cache.width !== 0) return
-  if (props.flake.cache.height !== 0) return
 
+  const $el = $flake.value.$el as HTMLDivElement
   plugin.updateFlakeSizeCache(
     props.flake.id,
-    $flake.value.$el.scrollWidth,
-    $flake.value.$el.scrollHeight,
+    $el.offsetWidth,
+    $el.offsetHeight,
   )
+}
+
+const updateSizeCacheDebounced = useDebounceFn(updateSizeCache, 50)
+
+useResizeObserver($flake, (entries) => {
+  const entry = entries[0]
+  if (!entry) return
+
+  const height = Math.round(entry.borderBoxSize[0]?.blockSize ?? 0)
+  if (Math.abs(height - props.flake.cache.height) < 2) return
+
+  updateSizeCacheDebounced()
+})
+
+function initializeSizeCache() {
+  if (props.flake.cache.width !== 0 && props.flake.cache.height !== 0) return
+  updateSizeCache()
 }
 
 onMounted(async () => {
   await plugin.renderContent($anchor.value!, props.flake.content)
   await nextTick()
-
-  watch(
-    () => props.flake.cache.width,
-    tryCacheFlakeSize,
-    { immediate: true },
-  )
-  watch(
-    () => props.flake.cache.height,
-    tryCacheFlakeSize,
-    { immediate: true },
-  )
+  initializeSizeCache()
 })
 
 async function copyContent() {
@@ -89,6 +96,8 @@ async function copyContent() {
 .flake-view {
   display: flex;
   align-items: center;
+
+  padding: 0.5em;
 }
 
 .flake-tooltip {

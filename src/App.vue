@@ -16,6 +16,9 @@ export type IsDev = Ref<boolean>
 
 const loadingState = computed(() => plugin.meta.loadingState)
 const pile = computed(() => props.flakepile.value)
+
+// * Debug settings
+plugin.clearAllFlakeSizeCache()
 </script>
 
 <template>
