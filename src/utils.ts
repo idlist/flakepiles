@@ -2,6 +2,9 @@ import { computed, type Directive, type MaybeRefOrGetter, toValue } from 'vue'
 
 export const px = (x: number) => `${x}px`
 
+export const point = (x: number, y: number) => `${x}px ${y}px`
+
+/** @deprecated */
 export const pxpair = (x: number, y: number) => `${x}px ${y}px`
 
 export const useCssIf = <T>(

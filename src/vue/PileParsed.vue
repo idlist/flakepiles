@@ -301,7 +301,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
     </div>
 
     <div class="content">
-      <div ref="el-canvas" :class="['sub-layout', cssAdaptiveFlow]">
+      <div ref="el-canvas" :class="['usable-area', cssAdaptiveFlow]">
         <div v-if="parsing.state == 'reloading'" class="reloading-flakes">
           Loading flakes.
         </div>
@@ -392,7 +392,7 @@ const cssNoLabel = useCssIf(isViewportSmall, '-nolabel')
   );
 }
 
-.sub-layout {
+.usable-area {
   @extend .fp-inset;
   position: absolute;
 

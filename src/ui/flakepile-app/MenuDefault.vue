@@ -3,28 +3,20 @@ import type { FlakepilePlugin } from '@/custom-view'
 import type { FlakepileMeta } from '@/schemes/v1'
 import type { Environment } from '@/ui/FlakepileApp.vue'
 import { useCssIf } from '@/utils'
-import MenuButton from '@/vue/MenuButton.vue'
 import { ObIcon, ObSearch } from '@/wrappers'
 import { Platform } from 'obsidian'
-import { type ComputedRef, inject } from 'vue'
-
-const plugin = inject('plugin') as FlakepilePlugin
-const env = inject('env') as ComputedRef<Environment>
+import { inject } from 'vue'
+import MenuButton from './MenuButton.vue'
 
 const meta = defineModel<FlakepileMeta>({ required: true })
 const query = defineModel<string>('query', { required: true })
 
-const _emit = defineEmits<{
-  requestEdit(id: string): void
+const emit = defineEmits<{
+  new: []
 }>()
 
-const addFlake = async () => {
-  // const id = plugin.addFlake()
-  // if (!id) return
-
-  // emit('requestEdit', id)
-}
-
+const plugin = inject('plugin') as FlakepilePlugin
+const env = inject('env') as Environment
 const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
 </script>
 
@@ -45,8 +37,8 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
     <MenuButton
       :class="['fp-btn-icon-label', useOnlyIcon]"
       icon="plus"
-      label="Add flake"
-      @click="addFlake"
+      label="New Flake"
+      @click="emit('new')"
     />
 
     <ObSearch v-model="query" class="fullwidth" />

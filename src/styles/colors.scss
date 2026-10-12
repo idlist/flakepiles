@@ -1,11 +1,11 @@
-:root * {
-  --fp-accent-hsl: var(--accent-h) var(--accent-s) var(--accent-l);
-  --fp-accent: hsl(var(--fp-accent-hsl));
-  --fp-border: var(--border-width) solid var(--background-modifier-border);
+.fp-flake-frame {
+  border: var(--border-width) solid var(--flake-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--box-shadow);
 
-  --fp-color-none: #333333;
-}
+  color: var(--flake-text);
+  background-color: var(--flake-text-bg);
 
-.fp-none {
-  background-color: var(--fp-color-none);
+  --box-shadow: 0 0 4px var(--flake-shadow), 1px 1px 2px var(--flake-shadow);
+  --box-shadow-heavy: 0 0 8px var(--flake-shadow-heavy), 1px 1px 4px var(--flake-shadow);
 }

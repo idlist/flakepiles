@@ -4,8 +4,8 @@ import type { FlakepileMeta } from '@/schemes/v1'
 import { ObIcon } from '@/wrappers'
 import { inject } from 'vue'
 
-const plugin = inject('plugin') as FlakepilePlugin
 const meta = defineModel<FlakepileMeta>({ required: true })
+const plugin = inject('plugin') as FlakepilePlugin
 </script>
 
 <template>

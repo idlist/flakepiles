@@ -12,13 +12,13 @@
 
 /* Utilities */
 
-.fp-inset {
-  inset: 0;
-}
-
 .fp-danger {
   color: var(--color-base-00);
   background-color: var(--text-error);
+}
+
+button.fp-danger {
+  @extend .fp-danger;
 }
 
 .fp-invert {

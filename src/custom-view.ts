@@ -1,4 +1,4 @@
-import { type Flakepile } from '@/schemes/v1'
+import { createFlake, type Flake, type Flakepile } from '@/schemes/v1'
 import { Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
 import { type App as VueApp, type Component, createApp, reactive, ref } from 'vue'
 import FlakepileApp from './App.vue'
@@ -27,6 +27,7 @@ export class FlakepileView extends TextFileView {
   rawData: string = ''
   meta: PluginMeta = reactive(createAppMeta())
   flakepile = ref<Flakepile | null>(null)
+  flakeMap = new Map<string, Flake>()
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf)
@@ -87,6 +88,7 @@ export class FlakepileView extends TextFileView {
 
       this.meta.loadingState = 'success'
       this.flakepile.value = nextFlakepile
+      this.initializeFlakeMap()
     } catch (e) {
       this.meta.loadingState = 'invalid'
 
@@ -127,24 +129,17 @@ export class FlakepileView extends TextFileView {
   }
 
   async renderContent($anchor: HTMLElement, content: string) {
-    await this.renderMarkdown($anchor, content)
+    if (!this.file) return
+    const sourcePath = this.file.path
 
-    // TODO: Adjust the markdown when the rendered content is only image, only code or general content.
-    this.postprocessMarkdown($anchor)
-  }
-
-  async renderMarkdown($anchor: HTMLElement, content: string) {
+    // Render the markdown using Obsidian's internal renderer.
     await MarkdownRenderer.render(
       this.app,
       content,
       $anchor,
-      this.file!.path,
+      sourcePath,
       this,
     )
-  }
-
-  postprocessMarkdown($anchor: HTMLElement) {
-    const sourcePath = this.file!.path
 
     // Disable input of task item checkbox.
     const taskItemChechboxes = $anchor.querySelectorAll('.task-list-item>input')
@@ -177,6 +172,48 @@ export class FlakepileView extends TextFileView {
       })
     })
   }
+
+  initializeFlakeMap() {
+    if (!this.flakepile.value) return
+
+    this.flakeMap = new Map()
+    for (const flake of this.flakepile.value.flakes) {
+      this.flakeMap.set(flake.id, flake)
+    }
+  }
+
+  addFlake(): string | null {
+    if (!this.flakepile.value) return null
+
+    const flake = createFlake()
+    this.flakepile.value.flakes.push(flake)
+    this.flakeMap.set(flake.id, flake)
+    this.trySave()
+
+    return flake.id
+  }
+
+  updateFlakeSizeCache(id: string, width: number, height: number) {
+    if (!this.flakepile.value) return
+
+    const flake = this.flakeMap.get(id)
+    if (!flake) return
+
+    flake.cache.width = width
+    flake.cache.height = height
+    this.trySave()
+  }
+
+  clearAllFlakeSizeCache() {
+    if (!this.flakepile.value) return
+
+    for (const flake of this.flakepile.value.flakes) {
+      flake.cache.width = 0
+      flake.cache.height = 0
+    }
+
+    this.trySave()
+  }
 }
 
 export type FlakepilePlugin = Pick<
@@ -185,4 +222,7 @@ export type FlakepilePlugin = Pick<
   | 'trySave'
   | 'trySaveLazy'
   | 'renderContent'
+  | 'addFlake'
+  | 'updateFlakeSizeCache'
+  | 'clearAllFlakeSizeCache'
 >

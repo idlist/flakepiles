@@ -1,19 +1,19 @@
 <script setup lang="ts">
+import type { IsDev } from '@/App.vue'
 import type { FlakepileMeta } from '@/schemes/v1'
 import type { Environment } from '@/ui/FlakepileApp.vue'
 import { useCssIf } from '@/utils'
-import MenuButton from '@/vue/MenuButton.vue'
 import { ObIcon } from '@/wrappers'
 import { Platform } from 'obsidian'
-import { type ComputedRef, inject, type Ref } from 'vue'
+import { inject } from 'vue'
+import MenuButton from './MenuButton.vue'
 
-const env = inject('env') as ComputedRef<Environment>
-const isDev = inject('isDev') as Ref<boolean>
 const meta = defineModel<FlakepileMeta>({ required: true })
-
 const showOptions = defineModel<boolean>('showOptions', { required: true })
 const showLabels = defineModel<boolean>('showLabels', { required: true })
 
+const env = inject('env') as Environment
+const isDev = inject('isDev') as IsDev
 const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
 </script>
 
@@ -69,7 +69,7 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
 
     <label>Sort by</label>
     <select v-model="meta.sortBy" class="dropdown">
-      <option value="name">Name</option>
+      <option value="content">Content</option>
       <option value="createdAt">Time created</option>
       <option value="modifiedAt">Time modified</option>
     </select>

@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import type { WithVersion } from './common'
 
 export interface FlakeMeta {
   createdAt: number
@@ -11,7 +12,7 @@ export interface FlakeCache {
   height: number
 }
 
-export interface Flake {
+export interface Flake extends WithVersion {
   id: string
   meta: FlakeMeta
   cache: FlakeCache
@@ -21,6 +22,7 @@ export interface Flake {
 
 export function createFlake(): Flake {
   return {
+    version: 1,
     id: nanoid(16),
     meta: {
       createdAt: Date.now(),
@@ -42,7 +44,7 @@ export const FlakeLabelColors = [
 
 export type FlakeLabelColor = typeof FlakeLabelColors[number]
 
-export interface FlakeLabel {
+export interface FlakeLabel extends WithVersion {
   id: string
   name: string
   color: FlakeLabelColor
@@ -52,6 +54,7 @@ export interface FlakeLabel {
 
 export function createFlakeLabel(): FlakeLabel {
   return {
+    version: 1,
     id: nanoid(8),
     name: '',
     color: 'none',
@@ -66,7 +69,7 @@ export type FlakepileFlow = 'vertical' | 'horizontal'
 
 export type FlakepileAdaptiveFlow = FlakepileFlow | 'mobile'
 
-export type SortCondition = 'name' | 'createdAt' | 'modifiedAt'
+export type SortCondition = 'createdAt' | 'modifiedAt' | 'content'
 
 export type SortOrder = 'asc' | 'desc'
 
@@ -82,7 +85,7 @@ export interface FlakepileMeta {
   elasticHeight: boolean
 }
 
-export interface Flakepile {
+export interface Flakepile extends WithVersion {
   id: string
   meta: FlakepileMeta
   labels: FlakeLabel[]
@@ -91,13 +94,14 @@ export interface Flakepile {
 
 export function createFlakepile(): Flakepile {
   return {
+    version: 1,
     id: nanoid(16),
     meta: {
       menu: 'default',
       flow: 'horizontal',
       sortBy: 'createdAt',
       sortOrder: 'desc',
-      width: 1,
+      width: 240,
       elasticWidth: false,
       enableMaxHeight: false,
       maxHeight: 1,

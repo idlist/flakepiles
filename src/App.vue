@@ -10,7 +10,9 @@ const props = defineProps<{ flakepile: Ref<Flakepile | null> }>()
 const plugin = inject('plugin') as FlakepilePlugin
 
 const isDev = ref(false)
+
 provide('isDev', isDev)
+export type IsDev = Ref<boolean>
 
 const loadingState = computed(() => plugin.meta.loadingState)
 const pile = computed(() => props.flakepile.value)

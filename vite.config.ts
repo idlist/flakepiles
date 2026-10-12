@@ -1,7 +1,7 @@
 import vue from '@vitejs/plugin-vue'
 import { builtinModules } from 'node:module'
-import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import path from 'node:path'
+import { defineConfig, normalizePath } from 'vite'
 import banner from 'vite-plugin-banner'
 import { type Target, viteStaticCopy as copy } from 'vite-plugin-static-copy'
 
@@ -30,7 +30,11 @@ https://github.com/idlist/flakepiles
 
 const files = ['main.js', 'styles.css', 'manifest.json']
 
-const copyTargets = () => {
+function toAbsolute(relative: string) {
+  return normalizePath(path.resolve(import.meta.dirname, relative))
+}
+
+function getFilesToCopy() {
   const targets: Target[] = []
 
   for (const file of files) {
@@ -41,30 +45,25 @@ const copyTargets = () => {
 }
 
 export default defineConfig(({ mode }) => {
-  const prod = mode == 'production'
+  const isProd = mode === 'production'
 
   const define: Record<string, string> = {}
-  if (prod) {
+  if (isProd) {
     define['process.env.NODE_ENV'] = '"production"'
   }
 
   return {
-    plugins: [
-      vue(),
-      banner(content),
-      copy({ targets: prod ? copyTargets() : [] }),
-    ],
     define,
     resolve: {
       alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url)),
+        '@': toAbsolute('./src'),
       },
     },
     build: {
       target: 'es2018',
       outDir: '.',
       emptyOutDir: false,
-      sourcemap: prod ? false : 'inline',
+      sourcemap: isProd ? false : 'inline',
       rollupOptions: {
         external,
       },
@@ -74,7 +73,12 @@ export default defineConfig(({ mode }) => {
         formats: ['cjs'],
         cssFileName: 'styles',
       },
-      minify: prod,
+      minify: isProd,
     },
+    plugins: [
+      vue(),
+      banner(content),
+      copy({ targets: isProd ? getFilesToCopy() : [] }),
+    ],
   }
 })
