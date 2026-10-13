@@ -1,6 +1,6 @@
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import type { FlakepilePluginRef } from './custom-view'
-import type { FlakepileMeta } from './schemes/v1'
+import type { FlakeMeta, FlakepileMeta } from './schemes/v1'
 
 export const useCssIf = <T>(
   condition: MaybeRefOrGetter<T>,
@@ -24,6 +24,17 @@ export function useFlakepileMetaBinder(plugin: FlakepilePluginRef) {
     return computed<FlakepileMeta[T]>({
       get: () => meta[key],
       set: (val) => plugin.updateFlakepileMeta(key, val),
+    })
+  }
+
+  return bind
+}
+
+export function useFlakeMetaBinder(plugin: FlakepilePluginRef) {
+  const bind = <T extends keyof FlakeMeta>(meta: FlakeMeta, id: string, key: T) => {
+    return computed<FlakeMeta[T]>({
+      get: () => meta[key],
+      set: (val) => plugin.updateFlakeMeta(id, key, val),
     })
   }
 

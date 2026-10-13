@@ -28,6 +28,7 @@ const bind = useFlakepileMetaBinder(plugin)
 const metaSortBy = bind(props.meta, 'sortBy')
 const metaFlow = bind(props.meta, 'flow')
 const metaShowTimes = bind(props.meta, 'showTimes')
+const metaDirectDelete = bind(props.meta, 'directDelete')
 
 const $buttonOptions = useTemplateRef('$buttonOptions')
 const $panelOptions = useTemplateRef<ComponentPublicInstance>('$panelOptions')
@@ -66,6 +67,13 @@ function toggleOptionsMobile(event: MouseEvent) {
     item.setChecked(metaShowTimes.value)
     item.onClick(() => {
       metaShowTimes.value = !metaShowTimes.value
+    })
+  })
+  menu.addItem((item) => {
+    item.setTitle('Delete without confirmation')
+    item.setChecked(metaDirectDelete.value)
+    item.onClick(() => {
+      metaDirectDelete.value = !metaDirectDelete.value
     })
   })
 
@@ -116,6 +124,7 @@ function toggleOptionsMobile(event: MouseEvent) {
 
   <div class="menu-expand">
     <MenuButton
+      v-if="isDev"
       ref="$buttonLabels"
       :class="['fp-btn-icon-label', useOnlyIcon]"
       icon="tags"
@@ -127,9 +136,9 @@ function toggleOptionsMobile(event: MouseEvent) {
 
     <label>Sort by</label>
     <select v-model="metaSortBy" class="dropdown">
-      <option value="content">Content</option>
       <option value="createdAt">Time created</option>
       <option value="modifiedAt">Time modified</option>
+      <option value="content">Content</option>
     </select>
     <button
       v-if="meta.sortOrder == 'desc'"

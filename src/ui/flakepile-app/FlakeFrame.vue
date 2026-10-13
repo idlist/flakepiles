@@ -9,7 +9,7 @@
 
 <style scoped lang="scss">
 .fp-flake-frame {
-  position: relative;
+  position: absolute;
   overflow: hidden;
 }
 </style>

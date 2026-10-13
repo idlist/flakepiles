@@ -19,6 +19,7 @@ const metaEnableMaxHeight = bind(props.meta, 'enableMaxHeight')
 const metaMaxHeight = bind(props.meta, 'maxHeight')
 const metaElasticHeight = bind(props.meta, 'elasticHeight')
 const metaShowTimes = bind(props.meta, 'showTimes')
+const metaDirectDelete = bind(props.meta, 'directDelete')
 
 const useMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disabled')
 </script>
@@ -79,6 +80,11 @@ const useMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disabl
     <label class="option-item">
       <span>Show times</span>
       <input v-model="metaShowTimes" type="checkbox" />
+    </label>
+
+    <label class="option-item">
+      <span>Delete without confirmation</span>
+      <input v-model="metaDirectDelete" type="checkbox" />
     </label>
   </div>
 </template>

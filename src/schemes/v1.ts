@@ -88,6 +88,7 @@ export interface FlakepileMeta {
   maxHeight: number
   elasticHeight: boolean
   showTimes: boolean
+  directDelete: boolean
 }
 
 export interface Flakepile extends WithVersion {
@@ -112,6 +113,7 @@ export function createFlakepile(): Flakepile {
       maxHeight: 400,
       elasticHeight: false,
       showTimes: false,
+      directDelete: false,
     },
     labels: [],
     flakes: [],

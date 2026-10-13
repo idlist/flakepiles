@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import type { IsDevRef } from '@/App.vue'
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake } from '@/schemes/v1'
 import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf } from '@/use.ts'
+import { useCssIf, useFlakeMetaBinder } from '@/use.ts'
 import { ObIcon } from '@/wrappers'
 import { useDebounceFn, useResizeObserver } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { computed, inject, nextTick, onMounted, useTemplateRef } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from 'vue'
 import FlakeFrame from './FlakeFrame.vue'
 
 const props = withDefaults(
@@ -28,8 +27,8 @@ const emit = defineEmits<{
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
-const isDev = inject('isDev') as IsDevRef
 const meta = inject('meta') as FlakepileMetaRef
+const bind = useFlakeMetaBinder(plugin)
 
 const $flake = useTemplateRef('$flake')
 const $anchor = useTemplateRef('$anchor')
@@ -68,6 +67,8 @@ onMounted(async () => {
   initializeSizeCache()
   useResizeObserver([$anchor, $meta], updateSizeCacheDebounced)
 })
+
+const pinned = bind(props.flake.meta, props.flake.id, 'pinned')
 
 interface TimeInfo {
   showCreated: boolean
@@ -124,8 +125,19 @@ async function copyContent() {
   }
 }
 
-function requestDelete() {
+const tryDelete = ref(false)
+
+function tryRequestDelete() {
   if (props.disableDelete) return
+
+  if (meta.value.directDelete) {
+    requestDelete()
+  } else {
+    tryDelete.value = true
+  }
+}
+
+function requestDelete() {
   emit('delete', props.flake.id)
 }
 
@@ -148,7 +160,7 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
       <div ref="$anchor" class="fp-markdown flake-anchor"></div>
     </div>
 
-    <div v-if="showMeta" ref="$meta" class="meta">
+    <div v-if="showMeta" ref="$meta" class="flake-meta">
       <div v-if="props.flake.labels.length !== 0" class="tag-list"></div>
 
       <div v-if="times.showCreated" class="flake-time">
@@ -161,10 +173,14 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
       </div>
     </div>
 
+    <div v-if="pinned" class="flake-pinned">
+      <ObIcon name="pin" />
+    </div>
+
     <div class="flake-tooltip">
       <button
         :class="['fp-btn-icon', 'fp-danger', useDisableDelete]"
-        @click="requestDelete"
+        @click="tryRequestDelete"
       >
         <ObIcon name="trash-2" />
       </button>
@@ -174,11 +190,24 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
       <button class="fp-btn-icon" @click="copyContent">
         <ObIcon name="copy" />
       </button>
-      <button v-if="isDev" class="fp-btn-icon" @click="emit('pin', flake.id)">
-        <ObIcon name="pin" />
+      <button class="fp-btn-icon" @click="pinned = !pinned">
+        <ObIcon :name="pinned ? 'pin-off' : 'pin'" />
       </button>
       <button class="fp-btn-icon" @click="emit('edit', flake.id)">
         <ObIcon name="pencil-line" />
+      </button>
+    </div>
+
+    <div
+      v-if="tryDelete"
+      class="flake-view-delete-fuse"
+      @click="tryDelete = false"
+    >
+      <button
+        class="fp-btn-icon fp-warning flake-view-delete"
+        @click="requestDelete"
+      >
+        <ObIcon name="message-circle-question-mark" />
       </button>
     </div>
   </FlakeFrame>
@@ -198,10 +227,10 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
   > .scrollable.-scrolly {
     overflow-y: scroll;
   }
+}
 
-  > .meta {
-    padding: 0 var(--size-4-2) var(--size-2-1) var(--size-4-2);
-  }
+.flake-meta {
+  padding: 0 var(--size-4-2) var(--size-2-1) var(--size-4-2);
 }
 
 .flake-anchor {
@@ -219,12 +248,19 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
   margin: var(--size-2-1) 0;
 }
 
-.flake-tooltip {
+.flake-pinned {
   position: absolute;
   top: var(--size-4-1);
-  left: var(--size-4-1);
   right: var(--size-4-1);
-  z-index: 16;
+  z-index: 4;
+
+  pointer-events: none;
+}
+
+.flake-tooltip {
+  position: absolute;
+  inset: var(--size-4-1);
+  z-index: 8;
 
   display: none; // flex when hovered
   column-gap: var(--size-4-1);
@@ -241,5 +277,19 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
 
 .flake-view:hover > .flake-tooltip {
   display: flex;
+}
+
+.flake-view-delete-fuse {
+  position: absolute;
+  inset: 0;
+  z-index: 16;
+
+  background-color: color-mix(in oklch, var(--color-base-00) 75%, transparent);
+}
+
+.flake-view-delete {
+  position: absolute;
+  top: var(--size-4-1);
+  left: var(--size-4-1);
 }
 </style>

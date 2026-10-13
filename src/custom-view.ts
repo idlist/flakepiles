@@ -1,4 +1,4 @@
-import { createFlake, type Flake, type Flakepile, type FlakepileMeta } from '@/schemes/v1'
+import { createFlake, type Flake, type FlakeMeta, type Flakepile, type FlakepileMeta } from '@/schemes/v1'
 import { Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
 import { type App as VueApp, type Component, createApp, reactive, ref } from 'vue'
 import FlakepileApp from './App.vue'
@@ -218,6 +218,16 @@ export class FlakepileView extends TextFileView {
     this.trySave()
   }
 
+  updateFlakeMeta<T extends keyof FlakeMeta>(id: string, key: T, value: FlakeMeta[T]) {
+    if (!this.flakepile.value) return
+
+    const flake = this.flakeMap.get(id)
+    if (!flake) return
+
+    flake.meta[key] = value
+    this.trySave()
+  }
+
   updateFlakeContent(id: string, content: string) {
     if (!this.flakepile.value) return
 
@@ -267,6 +277,7 @@ export type FlakepilePluginRef = Pick<
   | 'updateFlakepileMeta'
   | 'addFlake'
   | 'deleteFlake'
+  | 'updateFlakeMeta'
   | 'updateFlakeContent'
   | 'updateFlakeSizeCache'
 >

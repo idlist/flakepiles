@@ -164,7 +164,7 @@ function deleteFlake(id: string) {
   resolveMasonry()
 }
 
-async function finishEditing(_id: string) {
+async function endEditing(_id: string) {
   flakeIdEditing.value = null
   editingHeight.value = 0
 
@@ -194,7 +194,7 @@ async function finishEditing(_id: string) {
       :flake="flakeEditing"
       :inner-height="innerHeight"
       @update-height="updateEditingHeight"
-      @finish="finishEditing"
+      @end="endEditing"
     />
   </div>
 </template>

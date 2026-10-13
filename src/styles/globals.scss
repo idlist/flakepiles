@@ -12,6 +12,15 @@
 
 /* Utilities */
 
+.fp-warning {
+  color: var(--color-base-00);
+  background-color: var(--text-warning);
+}
+
+button.fp-warning {
+  @extend .fp-warning;
+}
+
 .fp-danger {
   color: var(--color-base-00);
   background-color: var(--text-error);

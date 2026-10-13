@@ -15,8 +15,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  finish: [id: string]
   updateHeight: [height: number]
+  end: [id: string]
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
@@ -51,8 +51,9 @@ onMounted(() => {
     async (val, old) => {
       if (val === old) return
 
-      lastHeight.value = 0
       contentEditing.value = props.flake.content
+      lastHeight.value = 0
+      tryCancelEditing.value = false
       focused.value = true
 
       await nextTick()
@@ -69,9 +70,15 @@ function selectAll() {
   $textarea.value.select()
 }
 
+const tryCancelEditing = ref(false)
+
+function cancelEditing() {
+  emit('end', props.flake.id)
+}
+
 function finishEditing() {
   plugin.updateFlakeContent(props.flake.id, contentEditing.value)
-  emit('finish', props.flake.id)
+  emit('end', props.flake.id)
 }
 
 const shouldScrollY = computed(() => {
@@ -91,13 +98,19 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
       <textarea
         ref="$textarea"
         v-model="contentEditing"
-        v-focus
         class="content-editor"
         placeholder="Note here..."
       ></textarea>
     </div>
 
     <div ref="$settings" class="flake-settings">
+      <button
+        v-if="!tryCancelEditing"
+        class="fp-btn-icon fp-danger"
+        @click="tryCancelEditing = true"
+      >
+        <ObIcon name="x" />
+      </button>
       <button v-if="isDev" class="fp-btn-icon">
         <ObIcon name="text-wrap" />
       </button>
@@ -114,6 +127,19 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
         <ObIcon name="check" />
       </button>
     </div>
+
+    <div
+      v-if="tryCancelEditing"
+      class="flake-edit-cancel-fuse"
+      @click="tryCancelEditing = false"
+    >
+      <button
+        class="fp-btn-icon fp-warning flake-edit-cancel"
+        @click="cancelEditing"
+      >
+        <ObIcon name="message-circle-question-mark" />
+      </button>
+    </div>
   </FlakeFrame>
 </template>
 
@@ -124,7 +150,9 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
   z-index: 2;
 
   > .editor-area {
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-gutter: stable both-edges;
   }
 
   > .editor-area.-scrolly {
@@ -137,7 +165,7 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
   width: 100%;
   background-color: transparent;
 
-  padding: var(--size-4-2);
+  padding: 0.5em 0;
   overflow: hidden;
   overflow-wrap: break-word;
   resize: none;
@@ -153,14 +181,24 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
 .flake-settings {
   display: flex;
   column-gap: var(--size-4-1);
-
   padding: var(--size-4-1);
-
-  background-color: var(--background-primary-alt);
-  border-top: var(--border-width) solid var(--background-modifier-border);
 
   > .gap {
     flex-grow: 1;
   }
+}
+
+.flake-edit-cancel-fuse {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+
+  background-color: color-mix(in oklch, var(--color-base-00) 75%, transparent);
+}
+
+.flake-edit-cancel {
+  position: absolute;
+  bottom: var(--size-4-1);
+  left: var(--size-4-1);
 }
 </style>
