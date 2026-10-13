@@ -30,6 +30,8 @@ const flakeEditing = computed<Flake | null>(() => {
   return typeof found !== 'undefined' ? found : null
 })
 
+/* Masonry Layout */
+
 // Collect dependency of all size cache.
 const sizeCacheSignal = computed<number[]>(() => {
   return props.flakes.flatMap((flake) => [flake.cache.width, flake.cache.height])
@@ -146,6 +148,8 @@ const styleMasonry = computed<StyleValue>(() => {
   }
 })
 
+/* Flake Management */
+
 function startEditing(id: string) {
   editingHeight.value = 0
   flakeIdEditing.value = id
@@ -155,20 +159,20 @@ function updateEditingHeight(height: number) {
   editingHeight.value = height
 }
 
+async function endEditing(_id: string) {
+  flakeIdEditing.value = null
+  editingHeight.value = 0
+
+  await nextTick()
+  resolveMasonry()
+}
+
 function deleteFlake(id: string) {
   // Disable the ability to delete other flakes when editing a flake.
   // This is an extra guard, as it is already guarded in FlakeView.
   if (flakeIdEditing.value) return
 
   plugin.deleteFlake(id)
-  resolveMasonry()
-}
-
-async function endEditing(_id: string) {
-  flakeIdEditing.value = null
-  editingHeight.value = 0
-
-  await nextTick()
   resolveMasonry()
 }
 </script>

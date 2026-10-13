@@ -27,6 +27,8 @@ const $textarea = useTemplateRef('$textarea')
 const $settings = useTemplateRef('$settings')
 const { focused } = useFocus($textarea)
 
+/* Dynamic Sizing */
+
 const contentEditing = ref<string>('')
 const lastHeight = ref<number>(0)
 
@@ -63,6 +65,8 @@ onMounted(() => {
   )
 })
 
+/* Flake Actions */
+
 function selectAll() {
   if (!$textarea.value) return
 
@@ -80,6 +84,8 @@ function finishEditing() {
   plugin.updateFlakeContent(props.flake.id, contentEditing.value)
   emit('end', props.flake.id)
 }
+
+/* Flake Scrollable State */
 
 const shouldScrollY = computed(() => {
   if (meta.value.enableMaxHeight) {

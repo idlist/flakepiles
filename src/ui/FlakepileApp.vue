@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { Flake, Flakepile, FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/v1'
+import type { Flake, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/v1'
 import { useCssWith } from '@/use.ts'
 import type { Point, Size } from '@/utils'
 import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
@@ -9,6 +9,7 @@ import LayoutMasonry from './flakepile-app/LayoutMasonry.vue'
 import MenuDefault from './flakepile-app/MenuDefault.vue'
 import MenuExpanded from './flakepile-app/MenuExpanded.vue'
 import MenuShrinked from './flakepile-app/MenuShrinked.vue'
+import { getFlakeComparator, queryFlakes } from './query'
 
 const props = defineProps<{ pile: Flakepile }>()
 const plugin = inject('plugin') as FlakepilePluginRef
@@ -23,6 +24,12 @@ export type FlakepileMetaRef = typeof meta
 const labels = computed(() => props.pile.labels)
 provide('labels', labels)
 export type FlakepileLabelsRef = typeof labels
+
+const flakeIdEditing = ref<string | null>(null)
+provide('flakeIdEditing', flakeIdEditing)
+export type FlakeIdEditingRef = typeof flakeIdEditing
+
+/* Responsive Layout */
 
 const $root = useTemplateRef('$root')
 const rootSize = useElementSize($root)
@@ -43,20 +50,12 @@ const env = computed<Environment>(() => ({
 provide('env', env)
 export type EnvironmentRef = typeof env
 
-const flakeIdEditing = ref<string | null>(null)
-provide('flakeIdEditing', flakeIdEditing)
-export type FlakeIdEditingRef = typeof flakeIdEditing
-
-const searchQuery = ref<string>('')
-const _searchQueryDebounced = refDebounced(searchQuery, 100)
-
-const showOptions = ref(false)
-const showLabels = ref(false)
-
 const flowAdaptive = computed<FlakepileAdaptiveFlow>(() => {
   return env.value.size === 'small' ? 'mobile' : meta.value.flow
 })
 const useFlow = useCssWith(flowAdaptive, (val) => `-${val}`)
+
+/* Viewport Management */
 
 const $usable = useTemplateRef('$usable')
 const usableBounding = useElementBounding($usable)
@@ -75,6 +74,16 @@ const usableSizeValues = computed<Size>(() => ({
   height: usableSize.height.value,
 }))
 
+/* Variables */
+
+const searchQuery = ref<string>('')
+const searchQueryDebounced = refDebounced(searchQuery, 100)
+
+const showOptions = ref(false)
+const showLabels = ref(false)
+
+/* Element State Tweaks */
+
 // Reset editing state and close panels when Flakepile changes.
 watch(() => props.pile.id, () => {
   flakeIdEditing.value = null
@@ -91,43 +100,18 @@ watch(flakeIdEditing, (val, old) => {
   showLabels.value = false
 })
 
-type FlakeComparator = (a: Flake, b: Flake) => number
-
-function getFlakeComparator(meta: FlakepileMeta): FlakeComparator {
-  if (meta.sortBy === 'createdAt') {
-    if (meta.sortOrder === 'asc') {
-      return (a, b) => a.meta.createdAt - b.meta.createdAt
-    } else {
-      return (a, b) => b.meta.createdAt - a.meta.createdAt
-    }
-  }
-  if (meta.sortBy === 'modifiedAt') {
-    if (meta.sortOrder === 'asc') {
-      return (a, b) => a.meta.modifiedAt - b.meta.modifiedAt
-    } else {
-      return (a, b) => b.meta.modifiedAt - a.meta.modifiedAt
-    }
-  }
-  if (meta.sortBy === 'content') {
-    if (meta.sortOrder === 'asc') {
-      return (a, b) => a.content.localeCompare(b.content)
-    } else {
-      return (a, b) => b.content.localeCompare(a.content)
-    }
-  }
-
-  return () => 0
-}
+/* Flake Management */
 
 const flakesArranged = computed<Flake[]>(() => {
-  const comparator = getFlakeComparator(meta.value)
+  const queried = queryFlakes(props.pile.flakes, searchQueryDebounced.value)
+  if (queried.length === 0) return queried
 
-  const pinned = props.pile.flakes.filter((flake) => flake.meta.pinned)
-  const unpinned = props.pile.flakes.filter((flake) => !flake.meta.pinned)
+  const comparator = getFlakeComparator(meta.value)
+  const pinned = queried.filter((flake) => flake.meta.pinned)
+  const unpinned = queried.filter((flake) => !flake.meta.pinned)
 
   pinned.sort(comparator)
   unpinned.sort(comparator)
-
   return [...pinned, ...unpinned]
 })
 

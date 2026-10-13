@@ -34,6 +34,8 @@ const $flake = useTemplateRef('$flake')
 const $anchor = useTemplateRef('$anchor')
 const $meta = useTemplateRef('$meta')
 
+/* Dynamic Sizing */
+
 function updateSizeCache() {
   if (!$flake.value) return
 
@@ -67,6 +69,8 @@ onMounted(async () => {
   initializeSizeCache()
   useResizeObserver([$anchor, $meta], updateSizeCacheDebounced)
 })
+
+/* Flake Meta */
 
 const pinned = bind(props.flake.meta, props.flake.id, 'pinned')
 
@@ -115,6 +119,8 @@ const showMeta = computed(() => {
   return false
 })
 
+/* Flake Actions */
+
 async function copyContent() {
   try {
     await navigator.clipboard.writeText(props.flake.content)
@@ -142,6 +148,8 @@ function requestDelete() {
 }
 
 const useDisableDelete = useCssIf(() => props.disableDelete, '-disabled')
+
+/* Flake Scrollable State */
 
 const shouldScrollY = computed(() => {
   if (meta.value.enableMaxHeight) {
