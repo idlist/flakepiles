@@ -50,7 +50,7 @@ function toggleOptions(event: MouseEvent) {
   if (Platform.isDesktop) {
     toggleOptionsDesktop()
   }
-  if (Platform.isMobile) {
+  if (Platform.isMobile || Platform.isTablet) {
     toggleOptionsMobile(event)
   }
 }
@@ -163,7 +163,7 @@ function toggleOptionsMobile(event: MouseEvent) {
     </button>
   </div>
 
-  <Teleport defer to="#floating-area">
+  <Teleport defer to="#fp-floating-area">
     <PanelOptions
       v-if="showOptions"
       ref="$panelOptions"

@@ -87,6 +87,7 @@ export interface FlakepileMeta {
   enableMaxHeight: boolean
   maxHeight: number
   elasticHeight: boolean
+  showTags: boolean
   showTimes: boolean
   directDelete: boolean
 }
@@ -112,6 +113,7 @@ export function createFlakepile(): Flakepile {
       enableMaxHeight: false,
       maxHeight: 400,
       elasticHeight: false,
+      showTags: true,
       showTimes: false,
       directDelete: false,
     },

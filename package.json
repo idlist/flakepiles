@@ -20,6 +20,7 @@
     "@rewl/kit": "^0.1.5",
     "@vueuse/core": "^14.4.0",
     "dayjs": "^1.11.23",
+    "mitt": "^3.0.1",
     "nanoid": "^5.1.16",
     "obsidian": "latest",
     "remeda": "^2.51.0",

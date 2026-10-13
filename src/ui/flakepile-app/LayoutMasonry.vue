@@ -2,10 +2,11 @@
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake, FlakepileAdaptiveFlow } from '@/schemes/v1'
 import type { FlakeIdEditingRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
+import { bus } from '@/ui/logic/event-bus.ts'
 import { type ComputedMasonry, computeInitialWidth, computeMasonry, design } from '@/ui/masonry/entry'
 import { type Point, point, px, type Size } from '@/utils'
-import { useThrottleFn } from '@vueuse/core'
-import { computed, inject, nextTick, ref, shallowRef, type StyleValue, watch } from 'vue'
+import { useThrottleFn, useTimeoutFn } from '@vueuse/core'
+import { computed, inject, nextTick, provide, ref, shallowRef, type StyleValue, watch } from 'vue'
 import FlakeEdit from './FlakeEdit.vue'
 import FlakeView from './FlakeView.vue'
 
@@ -40,6 +41,14 @@ const sizeCacheSignal = computed<number[]>(() => {
 const resolvedMasonry = shallowRef<ComputedMasonry>()
 const editingHeight = ref(0)
 
+const isLayoutStable = ref(false)
+const stableTimerHandler = useTimeoutFn(() => {
+  isLayoutStable.value = true
+}, 100)
+
+provide('isLayoutStable', isLayoutStable)
+export type IsLayoutStableRef = typeof isLayoutStable
+
 function resolveMasonry() {
   // Do not reflow when some Flake is being edit.
   if (flakeIdEditing.value != null) return
@@ -50,6 +59,8 @@ function resolveMasonry() {
     meta.value,
     props.usableSize,
   )
+
+  stableTimerHandler.start()
 }
 
 // The purpose of throttling is to run only 1 time
@@ -70,7 +81,10 @@ watch(
     () => meta.value.elasticHeight,
     () => meta.value.showTimes,
   ],
-  resolveMasonryThrottled,
+  () => {
+    isLayoutStable.value = false
+    resolveMasonryThrottled()
+  },
   { immediate: true },
 )
 
@@ -110,7 +124,14 @@ const styleEditing = computed<StyleValue>(() => {
   if (!id) return
 
   const rect = resolvedMasonry.value?.rects.get(id)
-  if (!rect) return
+  if (!rect) {
+    // If cannot find originally computed rect,
+    // this is a newly craeted Flake and is to be put at the top left.
+    return {
+      translate: point(design.pad.x, props.scroll.y + design.pad.y),
+      width: px(initialWidth.value),
+    }
+  }
 
   const cachedHeight = editingHeight.value || rect.height
   const actualHeight = Math.min(cachedHeight, innerHeight.value)
@@ -159,12 +180,18 @@ function updateEditingHeight(height: number) {
   editingHeight.value = height
 }
 
-async function endEditing(_id: string) {
+async function cancelEditing() {
   flakeIdEditing.value = null
   editingHeight.value = 0
+  isLayoutStable.value = false
 
   await nextTick()
   resolveMasonry()
+}
+
+async function finishEditing(id: string) {
+  await cancelEditing()
+  bus.emit('scroll-to', id)
 }
 
 function deleteFlake(id: string) {
@@ -173,6 +200,10 @@ function deleteFlake(id: string) {
   if (flakeIdEditing.value) return
 
   plugin.deleteFlake(id)
+  isLayoutStable.value = false
+
+  // Deletion does not need to wait for the next tick
+  // as there's no need to wait for any Flake's size to be cached.
   resolveMasonry()
 }
 </script>
@@ -198,7 +229,8 @@ function deleteFlake(id: string) {
       :flake="flakeEditing"
       :inner-height="innerHeight"
       @update-height="updateEditingHeight"
-      @end="endEditing"
+      @finish="finishEditing"
+      @cancel="cancelEditing"
     />
   </div>
 </template>

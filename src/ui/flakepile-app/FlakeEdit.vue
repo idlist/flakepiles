@@ -16,7 +16,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   updateHeight: [height: number]
-  end: [id: string]
+  finish: [id: string]
+  cancel: []
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
@@ -77,12 +78,12 @@ function selectAll() {
 const tryCancelEditing = ref(false)
 
 function cancelEditing() {
-  emit('end', props.flake.id)
+  emit('cancel')
 }
 
 function finishEditing() {
   plugin.updateFlakeContent(props.flake.id, contentEditing.value)
-  emit('end', props.flake.id)
+  emit('finish', props.flake.id)
 }
 
 /* Flake Scrollable State */
@@ -99,7 +100,7 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
 </script>
 
 <template>
-  <FlakeFrame class="flake-edit">
+  <FlakeFrame class="flake-edit" :id="flake.id">
     <div :class="['editor-area', useScrollY]">
       <textarea
         ref="$textarea"

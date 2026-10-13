@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { IsDevRef } from '@/App.vue'
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/v1'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
@@ -11,6 +12,7 @@ const props = defineProps<{
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
+const isDev = inject('isDev') as IsDevRef
 
 const bind = useFlakepileMetaBinder(plugin)
 const metaWidth = bind(props.meta, 'width')
@@ -18,6 +20,7 @@ const metaElasticWidth = bind(props.meta, 'elasticWidth')
 const metaEnableMaxHeight = bind(props.meta, 'enableMaxHeight')
 const metaMaxHeight = bind(props.meta, 'maxHeight')
 const metaElasticHeight = bind(props.meta, 'elasticHeight')
+const metaShowTags = bind(props.meta, 'showTags')
 const metaShowTimes = bind(props.meta, 'showTimes')
 const metaDirectDelete = bind(props.meta, 'directDelete')
 
@@ -76,6 +79,11 @@ const useMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disabl
     </label>
 
     <hr />
+
+    <label v-if="isDev" class="option-item">
+      <span>Show times</span>
+      <input v-model="metaShowTags" type="checkbox" />
+    </label>
 
     <label class="option-item">
       <span>Show times</span>

@@ -4,12 +4,13 @@ import type { Flake, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/v1'
 import { useCssWith } from '@/use.ts'
 import type { Point, Size } from '@/utils'
 import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
-import { computed, inject, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
 import LayoutMasonry from './flakepile-app/LayoutMasonry.vue'
 import MenuDefault from './flakepile-app/MenuDefault.vue'
 import MenuExpanded from './flakepile-app/MenuExpanded.vue'
 import MenuShrinked from './flakepile-app/MenuShrinked.vue'
-import { getFlakeComparator, queryFlakes } from './query'
+import { bus } from './logic/event-bus.ts'
+import { getFlakeComparator, queryFlakes } from './logic/query'
 
 const props = defineProps<{ pile: Flakepile }>()
 const plugin = inject('plugin') as FlakepilePluginRef
@@ -115,9 +116,14 @@ const flakesArranged = computed<Flake[]>(() => {
   return [...pinned, ...unpinned]
 })
 
-function newFlake() {
+async function newFlake() {
   const flakeId = plugin.addFlake()
   if (!flakeId) return
+
+  flakeIdEditing.value = flakeId
+
+  await nextTick()
+  bus.emit('scroll-to', flakeId)
 }
 </script>
 
@@ -179,7 +185,7 @@ function newFlake() {
       </div>
 
       <div class="floating-panels">
-        <div id="floating-area" class="floating-area"></div>
+        <div id="fp-floating-area" class="floating-area"></div>
       </div>
     </div>
   </div>

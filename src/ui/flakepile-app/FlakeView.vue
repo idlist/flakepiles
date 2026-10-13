@@ -38,7 +38,6 @@ const $meta = useTemplateRef('$meta')
 
 function updateSizeCache() {
   if (!$flake.value) return
-
   const $el = $flake.value.$el as HTMLDivElement
 
   const heightAnchor = $anchor.value?.scrollHeight ?? 0
@@ -163,7 +162,7 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
 </script>
 
 <template>
-  <FlakeFrame ref="$flake" class="flake-view">
+  <FlakeFrame ref="$flake" class="flake-view" :id="flake.id">
     <div :class="['scrollable', useScrollY]">
       <div ref="$anchor" class="fp-markdown flake-anchor"></div>
     </div>
@@ -182,7 +181,7 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
     </div>
 
     <div v-if="pinned" class="flake-pinned">
-      <ObIcon name="pin" />
+      <ObIcon name="pin" color="var(--text-faint)" />
     </div>
 
     <div class="flake-tooltip">
