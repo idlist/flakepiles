@@ -15,6 +15,11 @@
 .fp-danger {
   color: var(--color-base-00);
   background-color: var(--text-error);
+
+  &.-disabled {
+    color: var(--color-base-00);
+    background-color: color-mix(in oklch, var(--text-error) 50%, transparent);
+  }
 }
 
 button.fp-danger {

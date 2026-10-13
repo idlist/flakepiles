@@ -104,10 +104,10 @@ export function computeHorizontalMasonry(
   }
 
   for (const flake of flakes) {
+    if (flake.cache.height === 0) continue
+
     const id = flake.id
     const height = flake.cache.height
-    if (height === 0) continue
-
     const actualHeight = height > maxHeight ? maxHeight : height
     const isColumnFull = columnHeight + actualHeight > usableHeight
 

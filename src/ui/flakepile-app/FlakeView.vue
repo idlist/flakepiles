@@ -1,15 +1,25 @@
 <script setup lang="ts">
-import type { IsDev } from '@/App.vue'
-import type { FlakepilePlugin } from '@/custom-view'
+import type { IsDevRef } from '@/App.vue'
+import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake } from '@/schemes/v1'
+import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
+import { useCssIf } from '@/utils.ts'
 import { ObIcon } from '@/wrappers'
 import { useDebounceFn, useResizeObserver } from '@vueuse/core'
-import { inject, nextTick, onMounted, useTemplateRef } from 'vue'
+import dayjs from 'dayjs'
+import { computed, inject, nextTick, onMounted, useTemplateRef } from 'vue'
 import FlakeFrame from './FlakeFrame.vue'
 
-const props = defineProps<{
-  flake: Flake
-}>()
+const props = withDefaults(
+  defineProps<{
+    flake: Flake
+    innerHeight: number
+    disableDelete?: boolean
+  }>(),
+  {
+    disableDelete: false,
+  },
+)
 
 const emit = defineEmits<{
   pin: [id: string]
@@ -17,34 +27,34 @@ const emit = defineEmits<{
   delete: [id: string]
 }>()
 
-const plugin = inject('plugin') as FlakepilePlugin
-const isDev = inject('isDev') as IsDev
+const plugin = inject('plugin') as FlakepilePluginRef
+const isDev = inject('isDev') as IsDevRef
+const meta = inject('meta') as FlakepileMetaRef
 
 const $flake = useTemplateRef('$flake')
 const $anchor = useTemplateRef('$anchor')
+const $meta = useTemplateRef('$meta')
 
 function updateSizeCache() {
   if (!$flake.value) return
 
   const $el = $flake.value.$el as HTMLDivElement
+
+  const heightAnchor = $anchor.value?.scrollHeight ?? 0
+  const heightMeta = $meta.value?.scrollHeight ?? 0
+  const height = heightAnchor + heightMeta
+
+  const diff = height - props.flake.cache.height
+  if (Math.abs(diff) < 2) return
+
   plugin.updateFlakeSizeCache(
     props.flake.id,
-    $el.offsetWidth,
-    $el.offsetHeight,
+    $el.scrollWidth,
+    height,
   )
 }
 
 const updateSizeCacheDebounced = useDebounceFn(updateSizeCache, 50)
-
-useResizeObserver($flake, (entries) => {
-  const entry = entries[0]
-  if (!entry) return
-
-  const height = Math.round(entry.borderBoxSize[0]?.blockSize ?? 0)
-  if (Math.abs(height - props.flake.cache.height) < 2) return
-
-  updateSizeCacheDebounced()
-})
 
 function initializeSizeCache() {
   if (props.flake.cache.width !== 0 && props.flake.cache.height !== 0) return
@@ -53,8 +63,55 @@ function initializeSizeCache() {
 
 onMounted(async () => {
   await plugin.renderContent($anchor.value!, props.flake.content)
+
   await nextTick()
   initializeSizeCache()
+  useResizeObserver([$anchor, $meta], updateSizeCacheDebounced)
+})
+
+interface TimeInfo {
+  showCreated: boolean
+  showModified: boolean
+  created?: string
+  modified?: string
+}
+
+const times = computed<TimeInfo>(() => {
+  const info: TimeInfo = {
+    showCreated: meta.value.showTimes,
+    showModified: meta.value.showTimes,
+  }
+  if (!meta.value.showTimes) return info
+
+  const created = dayjs(props.flake.meta.createdAt)
+  info.created = created.format('YYYY / M / D hh:mm:ss')
+
+  if (props.flake.meta.createdAt !== props.flake.meta.modifiedAt) {
+    info.showModified = false
+  }
+  if (!info.showModified) return info
+
+  const modified = dayjs(props.flake.meta.modifiedAt)
+
+  const sameYear = created.year() === modified.year()
+  const sameMonth = created.month() === modified.month()
+  const sameDate = created.date() === modified.date()
+
+  if (sameYear && sameMonth && sameDate) {
+    info.modified = modified.format('hh:mm:ss')
+  } else if (sameYear) {
+    info.modified = modified.format('M / D hh:mm:ss')
+  } else {
+    info.modified = modified.format('YYYY / M / D hh:mm:ss')
+  }
+
+  return info
+})
+
+const showMeta = computed(() => {
+  if (props.flake.labels.length !== 0) return true
+  if (meta.value.showTimes) return true
+  return false
 })
 
 async function copyContent() {
@@ -66,14 +123,49 @@ async function copyContent() {
     plugin.notice('Failed to copy content. Check dev console for detail.', 0)
   }
 }
+
+function requestDelete() {
+  if (props.disableDelete) return
+  emit('delete', props.flake.id)
+}
+
+const useDisableDelete = useCssIf(() => props.disableDelete, '-disabled')
+
+const shouldScrollY = computed(() => {
+  if (meta.value.enableMaxHeight) {
+    return props.flake.cache.height > meta.value.maxHeight + 2
+  } else {
+    return props.flake.cache.height > props.innerHeight + 2
+  }
+})
+
+const useScrollY = useCssIf(shouldScrollY, '-scrolly')
 </script>
 
 <template>
   <FlakeFrame ref="$flake" class="flake-view">
-    <div ref="$anchor" class="fp-markdown"></div>
+    <div :class="['scrollable', useScrollY]">
+      <div ref="$anchor" class="fp-markdown flake-anchor"></div>
+    </div>
+
+    <div v-if="showMeta" ref="$meta" class="meta">
+      <div v-if="props.flake.labels.length !== 0" class="tag-list"></div>
+
+      <div v-if="times.showCreated" class="flake-time">
+        <ObIcon name="clock" :size="12" />
+        <div>{{ times.created }}</div>
+      </div>
+      <div v-if="times.showModified" class="flake-time">
+        <ObIcon name="rotate-ccw" :size="12" />
+        <div>{{ times.modified }}</div>
+      </div>
+    </div>
 
     <div class="flake-tooltip">
-      <button class="fp-btn-icon fp-danger" @click="emit('delete', flake.id)">
+      <button
+        :class="['fp-btn-icon', 'fp-danger', useDisableDelete]"
+        @click="requestDelete"
+      >
         <ObIcon name="trash-2" />
       </button>
 
@@ -94,10 +186,37 @@ async function copyContent() {
 
 <style scoped lang="scss">
 .flake-view {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-rows: auto max-content;
 
-  padding: 0.5em;
+  > .scrollable {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  > .scrollable.-scrolly {
+    overflow-y: scroll;
+  }
+
+  > .meta {
+    padding: 0 var(--size-4-2) var(--size-2-1) var(--size-4-2);
+  }
+}
+
+.flake-anchor {
+  display: flow-root;
+  padding: 0 var(--size-4-2);
+  min-height: var(--size-4-10);
+}
+
+.flake-time {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-faint);
+
+  display: flex;
+  justify-content: end;
+  column-gap: var(--size-4-1);
+  margin: var(--size-2-1) 0;
 }
 
 .flake-tooltip {

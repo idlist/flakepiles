@@ -3,6 +3,10 @@
 /* Adjustment to markdown styles */
 
 .fp-markdown {
+  font-size: var(--font-text-size);
+  font-family: var(--font-text-theme);
+  line-height: 1.5;
+
   p, pre, ul, ol {
     margin: 0.5em 0;
   }

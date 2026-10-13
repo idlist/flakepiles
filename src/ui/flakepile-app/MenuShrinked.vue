@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { FlakepilePlugin } from '@/custom-view'
+import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileMeta } from '@/schemes/v1'
 import { ObIcon } from '@/wrappers'
 import { inject } from 'vue'
 
 const meta = defineModel<FlakepileMeta>({ required: true })
-const plugin = inject('plugin') as FlakepilePlugin
+const plugin = inject('plugin') as FlakepilePluginRef
 </script>
 
 <template>

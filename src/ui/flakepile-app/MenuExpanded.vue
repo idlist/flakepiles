@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { IsDev } from '@/App.vue'
+import type { IsDevRef } from '@/App.vue'
 import type { FlakepileMeta } from '@/schemes/v1'
-import type { Environment } from '@/ui/FlakepileApp.vue'
+import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf } from '@/utils'
 import { ObIcon } from '@/wrappers'
 import { Platform } from 'obsidian'
@@ -12,12 +12,14 @@ const meta = defineModel<FlakepileMeta>({ required: true })
 const showOptions = defineModel<boolean>('showOptions', { required: true })
 const showLabels = defineModel<boolean>('showLabels', { required: true })
 
-const env = inject('env') as Environment
-const isDev = inject('isDev') as IsDev
+const env = inject('env') as EnvironmentRef
+const isDev = inject('isDev') as IsDevRef
 const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
 </script>
 
 <template>
+  <div class="menu-expand-gap"></div>
+
   <div class="menu-expand">
     <div v-if="Platform.isDesktop && isDev">
       <MenuButton
@@ -98,6 +100,15 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
 </template>
 
 <style lang="scss" scoped>
+.menu-expand-gap {
+  padding-top: var(--size-4-2);
+  padding-bottom: var(--size-2-1);
+
+  .is-tablet & {
+    padding-top: var(--size-4-4);
+  }
+}
+
 .menu-expand {
   display: flex;
   align-items: center;

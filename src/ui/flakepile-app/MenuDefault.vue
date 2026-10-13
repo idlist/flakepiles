@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { FlakepilePlugin } from '@/custom-view'
+import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileMeta } from '@/schemes/v1'
-import type { Environment } from '@/ui/FlakepileApp.vue'
+import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf } from '@/utils'
 import { ObIcon, ObSearch } from '@/wrappers'
 import { Platform } from 'obsidian'
@@ -15,8 +15,8 @@ const emit = defineEmits<{
   new: []
 }>()
 
-const plugin = inject('plugin') as FlakepilePlugin
-const env = inject('env') as Environment
+const plugin = inject('plugin') as FlakepilePluginRef
+const env = inject('env') as EnvironmentRef
 const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
 </script>
 
@@ -55,14 +55,15 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
 <style lang="scss" scoped>
 .menu-filename {
   margin: 0;
-  margin-bottom: var(--size-4-2);
+  padding-bottom: var(--size-4-2);
+  line-height: var(--size-4-8);
 
   .is-phone & {
     display: none;
   }
 
   .is-tablet & {
-    margin-top: var(--size-4-2);
+    padding-top: var(--size-4-2);
   }
 }
 

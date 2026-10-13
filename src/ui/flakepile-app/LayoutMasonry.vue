@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import type { FlakepilePlugin } from '@/custom-view'
-import type { Flake, FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/v1'
-import type { FlakeIdEditing } from '@/ui/FlakepileApp.vue'
+import type { FlakepilePluginRef } from '@/custom-view'
+import type { Flake, FlakepileAdaptiveFlow } from '@/schemes/v1'
+import type { FlakeIdEditingRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { type ComputedMasonry, computeInitialWidth, computeMasonry, design } from '@/ui/masonry/entry'
 import { type Point, point, px, type Size } from '@/utils'
 import { useThrottleFn } from '@vueuse/core'
-import { computed, inject, nextTick, shallowRef, type StyleValue, watch } from 'vue'
+import { computed, inject, nextTick, ref, shallowRef, type StyleValue, watch } from 'vue'
 import FlakeEdit from './FlakeEdit.vue'
 import FlakeView from './FlakeView.vue'
 
 const props = defineProps<{
   id: string
   flow: FlakepileAdaptiveFlow
-  meta: FlakepileMeta
   usableSize: Size
   scroll: Point
   flakes: Flake[]
 }>()
 
-const plugin = inject('plugin') as FlakepilePlugin
-const flakeIdEditing = inject('flakeIdEditing') as FlakeIdEditing
+const plugin = inject('plugin') as FlakepilePluginRef
+const flakeIdEditing = inject('flakeIdEditing') as FlakeIdEditingRef
+const meta = inject('meta') as FlakepileMetaRef
 
 const flakesViewing = computed<Flake[]>(() => {
   return props.flakes.filter((flake) => flake.id !== flakeIdEditing.value)
@@ -30,42 +30,50 @@ const flakeEditing = computed<Flake | null>(() => {
   return typeof found !== 'undefined' ? found : null
 })
 
-const sizeCache = computed<number[]>(() => {
+// Collect dependency of all size cache.
+const sizeCacheSignal = computed<number[]>(() => {
   return props.flakes.flatMap((flake) => [flake.cache.width, flake.cache.height])
 })
 
 const resolvedMasonry = shallowRef<ComputedMasonry>()
+const editingHeight = ref(0)
 
 function resolveMasonry() {
+  // Do not reflow when some Flake is being edit.
+  if (flakeIdEditing.value != null) return
+
   resolvedMasonry.value = computeMasonry(
     props.flow,
     props.flakes,
-    props.meta,
+    meta.value,
     props.usableSize,
   )
 }
 
-const resolveMasonryThrottled = useThrottleFn(resolveMasonry, 100, true)
+// The purpose of throttling is to run only 1 time
+// when everyone is calling the function at the same time.
+const resolveMasonryThrottled = useThrottleFn(resolveMasonry, 10, true)
 
 watch(
   [
-    sizeCache,
+    sizeCacheSignal,
     () => props.id,
     () => props.flow,
-    () => props.meta.width,
-    () => props.meta.elasticWidth,
-    () => props.meta.enableMaxHeight,
-    () => props.meta.maxHeight,
-    () => props.meta.elasticHeight,
     () => props.usableSize.width,
     () => props.usableSize.height,
+    () => meta.value.width,
+    () => meta.value.elasticWidth,
+    () => meta.value.enableMaxHeight,
+    () => meta.value.maxHeight,
+    () => meta.value.elasticHeight,
+    () => meta.value.showTimes,
   ],
   resolveMasonryThrottled,
   { immediate: true },
 )
 
 const initialWidth = computed(() => {
-  return computeInitialWidth(props.flow, props.meta, props.usableSize)
+  return computeInitialWidth(props.flow, meta.value, props.usableSize)
 })
 
 const stylesViewing = computed<Map<string, StyleValue>>(() => {
@@ -92,6 +100,9 @@ const stylesViewing = computed<Map<string, StyleValue>>(() => {
   return styles
 })
 
+const innerHeight = computed(() => props.usableSize.height - 2 * design.pad.y)
+
+// The Flake in edit is to be taken out of the original masonry.
 const styleEditing = computed<StyleValue>(() => {
   const id = flakeIdEditing.value
   if (!id) return
@@ -99,18 +110,22 @@ const styleEditing = computed<StyleValue>(() => {
   const rect = resolvedMasonry.value?.rects.get(id)
   if (!rect) return
 
-  const innerHeight = props.usableSize.height - 2 * design.pad.y
-  const cachedHeight = flakeEditing.value?.cache.height || rect.height
-  const actualHeight = Math.min(cachedHeight, innerHeight)
+  const cachedHeight = editingHeight.value || rect.height
+  const actualHeight = Math.min(cachedHeight, innerHeight.value)
 
   let y: number
-  const spaceBelow = innerHeight - (rect.y - props.scroll.y)
+  const spaceBelow = innerHeight.value - rect.y
 
-  if (rect.y < props.scroll.y || actualHeight > innerHeight) {
+  if (rect.y < props.scroll.y || actualHeight > innerHeight.value) {
+    // 1. The top of the Flake in edit has scrolled out of the top of usable area;
+    // 2. The inner height of the Flake is larger than usable height.
     y = props.scroll.y + design.pad.y
   } else if (actualHeight > spaceBelow) {
-    y = props.scroll.y + design.pad.y + (innerHeight - actualHeight)
+    // The inner height of the Flake is larger than distance
+    // from the top-left point of the Flake to the bottom line of the usable area.
+    y = props.scroll.y + design.pad.y + (innerHeight.value - actualHeight)
   } else {
+    // Other situations.
     y = rect.y
   }
 
@@ -132,16 +147,27 @@ const styleMasonry = computed<StyleValue>(() => {
 })
 
 function startEditing(id: string) {
+  editingHeight.value = 0
   flakeIdEditing.value = id
 }
 
+function updateEditingHeight(height: number) {
+  editingHeight.value = height
+}
+
 function deleteFlake(id: string) {
+  // Disable the ability to delete other flakes when editing a flake.
+  // This is an extra guard, as it is already guarded in FlakeView.
+  if (flakeIdEditing.value) return
+
   plugin.deleteFlake(id)
   resolveMasonry()
 }
 
 async function finishEditing(_id: string) {
   flakeIdEditing.value = null
+  editingHeight.value = 0
+
   await nextTick()
   resolveMasonry()
 }
@@ -153,8 +179,10 @@ async function finishEditing(_id: string) {
       v-for="flake of flakesViewing"
       :key="flake.id"
       class="masonry-element"
-      :flake="flake"
       :style="stylesViewing.get(flake.id)"
+      :flake="flake"
+      :inner-height="innerHeight"
+      :disable-delete="flakeIdEditing != null"
       @edit="startEditing"
       @delete="deleteFlake"
     />
@@ -162,8 +190,9 @@ async function finishEditing(_id: string) {
     <FlakeEdit
       v-if="flakeEditing"
       class="masonry-element"
-      :flake="flakeEditing"
       :style="styleEditing"
+      :flake="flakeEditing"
+      @update-height="updateEditingHeight"
       @finish="finishEditing"
     />
   </div>

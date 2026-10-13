@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { px } from '@/utils'
 import { setIcon } from 'obsidian'
 import { computed, onMounted, type StyleValue, useTemplateRef, watch } from 'vue'
 
 const props = defineProps<{
   name: string
-  cssColor?: string
+  size?: number
+  color?: string
 }>()
 
 const $icon = useTemplateRef('$icon')
@@ -15,7 +17,15 @@ onMounted(() => {
 
 const styles = computed(() => {
   const decls: StyleValue = {}
-  if (props.cssColor) decls.color = props.cssColor
+
+  if (props.color) {
+    decls.color = props.color
+  }
+  if (props.size) {
+    decls.width = px(props.size)
+    decls.height = px(props.size)
+  }
+
   return decls
 })
 

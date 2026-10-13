@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { FlakepilePlugin } from '@/custom-view'
-import { type Flakepile, type FlakepileAdaptiveFlow } from '@/schemes/v1'
+import type { FlakepilePluginRef } from '@/custom-view'
+import { type FlakeLabel, type Flakepile, type FlakepileAdaptiveFlow, type FlakepileMeta } from '@/schemes/v1'
 import { type Point, type Size, useCssWith } from '@/utils'
 import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import LayoutMasonry from './flakepile-app/LayoutMasonry.vue'
@@ -22,13 +22,20 @@ import {
 } from 'vue'
 
 const props = defineProps<{ pile: Flakepile }>()
-const plugin = inject('plugin') as FlakepilePlugin
+const plugin = inject('plugin') as FlakepilePluginRef
 
 const loadingState = computed(() => plugin.meta.loadingState)
 const hasFlake = computed(() => props.pile.flakes.length !== 0)
 
 const meta = toRef(props.pile.meta)
 watch(meta, plugin.trySave)
+provide('meta', meta)
+export type FlakepileMetaRef = Ref<FlakepileMeta>
+
+const labels = toRef(props.pile.labels)
+
+provide('labels', labels)
+export type FlakepileLabelsRef = Ref<FlakeLabel[]>
 
 const $root = useTemplateRef('$root')
 const rootSize = useElementSize($root)
@@ -40,15 +47,15 @@ onMounted(() => {
   }, { throttle: 10 })
 })
 
-interface EnvironmentValues {
+interface Environment {
   size: 'small' | 'large'
 }
-const env = computed<EnvironmentValues>(() => ({
+const env = computed<Environment>(() => ({
   size: rootWidth.value > 600 ? 'large' : 'small',
 }))
 
 provide('env', env)
-export type Environment = ComputedRef<EnvironmentValues>
+export type EnvironmentRef = ComputedRef<Environment>
 
 const flakeIdEditing = ref<string | null>(null)
 
@@ -57,7 +64,7 @@ watch(() => props.pile.id, () => {
 })
 
 provide('flakeIdEditing', flakeIdEditing)
-export type FlakeIdEditing = Ref<string | null>
+export type FlakeIdEditingRef = Ref<string | null>
 
 const searchQuery = ref<string>('')
 const _searchQueryDebounced = refDebounced(searchQuery, 100)
@@ -140,7 +147,6 @@ function newFlake() {
           v-if="loadingState === 'success' && hasFlake"
           ref="$masonry"
           :id="pile.id"
-          :meta="meta"
           :flow="adaptiveFlow"
           :usable-size="usableSizeValues"
           :scroll="scroll"

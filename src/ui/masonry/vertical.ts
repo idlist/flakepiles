@@ -67,10 +67,10 @@ export function computeVerticalMasonry(
   }
 
   for (const flake of flakes) {
+    if (flake.cache.height === 0) continue
+
     const id = flake.id
     const height = flake.cache.height
-    if (!height) continue
-
     const { foundColumn, foundHeight } = findShortestColumn()
 
     const x = masonryCenter

@@ -8,6 +8,10 @@ An Obsidian plugin to put small notes / stickies / cards in a single file, and m
 
 I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about information density.
 
+## Prerequisite
+
+Somewhat newer version of Obsidian. The plugin relies on CSS [`field-sizing`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/field-sizing) property, which is quite new.
+
 ## Features
 
 - UI design that aligns with Obsidian. It doesn't feel like another App is in your Obsidian.
@@ -43,11 +47,8 @@ Flakepile:
 
 Obsidian:
 
-- [x] "New flakepile" command & file menu option.
 - [x] "Flake count" status bar item [1]
-- Limited support to internal plugins
-  - [x] Preview other markdown files via `[[file link]]`
-  - [x] Jump to global search when clicking on a tag
+- [x] Preview other markdown files via `[[file link]]`
 
 [1] Due to the nature of this plugin, other status bar items are hidden in flakepile view. Please let me know if you think some status bar item should be displayed.
 

@@ -11,8 +11,5 @@
 .fp-flake-frame {
   position: relative;
   overflow: hidden;
-
-  min-height: 2.5rem;
-  max-height: 100%;
 }
 </style>

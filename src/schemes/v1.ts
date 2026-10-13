@@ -6,7 +6,6 @@ export interface FlakeMeta {
   modifiedAt: number
   pinned: boolean
   textWrap: boolean
-  expand: boolean
   desiredHeight: number
 }
 
@@ -32,7 +31,6 @@ export function createFlake(): Flake {
       modifiedAt: Date.now(),
       pinned: false,
       textWrap: true,
-      expand: false,
       desiredHeight: 0,
     },
     cache: {
@@ -89,6 +87,7 @@ export interface FlakepileMeta {
   enableMaxHeight: boolean
   maxHeight: number
   elasticHeight: boolean
+  showTimes: boolean
 }
 
 export interface Flakepile extends WithVersion {
@@ -112,6 +111,7 @@ export function createFlakepile(): Flakepile {
       enableMaxHeight: false,
       maxHeight: 400,
       elasticHeight: false,
+      showTimes: false,
     },
     labels: [],
     flakes: [],

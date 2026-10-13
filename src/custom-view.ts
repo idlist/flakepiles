@@ -102,7 +102,7 @@ export class FlakepileView extends TextFileView {
   }
 
   getViewData(): string {
-    if (this.meta.loadingState === 'success' && this.flakepile != null) {
+    if (this.meta.loadingState === 'success' && this.flakepile.value != null) {
       return JSON.stringify(this.flakepile.value, null, 2)
     } else {
       return this.rawData
@@ -219,7 +219,6 @@ export class FlakepileView extends TextFileView {
 
     flake.content = content
     flake.meta.modifiedAt = Date.now()
-    this.clearFlakeSizeCache(id)
     this.trySave()
   }
 
@@ -250,7 +249,7 @@ export class FlakepileView extends TextFileView {
   }
 }
 
-export type FlakepilePlugin = Pick<
+export type FlakepilePluginRef = Pick<
   FlakepileView,
   | 'meta'
   | 'trySave'

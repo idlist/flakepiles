@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FlakepilePlugin } from '@/custom-view.ts'
+import type { FlakepilePluginRef } from '@/custom-view.ts'
 import type { Flakepile } from '@/schemes/v1.ts'
 import { computed, inject, provide, type Ref, ref } from 'vue'
 import FlakepileApp from './ui/FlakepileApp.vue'
@@ -7,12 +7,12 @@ import FlakepileInvalid from './ui/FlakepileInvalid.vue'
 import FlakepileLoading from './ui/FlakepileLoading.vue'
 
 const props = defineProps<{ flakepile: Ref<Flakepile | null> }>()
-const plugin = inject('plugin') as FlakepilePlugin
+const plugin = inject('plugin') as FlakepilePluginRef
 
 const isDev = ref(false)
 
 provide('isDev', isDev)
-export type IsDev = Ref<boolean>
+export type IsDevRef = Ref<boolean>
 
 const loadingState = computed(() => plugin.meta.loadingState)
 const pile = computed(() => props.flakepile.value)

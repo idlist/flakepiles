@@ -13,9 +13,10 @@ export function computeMobileMasonry(
   let columnHeight = 0
 
   for (const flake of flakes) {
+    if (flake.cache.height === 0) continue
+
     const id = flake.id
     const height = flake.cache.height
-    if (height === 0) continue
 
     computed.rects.set(id, {
       x: design.pad.x,

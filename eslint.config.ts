@@ -11,9 +11,7 @@ export default defineConfig(
       'node_modules',
       'dist',
       'vite.config.ts',
-      'esbuild.config.mjs',
-      'eslint.config.mjs',
-      'version-bump.mjs',
+      'eslint.config.js',
       'versions.json',
       'main.js',
       // * Temporarily ignore before refactoring finished

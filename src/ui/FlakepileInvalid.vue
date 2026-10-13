@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { FlakepilePlugin } from '@/custom-view'
+import type { FlakepilePluginRef } from '@/custom-view'
 import ObIcon from '@/wrappers/ObIcon.vue'
 import { inject } from 'vue'
 
-const plugin = inject('plugin') as FlakepilePlugin
+const plugin = inject('plugin') as FlakepilePluginRef
 </script>
 
 <template>
