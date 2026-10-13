@@ -6,7 +6,7 @@ import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
 import { ObIcon } from '@/wrappers'
 import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
-import { Platform } from 'obsidian'
+import { Menu, Platform } from 'obsidian'
 import { type ComponentPublicInstance, inject, useTemplateRef } from 'vue'
 import MenuButton from './MenuButton.vue'
 import PanelOptions from './PanelOptions.vue'
@@ -22,11 +22,12 @@ const showLabels = defineModel<boolean>('showLabels', { required: true })
 const env = inject('env') as EnvironmentRef
 const plugin = inject('plugin') as FlakepilePluginRef
 const isDev = inject('isDev') as IsDevRef
-const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
+const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
 
 const bind = useFlakepileMetaBinder(plugin)
 const metaSortBy = bind(props.meta, 'sortBy')
 const metaFlow = bind(props.meta, 'flow')
+const metaShowTimes = bind(props.meta, 'showTimes')
 
 const $buttonOptions = useTemplateRef('$buttonOptions')
 const $panelOptions = useTemplateRef<ComponentPublicInstance>('$panelOptions')
@@ -44,7 +45,32 @@ const { floatingStyles: stylesPanelOptions } = useFloating(
   },
 )
 
-// const $buttonLabels = useTemplateRef('$buttonLabels')
+function toggleOptions(event: MouseEvent) {
+  if (Platform.isDesktop) {
+    toggleOptionsDesktop()
+  }
+  if (Platform.isMobile) {
+    toggleOptionsMobile(event)
+  }
+}
+
+function toggleOptionsDesktop() {
+  showOptions.value = !showOptions.value
+}
+
+function toggleOptionsMobile(event: MouseEvent) {
+  const menu = new Menu()
+
+  menu.addItem((item) => {
+    item.setTitle('Show times')
+    item.setChecked(metaShowTimes.value)
+    item.onClick(() => {
+      metaShowTimes.value = !metaShowTimes.value
+    })
+  })
+
+  menu.showAtMouseEvent(event)
+}
 </script>
 
 <template>
@@ -77,15 +103,15 @@ const { floatingStyles: stylesPanelOptions } = useFloating(
         <option value="vertical">Vertical</option>
         <option value="horizontal">Horizontal</option>
       </select>
-
-      <MenuButton
-        ref="$buttonOptions"
-        class="fp-btn-icon-label"
-        icon="scaling"
-        label="Options"
-        @click="showOptions = !showOptions"
-      />
     </template>
+
+    <MenuButton
+      ref="$buttonOptions"
+      class="fp-btn-icon-label"
+      icon="scaling"
+      label="Options"
+      @click="toggleOptions"
+    />
   </div>
 
   <div class="menu-expand">
@@ -141,10 +167,10 @@ const { floatingStyles: stylesPanelOptions } = useFloating(
 
 <style lang="scss" scoped>
 .menu-expand-gap {
-  padding-bottom: var(--size-2-1);
+  padding-bottom: var(--size-2-3);
 
-  .is-tablet & {
-    padding-top: var(--size-4-2);
+  .is-phone & {
+    padding-bottom: 0;
   }
 }
 
@@ -154,11 +180,14 @@ const { floatingStyles: stylesPanelOptions } = useFloating(
   column-gap: var(--size-4-1);
 
   width: 100%;
-  padding-top: var(--size-4-1);
   font-size: var(--font-ui-small);
 
   > .gap {
     flex-grow: 1;
+  }
+
+  &:last-child {
+    padding-top: var(--size-4-1);
   }
 }
 </style>

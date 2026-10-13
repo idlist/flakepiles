@@ -6,7 +6,7 @@ import { computeVerticalBase, computeVerticalMasonry } from './vertical'
 
 export const design = {
   gap: { x: 12, y: 12 },
-  pad: { x: 16, y: 8 },
+  pad: { x: 4, y: 8 },
 }
 
 export interface ComputedMasonry {

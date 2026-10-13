@@ -8,13 +8,11 @@ const $anchor = useTemplateRef('$anchor')
 let color: ColorComponent | null = null
 
 onMounted(() => {
-  if ($anchor.value) {
-    color = new ColorComponent($anchor.value)
-      .setValue(model.value)
-      .onChange((value) => {
-        model.value = value
-      })
-  }
+  color = new ColorComponent($anchor.value!)
+    .setValue(model.value)
+    .onChange((value) => {
+      model.value = value
+    })
 })
 
 watch(() => model.value, (value) => {

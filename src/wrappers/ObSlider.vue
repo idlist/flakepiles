@@ -30,22 +30,20 @@ const model = defineModel<number>()
 const $anchor = useTemplateRef('$anchor')
 let slider: SliderComponent | null = null
 
-onMounted(() => {
+onMounted(async () => {
   model.value ??= props.default
 
-  if ($anchor.value) {
-    slider = new SliderComponent($anchor.value)
-      .setLimits(props.min, props.max, props.step)
-      .setValue(model.value)
-      .setDisabled(props.disabled)
-      .setInstant(props.instant)
-      .onChange((value) => {
-        model.value = value
-      })
+  slider = new SliderComponent($anchor.value!)
+    .setLimits(props.min, props.max, props.step)
+    .setValue(model.value)
+    .setDisabled(props.disabled)
+    .setInstant(props.instant)
+    .onChange((value) => {
+      model.value = value
+    })
 
-    if (props.showTooltip) {
-      slider.setDynamicTooltip()
-    }
+  if (props.showTooltip) {
+    slider.setDynamicTooltip()
   }
 })
 

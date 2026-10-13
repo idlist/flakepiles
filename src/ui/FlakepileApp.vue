@@ -218,6 +218,10 @@ function newFlake() {
     display: grid;
     grid-template-rows: min-content auto;
   }
+
+  .is-phone & {
+    padding-top: calc(var(--safe-area-inset-top) + var(--size-4-1));
+  }
 }
 
 .flakepile-menu {
@@ -227,11 +231,6 @@ function newFlake() {
   padding: var(--size-4-2) var(--size-4-4);
   background-color: var(--background-primary);
   border-bottom: var(--fp-border);
-
-  .is-phone &,
-  .is-tablet & {
-    padding: var(--size-4-2) var(--size-4-3);
-  }
 }
 
 .menu-masking {
@@ -256,7 +255,7 @@ function newFlake() {
   inset: 0;
 
   overflow-y: auto;
-  scrollbar-gutter: stable;
+  scrollbar-gutter: stable both-edges;
 }
 
 .layout-swapping {

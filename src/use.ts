@@ -20,10 +20,12 @@ export const useCssWith = <T>(
 }
 
 export function useFlakepileMetaBinder(plugin: FlakepilePluginRef) {
-  return function bind<T extends keyof FlakepileMeta>(meta: FlakepileMeta, key: T) {
+  const bind = <T extends keyof FlakepileMeta>(meta: FlakepileMeta, key: T) => {
     return computed<FlakepileMeta[T]>({
       get: () => meta[key],
       set: (val) => plugin.updateFlakepileMeta(key, val),
     })
   }
+
+  return bind
 }

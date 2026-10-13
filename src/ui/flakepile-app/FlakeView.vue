@@ -192,6 +192,7 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
   > .scrollable {
     overflow-x: auto;
     overflow-y: hidden;
+    scrollbar-gutter: stable both-edges;
   }
 
   > .scrollable.-scrolly {
@@ -205,7 +206,6 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
 
 .flake-anchor {
   display: flow-root;
-  padding: 0 var(--size-4-2);
   min-height: var(--size-4-10);
 }
 

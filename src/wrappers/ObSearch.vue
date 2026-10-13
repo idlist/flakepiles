@@ -12,9 +12,7 @@ const $anchor = useTemplateRef('$anchor')
 let search: SearchComponent | null = null
 
 onMounted(() => {
-  if (!$anchor.value) return
-
-  search = new SearchComponent($anchor.value)
+  search = new SearchComponent($anchor.value!)
     .setPlaceholder(props.placeholder ?? 'Search...')
     .setValue(model.value)
     .onChange((value: string) => {
