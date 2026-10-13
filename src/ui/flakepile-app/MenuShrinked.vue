@@ -4,7 +4,10 @@ import type { FlakepileMeta } from '@/schemes/v1'
 import { ObIcon } from '@/wrappers'
 import { inject } from 'vue'
 
-const meta = defineModel<FlakepileMeta>({ required: true })
+defineProps<{
+  meta: FlakepileMeta
+}>()
+
 const plugin = inject('plugin') as FlakepilePluginRef
 </script>
 
@@ -12,7 +15,7 @@ const plugin = inject('plugin') as FlakepilePluginRef
   <div class="menu-shrinked">
     <button
       class="fp-btn-icon"
-      @click="meta.menu = 'default'"
+      @click="plugin.updateFlakepileMeta('menu', 'default')"
     >
       <ObIcon name="chevrons-up-down" />
     </button>

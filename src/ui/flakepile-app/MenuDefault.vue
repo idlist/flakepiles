@@ -2,14 +2,17 @@
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileMeta } from '@/schemes/v1'
 import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf } from '@/utils'
+import { useCssIf } from '@/use.ts'
 import { ObIcon, ObSearch } from '@/wrappers'
 import { Platform } from 'obsidian'
 import { inject } from 'vue'
 import MenuButton from './MenuButton.vue'
 
-const meta = defineModel<FlakepileMeta>({ required: true })
-const query = defineModel<string>('query', { required: true })
+defineProps<{
+  meta: FlakepileMeta
+}>()
+
+const query = defineModel<string>({ required: true })
 
 const emit = defineEmits<{
   new: []
@@ -29,7 +32,7 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
     <button
       v-if="!Platform.isPhone"
       class="fp-btn-icon"
-      @click="meta.menu = 'shrinked'"
+      @click="plugin.updateFlakepileMeta('menu', 'shrinked')"
     >
       <ObIcon name="chevrons-down-up" />
     </button>
@@ -45,7 +48,7 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
 
     <button
       class="fp-btn-icon"
-      @click="meta.menu = 'expanded'"
+      @click="plugin.updateFlakepileMeta('menu', 'expanded')"
     >
       <ObIcon name="square-menu" />
     </button>

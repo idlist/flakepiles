@@ -1,20 +1,50 @@
 <script setup lang="ts">
 import type { IsDevRef } from '@/App.vue'
-import type { FlakepileMeta } from '@/schemes/v1'
+import type { FlakepilePluginRef } from '@/custom-view'
+import type { FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/v1'
 import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf } from '@/utils'
+import { useCssIf, useFlakepileMetaBinder } from '@/use'
 import { ObIcon } from '@/wrappers'
+import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
 import { Platform } from 'obsidian'
-import { inject } from 'vue'
+import { type ComponentPublicInstance, inject, useTemplateRef } from 'vue'
 import MenuButton from './MenuButton.vue'
+import PanelOptions from './PanelOptions.vue'
 
-const meta = defineModel<FlakepileMeta>({ required: true })
+const props = defineProps<{
+  meta: FlakepileMeta
+  flow: FlakepileAdaptiveFlow
+}>()
+
 const showOptions = defineModel<boolean>('showOptions', { required: true })
 const showLabels = defineModel<boolean>('showLabels', { required: true })
 
 const env = inject('env') as EnvironmentRef
+const plugin = inject('plugin') as FlakepilePluginRef
 const isDev = inject('isDev') as IsDevRef
 const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
+
+const bind = useFlakepileMetaBinder(plugin)
+const metaSortBy = bind(props.meta, 'sortBy')
+const metaFlow = bind(props.meta, 'flow')
+
+const $buttonOptions = useTemplateRef('$buttonOptions')
+const $panelOptions = useTemplateRef<ComponentPublicInstance>('$panelOptions')
+
+const { floatingStyles: stylesPanelOptions } = useFloating(
+  $buttonOptions,
+  $panelOptions,
+  {
+    placement: 'bottom-end',
+    middleware: [
+      offset(4),
+      shift({ padding: 8 }),
+    ],
+    whileElementsMounted: autoUpdate,
+  },
+)
+
+// const $buttonLabels = useTemplateRef('$buttonLabels')
 </script>
 
 <template>
@@ -41,15 +71,15 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
 
     <template v-if="env.size === 'large'">
       <label>Flow</label>
-      <ObIcon v-if="meta.flow == 'vertical'" name="move-vertical" />
-      <ObIcon v-if="meta.flow == 'horizontal'" name="move-horizontal" />
-      <select v-model="meta.flow" class="dropdown">
+      <ObIcon v-if="metaFlow == 'vertical'" name="move-vertical" />
+      <ObIcon v-if="metaFlow == 'horizontal'" name="move-horizontal" />
+      <select v-model="metaFlow" class="dropdown">
         <option value="vertical">Vertical</option>
         <option value="horizontal">Horizontal</option>
       </select>
 
       <MenuButton
-        ref="el-size-options-button"
+        ref="$buttonOptions"
         class="fp-btn-icon-label"
         icon="scaling"
         label="Options"
@@ -60,7 +90,7 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
 
   <div class="menu-expand">
     <MenuButton
-      ref="el-labels-button"
+      ref="$buttonLabels"
       :class="['fp-btn-icon-label', useOnlyIcon]"
       icon="tags"
       label="Labels"
@@ -70,7 +100,7 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
     <div class="gap"></div>
 
     <label>Sort by</label>
-    <select v-model="meta.sortBy" class="dropdown">
+    <select v-model="metaSortBy" class="dropdown">
       <option value="content">Content</option>
       <option value="createdAt">Time created</option>
       <option value="modifiedAt">Time modified</option>
@@ -78,34 +108,43 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
     <button
       v-if="meta.sortOrder == 'desc'"
       class="fp-btn-icon"
-      @click="meta.sortOrder = 'asc'"
+      @click="plugin.updateFlakepileMeta('sortOrder', 'asc')"
     >
       <ObIcon name="arrow-down-wide-narrow" />
     </button>
     <button
       v-if="meta.sortOrder == 'asc'"
       class="fp-btn-icon"
-      @click="meta.sortOrder = 'desc'"
+      @click="plugin.updateFlakepileMeta('sortOrder', 'desc')"
     >
       <ObIcon name="arrow-up-narrow-wide" />
     </button>
 
     <button
       class="fp-btn-icon"
-      @click="meta.menu = 'default'"
+      @click="plugin.updateFlakepileMeta('menu', 'default')"
     >
       <ObIcon name="cross" />
     </button>
   </div>
+
+  <Teleport defer to="#floating-area">
+    <PanelOptions
+      v-if="showOptions"
+      ref="$panelOptions"
+      :meta="meta"
+      :flow="flow"
+      :style="stylesPanelOptions"
+    />
+  </Teleport>
 </template>
 
 <style lang="scss" scoped>
 .menu-expand-gap {
-  padding-top: var(--size-4-2);
   padding-bottom: var(--size-2-1);
 
   .is-tablet & {
-    padding-top: var(--size-4-4);
+    padding-top: var(--size-4-2);
   }
 }
 
@@ -115,6 +154,7 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-onlyicon')
   column-gap: var(--size-4-1);
 
   width: 100%;
+  padding-top: var(--size-4-1);
   font-size: var(--font-ui-small);
 
   > .gap {

@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import type { IsDevRef } from '@/App.vue'
-import type { FlakepilePluginRef } from '@/custom-view.ts'
+import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake } from '@/schemes/v1'
-import { vFocus } from '@/utils.ts'
-import { ObIcon } from '@/wrappers.ts'
-import { useDebounceFn, useResizeObserver } from '@vueuse/core'
-import { inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
+import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
+import { useCssIf } from '@/use'
+import { ObIcon } from '@/wrappers'
+import { useDebounceFn, useFocus, useResizeObserver } from '@vueuse/core'
+import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
 import FlakeFrame from './FlakeFrame.vue'
 
 const props = defineProps<{
   flake: Flake
+  innerHeight: number
 }>()
 
 const emit = defineEmits<{
@@ -19,9 +21,11 @@ const emit = defineEmits<{
 
 const plugin = inject('plugin') as FlakepilePluginRef
 const isDev = inject('isDev') as IsDevRef
+const meta = inject('meta') as FlakepileMetaRef
 
 const $textarea = useTemplateRef('$textarea')
 const $settings = useTemplateRef('$settings')
+const { focused } = useFocus($textarea)
 
 const contentEditing = ref<string>('')
 const lastHeight = ref<number>(0)
@@ -30,7 +34,6 @@ function updateHeight() {
   const heightTextarea = $textarea.value?.scrollHeight ?? 0
   const heightSettings = $settings.value?.scrollHeight ?? 0
   const height = heightTextarea + heightSettings
-    + 4 // Magic number to not produce extra scrollbar
 
   const diff = height - lastHeight.value
   if (Math.abs(diff) < 2) return
@@ -48,12 +51,9 @@ onMounted(() => {
     async (val, old) => {
       if (val === old) return
 
-      if (typeof old !== 'undefined') {
-        plugin.updateFlakeContent(old, contentEditing.value)
-      }
-
       lastHeight.value = 0
       contentEditing.value = props.flake.content
+      focused.value = true
 
       await nextTick()
       updateHeight()
@@ -73,11 +73,21 @@ function finishEditing() {
   plugin.updateFlakeContent(props.flake.id, contentEditing.value)
   emit('finish', props.flake.id)
 }
+
+const shouldScrollY = computed(() => {
+  if (meta.value.enableMaxHeight) {
+    return lastHeight.value > meta.value.maxHeight + 2
+  } else {
+    return lastHeight.value > props.innerHeight + 2
+  }
+})
+
+const useScrollY = useCssIf(shouldScrollY, '-scrolly')
 </script>
 
 <template>
   <FlakeFrame class="flake-edit">
-    <div class="editor-area">
+    <div :class="['editor-area', useScrollY]">
       <textarea
         ref="$textarea"
         v-model="contentEditing"
@@ -114,7 +124,11 @@ function finishEditing() {
   z-index: 2;
 
   > .editor-area {
-    overflow: auto;
+    overflow: hidden;
+  }
+
+  > .editor-area.-scrolly {
+    overflow-y: scroll;
   }
 }
 

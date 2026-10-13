@@ -192,6 +192,7 @@ async function finishEditing(_id: string) {
       class="masonry-element"
       :style="styleEditing"
       :flake="flakeEditing"
+      :inner-height="innerHeight"
       @update-height="updateEditingHeight"
       @finish="finishEditing"
     />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useCssIf } from '@/utils'
+import { useCssIf } from '@/use'
 import { exists } from '@rewl/kit'
 import { SliderComponent } from 'obsidian'
 import { onMounted, useTemplateRef, watch } from 'vue'
