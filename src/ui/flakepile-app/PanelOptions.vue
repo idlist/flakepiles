@@ -20,7 +20,7 @@ const metaElasticWidth = bind(props.meta, 'elasticWidth')
 const metaEnableMaxHeight = bind(props.meta, 'enableMaxHeight')
 const metaMaxHeight = bind(props.meta, 'maxHeight')
 const metaElasticHeight = bind(props.meta, 'elasticHeight')
-const metaShowTags = bind(props.meta, 'showTags')
+const metaShowLabels = bind(props.meta, 'showLabels')
 const metaShowTimes = bind(props.meta, 'showTimes')
 const metaDirectDelete = bind(props.meta, 'directDelete')
 
@@ -33,8 +33,8 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
       <span>Width</span>
       <ObSlider
         v-model="metaWidth"
-        :default="240"
-        :min="120"
+        :default="280"
+        :min="180"
         :max="600"
         :step="20"
         class="slider"
@@ -60,7 +60,7 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
         :default="400"
         :min="120"
         :max="800"
-        :step="20"
+        :step="40"
         :disabled="!metaEnableMaxHeight"
         class="slider"
       />
@@ -81,8 +81,8 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
     <hr />
 
     <label v-if="isDev" class="option-item">
-      <span>Show times</span>
-      <input v-model="metaShowTags" type="checkbox" />
+      <span>Show Labels</span>
+      <input v-model="metaShowLabels" type="checkbox" />
     </label>
 
     <label class="option-item">

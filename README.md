@@ -1,84 +1,77 @@
 # Flakepiles for Obsidian
 
-An Obsidian plugin to put small notes / stickies / cards in a single file, and manage them in masonry layout.
+An Obsidian plugin to put small notes / stickies / cards in a single file, and manage them in a masonry layout.
 
-> This is a refactor of the original [Flakepiles (Legacy)](https://github.com/idlist/flakepiles-legacy) with a change in license.
+> This is a refactor of the original [Flakepiles (legacy)](https://github.com/idlist/flakepiles-legacy) with a change to [license](#license). The original plugin will remain as open source, and is available via [BRAT](https://github.com/TfTHacker/obsidian42-brat).
+
+## Prerequisite
+
+Somewhat newer version of Obsidian. The plugin relies on CSS [`field-sizing`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/field-sizing) property that is kind of new.
 
 ## Why
 
 I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about information density.
 
-## Prerequisite
-
-Somewhat newer version of Obsidian. The plugin relies on CSS [`field-sizing`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/field-sizing) property, which is quite new.
-
-## Features
-
-- UI design that aligns with Obsidian. It doesn't feel like another App is in your Obsidian.
-
-## Tech Stack
-
-Vite + Vue 3 + TypeScript + Sass
-
-The underlying file format (`.flakes`) is JSON. See the [non-goals](#non-goals) section for explanation.
-
 ## Roadmap
 
-Flakepile:
+Plugin side:
 
 - [x] Flakepile
   - [x] Masonry layout
   - [x] Masonry direction (vertical / horizontal)
   - [x] (Sort of) mobile-adaptive layout
-  - [x] Flake size
-  - [x] Flake elastic sizing
-  - [x] Flake sorting (name, time created, time modified)
+  - [x] Flake size settings and elastic sizing
+  - [x] Flake sorting (time created, time modified, content)
 - [x] Flake
   - [x] Flake creation, update, deletion
-  - [x] Flake markdown rendering
-  - [x] Copy flake content to clipboard
-- [x] Search filter inside a flakepile
+  - [x] Markdown rendering of Flake content
+  - [x] Copy Flake content to clipboard
+  - [x] Pinning a Flake
+- [x] Search
+  - [x] Search content
+  - [ ] Search labels
 - [ ] Flake labels
-  - [x] Label creation, update, deletion
+  - [ ] Label creation, update, deletion
   - [ ] Add / remove label to flake
-  - [ ] Label color
-  - [ ] Short display of labels in flakes (display as `+N`)
-  - [ ] Hide flake with labels
+  - [ ] Label color (as Flake color)
+  - [ ] Collapse certain labels in flakes (display as `+N`)
+  - [ ] Hide flake with certain labels
 
-Obsidian:
+Obsidian side:
 
 - [x] "Flake count" status bar item [1]
 - [x] Preview other markdown files via `[[file link]]`
 
-[1] Due to the nature of this plugin, other status bar items are hidden in flakepile view. Please let me know if you think some status bar item should be displayed.
+[1] Due to the nature of this plugin, other status bar items are hidden in flakepile view. Please let me know if you think some other status bar items should be displayed.
 
 ## Long term goals
 
 - Search keywords highlighting
-- Move and copy one or multiple flakes across flakepiles
-- Embed a flake into a markdown file
-- Export files to markdown files
+- Move and copy one or multiple Flakes across Flakepiles
+- Embed a Flake into another markdown file
+- Export a Flakepile as markdown
   - Export as a single markdown file
-  - Export as a `.zip` archive, each flake as a markdown file
-- Import the `.zip` archive to a flakepile
-- Import multiple markdown files to Flakes
+  - Export as a `.zip` archive, each Flake as a markdown file
+- Import the `.zip` archive mentioned above to a Flakepile
+- Import multiple markdown files to a Flakepile
 
 ## Non-goals
 
 - Freedom / manual layout (consider using Canvas)
-- Very large flakepile support (not the very intended way)
-- Live editing of a flake (too complex)
+- Very large Flakepile support (not impossible, but lots of work)
+- Live editing of a Flake (consider copying to an editor and then copy it back)
 - Cross-file searching / Obsidian-wise searching (restricted by API)
 - Global search indexing (restricted by API)
-- Unit testing (do not have enough time)
 
-I recognize that this plugin is not so an Obsidian-style plugin, as it does not leverage markdown file like many other plugins do. On the other hand, this has the benefit of not having to juggle with black magics that makes a markdown file look like other layout (when the layout itself is quite complicated).
+This plugin is primarily to fulfill my own use cases. For this reason, I would prioritize maintainability over adding unplanned features. I'm open to suggestions, though feature requests might be considered only when it's aligned to my own use case.
 
-Also, this plugin is primarily to fulfill my specific need. For this reason, I would prioritize maintainability over adding unplanned features. I'm open to suggestions, though feature requests might be considered only when it's aligned to my own use case. 🙏
+## Technical details
 
-## Build from source
+The tech stack of the plugin is Vite + Vue 3 + TypeScript + Sass.
 
-If you want to take a look inside the development of the plugin, or just want to ensure maximum safety, you can clone this repository and build it from source:
+The underlying file format (`.flakes`) is JSON.
+
+If you want to build the plugin from source, you can clone this repository and:
 
 ```
 npm i
@@ -89,7 +82,11 @@ npm run build     // Build for production
 
 [1] [Hot reload](https://github.com/pjeby/hot-reload)
 
-WHen running `npm run build`, the output files will be copied to `dist` folder.
+When running `npm run build`, the output files will be copied to the `dist` folder.
+
+## Changelog
+
+[Changelog for pre-1.0 versions](docs/changelog.pre-v1.md)
 
 ## License
 

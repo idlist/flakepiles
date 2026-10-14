@@ -19,7 +19,8 @@ export function getFlakeComparator(meta: FlakepileMeta): FlakeComparator {
     }
   }
 
-  // TODO: Maybe take title (first line) into consideration
+  // TODO: May take possible title (first line) into consideration
+
   if (meta.sortBy === 'content') {
     if (meta.sortOrder === 'asc') {
       return (a, b) => a.content.localeCompare(b.content)

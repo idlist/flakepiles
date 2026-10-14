@@ -242,7 +242,7 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 
   .is-tablet &,
   .is-phone & {
-    min-height: 52px; // Comply to mobile view.
+    min-height: 52px; // Comply to big mobile buttons.
   }
 }
 

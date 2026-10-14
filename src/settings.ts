@@ -3,11 +3,15 @@ import type FlakepilesPlugin from './main'
 
 export interface FlakepilePluginSettings {
   enableCommands: boolean
+  useFontSize: boolean
+  fontSize: number
 }
 
 export function createPluginSettings(): FlakepilePluginSettings {
   return {
     enableCommands: false,
+    useFontSize: false,
+    fontSize: 16,
   }
 }
 
@@ -24,10 +28,30 @@ export class FlakepileSettingTab extends PluginSettingTab {
     return [
       {
         name: 'Enable commands',
-        desc: 'Enable command pallete actions and shortcuts.',
+        desc: 'Enable command pallete actions and shortcuts (though there are not many).',
         control: {
           type: 'toggle',
           key: 'enableCommands',
+        },
+      },
+      {
+        name: 'Use another font size',
+        desc: 'Use a different font size from Obsidian.',
+        control: {
+          type: 'toggle',
+          key: 'useFontSize',
+        },
+      },
+      {
+        name: 'Font size',
+        desc: 'The font size for the Flakes in your Flakepiles.',
+        control: {
+          type: 'slider',
+          key: 'fontSize',
+          min: 10,
+          max: 24,
+          defaultValue: 16,
+          disabled: () => !this.plugin.settings.useFontSize,
         },
       },
       {
@@ -63,5 +87,18 @@ export class FlakepileSettingTab extends PluginSettingTab {
         ],
       },
     ]
+  }
+
+  async setControlValue<T extends keyof FlakepilePluginSettings>(
+    key: T,
+    value: FlakepilePluginSettings[T],
+  ) {
+    // @ts-expect-error: API exists without typings.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- API exists without typings.
+    await super.setControlValue(key, value)
+
+    if (key === 'useFontSize' || key === 'fontSize') {
+      this.plugin.updateCustomFontSize()
+    }
   }
 }

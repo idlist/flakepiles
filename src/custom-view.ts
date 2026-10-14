@@ -3,7 +3,9 @@ import { Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } fr
 import { funnel } from 'remeda'
 import { type App as VueApp, type Component, createApp, reactive, ref, toRaw } from 'vue'
 import FlakepileApp from './App.vue'
-import { dbKey, noopAsync } from './utils'
+import type FlakepilesPlugin from './main.ts'
+import { parseFlakepile } from './schemes/common.ts'
+import { dbKey, noopAsync, px } from './utils'
 
 import {
   createFlake,
@@ -15,7 +17,6 @@ import {
   type HeightCache,
   type HeightCacheCollection,
 } from '@/schemes/v1'
-import { parseFlakepile } from './schemes/common.ts'
 
 export const VIEW_TYPE = 'flakepile'
 
@@ -36,6 +37,8 @@ function createAppMeta(): PluginMeta {
 }
 
 export class FlakepileView extends TextFileView {
+  plugin: FlakepilesPlugin
+  $anchor: HTMLDivElement | null = null
   vueApp: VueApp | null = null
   rawData: string = ''
   meta: PluginMeta = reactive(createAppMeta())
@@ -44,8 +47,9 @@ export class FlakepileView extends TextFileView {
   flakeMap = new Map<string, Flake>()
   heightCache = ref<HeightCache | null>(null)
 
-  constructor(leaf: WorkspaceLeaf) {
+  constructor(leaf: WorkspaceLeaf, plugin: FlakepilesPlugin) {
     super(leaf)
+    this.plugin = plugin
   }
 
   getViewType() {
@@ -60,7 +64,10 @@ export class FlakepileView extends TextFileView {
     // Create an anchor to mount Vue app.
     const $container = this.contentEl
     $container.empty()
-    const $anchor = $container.createDiv({ cls: 'flakepile-reset' })
+    this.$anchor = $container.createDiv({ cls: 'flakepile-reset' })
+
+    // Set up custom font size.
+    this.useCustomFontSize()
 
     // Mount Vue app.
     this.vueApp = createApp(FlakepileApp as Component, {
@@ -68,7 +75,7 @@ export class FlakepileView extends TextFileView {
     })
 
     this.vueApp.provide('plugin', this)
-    this.vueApp.mount($anchor)
+    this.vueApp.mount(this.$anchor)
 
     // Register events.
     this.registerEvent(this.app.vault.on('rename', () => {
@@ -86,6 +93,9 @@ export class FlakepileView extends TextFileView {
     }
 
     // Clean up data.
+    this.$anchor?.empty()
+    this.$anchor = null
+
     this.flakepile.value = null
     this.flakeMap = new Map()
     this.heightCache.value = null
@@ -123,6 +133,17 @@ export class FlakepileView extends TextFileView {
 
   updateFileInfo() {
     this.meta.filename = this.file?.basename ?? ''
+  }
+
+  useCustomFontSize() {
+    const enable = this.plugin.settings.useFontSize
+    const size = this.plugin.settings.fontSize
+
+    if (enable) {
+      this.$anchor?.style.setProperty('--flakepile-font-size', px(size))
+    } else {
+      this.$anchor?.style.removeProperty('--flakepile-font-size')
+    }
   }
 
   trySave() {
@@ -227,7 +248,7 @@ export class FlakepileView extends TextFileView {
     const sourcePath = this.file.path
 
     // Disable input of task item checkbox.
-    const taskItemChechboxes = $anchor.querySelectorAll('.task-list-item>input')
+    const taskItemChechboxes = $anchor.querySelectorAll('.task-list-item > input')
 
     taskItemChechboxes.forEach((element) => {
       element.setAttrs({ disabled: true })

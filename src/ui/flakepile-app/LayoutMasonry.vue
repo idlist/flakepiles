@@ -34,6 +34,7 @@ const flakeEditing = computed<Flake | null>(() => {
 /* Masonry Layout */
 
 const heights = computed(() => plugin.heightCache.value?.heights ?? {})
+const heightsWatched = computed(() => Object.values(heights.value))
 const resolvedMasonry = shallowRef<ComputedMasonry>()
 const editingHeight = ref(0)
 
@@ -45,9 +46,12 @@ const stableTimerHandler = useTimeoutFn(() => {
 provide('isLayoutStable', isLayoutStable)
 export type IsLayoutStableRef = typeof isLayoutStable
 
-function resolveMasonry() {
+async function resolveMasonry() {
   // Do not recalculate layout when some Flake is being edit.
   if (flakeIdEditing.value != null) return
+
+  // Always wait for the next tick.
+  await nextTick()
 
   resolvedMasonry.value = computeMasonry(props.flow, {
     ids: props.flakes.map((f) => f.id),
@@ -65,7 +69,7 @@ const resolveMasonryThrottled = useThrottleFn(resolveMasonry, 10, true)
 
 watch(
   [
-    heights,
+    heightsWatched,
     () => props.id,
     () => props.flow,
     () => props.usableSize.width,
@@ -75,7 +79,7 @@ watch(
     () => meta.value.enableMaxHeight,
     () => meta.value.maxHeight,
     () => meta.value.elasticHeight,
-    () => meta.value.showTags,
+    () => meta.value.showLabels,
     () => meta.value.showTimes,
   ],
   () => {
@@ -168,8 +172,9 @@ const styleMasonry = computed<StyleValue>(() => {
 
 /* Flake Management */
 
-function togglePinning(id: string, value: boolean) {
+async function togglePinning(id: string, value: boolean) {
   plugin.updateFlakeMeta(id, 'pinned', value)
+  resolveMasonry()
 
   if (value) {
     bus.emit('scroll-to', id)
@@ -194,7 +199,6 @@ async function cancelEditing() {
   editingHeight.value = 0
   isLayoutStable.value = false
 
-  await nextTick()
   resolveMasonry()
 }
 
@@ -212,8 +216,6 @@ function deleteFlake(id: string) {
   plugin.deleteFlake(id)
   isLayoutStable.value = false
 
-  // Deletion does not need to wait for the next tick
-  // as there's no need to wait for any Flake's size to be cached.
   resolveMasonry()
 }
 </script>

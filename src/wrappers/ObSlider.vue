@@ -74,11 +74,12 @@ const reset = () => {
 }
 
 const ifDisabled = useCssIf(() => props.disabled, '-disabled')
+const ifDefault = useCssIf(() => props.default === model.value, '-default')
 </script>
 
 <template>
   <div class="ob-slider">
-    <div :class="['clickable-icon', ifDisabled]" @click="reset">
+    <div :class="['clickable-icon', ifDisabled, ifDefault]" @click="reset">
       <ObIcon name="rotate-ccw" />
     </div>
     <div ref="$anchor" class="ob-slider-anchor"></div>
@@ -91,6 +92,10 @@ const ifDisabled = useCssIf(() => props.disabled, '-disabled')
 
   &.-disabled {
     visibility: hidden;
+  }
+
+  &.-default {
+    color: var(--text-faint);
   }
 }
 

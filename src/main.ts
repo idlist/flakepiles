@@ -22,7 +22,7 @@ export default class FlakepilesPlugin extends Plugin {
     // Register Flakepile view.
     this.registerView(
       VIEW_TYPE,
-      (leaf) => new FlakepileView(leaf),
+      (leaf) => new FlakepileView(leaf, this),
     )
 
     // Register .flakes (JSON) file type.
@@ -146,7 +146,6 @@ export default class FlakepilesPlugin extends Plugin {
     if (!view) return
     if (!view.flakepile.value) return
 
-    // TODO: adapt with tag filters.
     const count = view.flakepile.value.flakes.length
     this.$flakeCount?.setText(`${count} Flake${count === 1 ? '' : 's'}`)
   }
@@ -181,5 +180,15 @@ export default class FlakepilesPlugin extends Plugin {
   async clearAllCache() {
     await set(dbKey, {})
     new Notice('All cache cleared.')
+  }
+
+  updateCustomFontSize() {
+    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE)
+
+    for (const leaf of leaves) {
+      if (leaf.view instanceof FlakepileView) {
+        leaf.view.useCustomFontSize()
+      }
+    }
   }
 }

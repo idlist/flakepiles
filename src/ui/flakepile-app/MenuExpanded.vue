@@ -130,8 +130,9 @@ function toggleLabels() {
     />
   </div>
 
-  <div class="menu-expand">
+  <div class="menu-expand menu-expand-row">
     <MenuButton
+      v-if="isDev"
       ref="$buttonLabels"
       :class="['fp-btn-icon-label', ifIconOnly]"
       icon="tags"
@@ -201,9 +202,9 @@ function toggleLabels() {
   > .gap {
     flex-grow: 1;
   }
+}
 
-  &:last-child {
-    padding-top: var(--size-4-1);
-  }
+.menu-expand-row {
+  padding-top: var(--size-4-1);
 }
 </style>

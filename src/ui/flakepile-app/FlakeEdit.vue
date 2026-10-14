@@ -180,8 +180,8 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   box-shadow: none;
   field-sizing: content;
 
-  font-family: var(--font-text-theme);
-  font-size: var(--font-text-size);
+  font-size: var(--flakepile-font-size, var(--font-text-size));
+  font-family: var(--font-text);
   line-height: var(--line-height-normal);
 }
 

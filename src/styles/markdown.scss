@@ -3,47 +3,59 @@
 /* Adjustment to markdown styles */
 
 .fp-markdown {
-  font-size: var(--font-text-size);
-  font-family: var(--font-text-theme);
+  font-size: var(--flakepile-font-size, var(--font-text-size));
+  font-family: var(--font-text);
   line-height: var(--line-height-normal);
+
+  h1 {
+    font-size: 1.25em;
+  }
+
+  h2 {
+    font-size: 1.2em;
+  }
+
+  h3 {
+    font-size: 1.15em;
+  }
+
+  h4 {
+    font-size: 1.1em;
+  }
+
+  h5 {
+    font-size: 1.05em;
+  }
+
+  h6 {
+    font-size: 1em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0.5em 0;
+  }
 
   p, pre, ul, ol {
     margin: 0.5em 0;
   }
 
-  ul, ol {
-    padding-inline-start: 2em;
+  // Indentation for the first level.
+  :is(ul, ol) {
+    padding-inline-start: 1.5em;
+  }
+
+  // Indentation for other levels.
+  :is(ul, ol) :is(ul, ol) {
+    padding-inline-start: 0.5em;
   }
 
   li.task-list-item > input {
     vertical-align: middle;
-    transform: translateY(-2px);
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    margin: 0.75em 0 0.5em 0;
-  }
-
-  h1 + h2,
-  h1 + h3,
-  h1 + h4,
-  h1 + h5,
-  h1 + h6,
-  h2 + h3,
-  h2 + h4,
-  h2 + h5,
-  h2 + h6,
-  h3 + h4,
-  h3 + h5,
-  h3 + h6,
-  h4 + h5,
-  h4 + h6,
-  h5 + h6 {
-    margin-top: 0;
+    transform: translateY(-0.1em);
   }
 
   img {
-    margin: 0;
+    margin: 0.5em 0;
     border-radius: var(--radius-s);
   }
 
@@ -53,15 +65,15 @@
 
     position: relative;
     margin: 0.5em 0;
-    padding: 0.25em 0.5em;
+    padding: 0.375em 0.5em;
   }
 
   pre .copy-code-button {
     @extend .fp-btn-icon;
 
     position: absolute;
-    top: 0.5em;
-    right: 0.5em;
+    top: var(--size-4-2);
+    right: var(--size-4-2);
     display: none;
   }
 
@@ -71,10 +83,10 @@
 
   code, pre code {
     font-family: var(--font-monospace);
-    font-size: var(--font-small);
+    font-size: var(--font-smaller);
     white-space: pre-wrap;
 
-    line-height: var(--line-height-normal);
-    letter-spacing: -0.05em;
+    line-height: 1;
+    letter-spacing: -0.01em;
   }
 }

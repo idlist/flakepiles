@@ -66,7 +66,7 @@ export function updateFromPreToV1(old: FlakepilePreV1): Flakepile {
       textWrap: true,
     },
     labels: flake.labels,
-    content: flake.content,
+    content: `## ${flake.name}\n\n${flake.content}`,
   }))
 
   return {
@@ -77,12 +77,12 @@ export function updateFromPreToV1(old: FlakepilePreV1): Flakepile {
       flow: old.flow,
       sortBy: sortByFromPre[old.sortBy],
       sortOrder: old.sortOrder,
-      width: old.width,
+      width: old.width * 320,
       elasticWidth: old.elasticWidth,
       enableMaxHeight: old.enableMaxHeight,
-      maxHeight: old.maxHeight,
+      maxHeight: old.maxHeight * 320,
       elasticHeight: old.elasticHeight,
-      showTags: true,
+      showLabels: true,
       showTimes: false,
       directDelete: false,
     },
