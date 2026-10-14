@@ -3,11 +3,13 @@ import { computed, type MaybeRefOrGetter, onScopeDispose, toValue } from 'vue'
 import type { FlakepilePluginRef } from './custom-view'
 import type { FlakeMeta, FlakepileMeta } from './schemes/v1'
 
+// Uses are ordered roughly from more general to more specific.
+
 export const useCssIf = <T>(
   condition: MaybeRefOrGetter<T>,
-  name: MaybeRefOrGetter<string>,
+  className: MaybeRefOrGetter<string>,
 ) => {
-  return computed(() => toValue(condition) ? toValue(name) : '')
+  return computed(() => toValue(condition) ? toValue(className) : '')
 }
 
 export const useCssWith = <T>(
@@ -18,6 +20,18 @@ export const useCssWith = <T>(
     const value = toValue(condition)
     return value ? formatter(value) : ''
   })
+}
+
+export function useListener<T extends Record<string, unknown>>(bus: Emitter<T>) {
+  const listen = <K extends keyof T>(key: K, listener: (value: T[K]) => void) => {
+    bus.on(key, listener)
+    onScopeDispose(() => bus.off(key, listener))
+
+    const stop = () => bus.off(key, listener)
+    return stop
+  }
+
+  return listen
 }
 
 export function useFlakepileMetaBinder(plugin: FlakepilePluginRef) {
@@ -40,16 +54,4 @@ export function useFlakeMetaBinder(plugin: FlakepilePluginRef) {
   }
 
   return bind
-}
-
-export function useListener<T extends Record<string, unknown>>(bus: Emitter<T>) {
-  const listen = <K extends keyof T>(key: K, listener: (value: T[K]) => void) => {
-    bus.on(key, listener)
-    onScopeDispose(() => bus.off(key, listener))
-
-    const stop = () => bus.off(key, listener)
-    return stop
-  }
-
-  return listen
 }

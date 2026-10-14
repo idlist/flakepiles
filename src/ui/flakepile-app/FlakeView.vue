@@ -146,7 +146,7 @@ function requestDelete() {
   emit('delete', props.flake.id)
 }
 
-const useDisableDelete = useCssIf(() => props.disableDelete, '-disabled')
+const ifDisableDelete = useCssIf(() => props.disableDelete, '-disabled')
 
 /* Flake Scrollable State */
 
@@ -158,12 +158,12 @@ const shouldScrollY = computed(() => {
   }
 })
 
-const useScrollY = useCssIf(shouldScrollY, '-scrolly')
+const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 </script>
 
 <template>
   <FlakeFrame ref="$flake" class="flake-view" :id="flake.id">
-    <div :class="['scrollable', useScrollY]">
+    <div :class="['scrollable', ifScrollY]">
       <div ref="$anchor" class="fp-markdown flake-anchor"></div>
     </div>
 
@@ -186,7 +186,7 @@ const useScrollY = useCssIf(shouldScrollY, '-scrolly')
 
     <div class="flake-tooltip">
       <button
-        :class="['fp-btn-icon', 'fp-danger', useDisableDelete]"
+        :class="['fp-btn-icon', 'fp-danger', ifDisableDelete]"
         @click="tryRequestDelete"
       >
         <ObIcon name="trash-2" />

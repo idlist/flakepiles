@@ -54,7 +54,7 @@ export type EnvironmentRef = typeof env
 const flowAdaptive = computed<FlakepileAdaptiveFlow>(() => {
   return env.value.size === 'small' ? 'mobile' : meta.value.flow
 })
-const useFlow = useCssWith(flowAdaptive, (val) => `-${val}`)
+const withFlow = useCssWith(flowAdaptive, (val) => `-${val}`)
 
 /* Viewport Management */
 
@@ -85,18 +85,22 @@ const showLabels = ref(false)
 
 /* Element State Tweaks */
 
-// Reset editing state and close panels when Flakepile changes.
+// Wwhen Flakepile changes:
 watch(() => props.pile.id, () => {
+  // Reset editing state (without saving).
   flakeIdEditing.value = null
+
+  // Close panels.
   showOptions.value = false
   showLabels.value = false
 })
 
-// Close panels when start editing.
+// When start editing:
 watch(flakeIdEditing, (val, old) => {
   if (val == null) return
   if (val === old) return
 
+  // Close panels.
   showOptions.value = false
   showLabels.value = false
 })
@@ -157,7 +161,7 @@ async function newFlake() {
       </div>
 
       <div class="flakepile-content">
-        <div ref="$usable" :class="['usable-area', useFlow]">
+        <div ref="$usable" :class="['usable-area', withFlow]">
           <div
             v-if="loadingState === 'swapping'"
             class="layout-swapping"

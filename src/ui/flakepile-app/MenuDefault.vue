@@ -20,7 +20,7 @@ const emit = defineEmits<{
 
 const plugin = inject('plugin') as FlakepilePluginRef
 const env = inject('env') as EnvironmentRef
-const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
+const ifIconOnly = useCssIf(() => env.value.size === 'small', '-icononly')
 </script>
 
 <template>
@@ -38,7 +38,7 @@ const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
     </button>
 
     <MenuButton
-      :class="['fp-btn-icon-label', useOnlyIcon]"
+      :class="['fp-btn-icon-label', ifIconOnly]"
       icon="plus"
       label="New Flake"
       @click="emit('new')"

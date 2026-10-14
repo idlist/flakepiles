@@ -22,7 +22,7 @@ const showLabels = defineModel<boolean>('showLabels', { required: true })
 const env = inject('env') as EnvironmentRef
 const plugin = inject('plugin') as FlakepilePluginRef
 const isDev = inject('isDev') as IsDevRef
-const useOnlyIcon = useCssIf(() => env.value.size === 'small', '-icononly')
+const ifIconOnly = useCssIf(() => env.value.size === 'small', '-icononly')
 
 const bind = useFlakepileMetaBinder(plugin)
 const metaSortBy = bind(props.meta, 'sortBy')
@@ -87,7 +87,7 @@ function toggleOptionsMobile(event: MouseEvent) {
   <div class="menu-expand">
     <div v-if="Platform.isDesktop && isDev">
       <MenuButton
-        :class="['fp-btn-icon-label', useOnlyIcon]"
+        :class="['fp-btn-icon-label', ifIconOnly]"
         icon="import"
         label="Import..."
       />
@@ -95,7 +95,7 @@ function toggleOptionsMobile(event: MouseEvent) {
 
     <div v-if="Platform.isDesktop && isDev">
       <MenuButton
-        :class="['fp-btn-icon-label', useOnlyIcon]"
+        :class="['fp-btn-icon-label', ifIconOnly]"
         icon="archive-restore"
         label="Export..."
       />
@@ -126,7 +126,7 @@ function toggleOptionsMobile(event: MouseEvent) {
     <MenuButton
       v-if="isDev"
       ref="$buttonLabels"
-      :class="['fp-btn-icon-label', useOnlyIcon]"
+      :class="['fp-btn-icon-label', ifIconOnly]"
       icon="tags"
       label="Labels"
       @click="showLabels = !showLabels"

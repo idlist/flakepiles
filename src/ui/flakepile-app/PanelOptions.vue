@@ -24,7 +24,7 @@ const metaShowTags = bind(props.meta, 'showTags')
 const metaShowTimes = bind(props.meta, 'showTimes')
 const metaDirectDelete = bind(props.meta, 'directDelete')
 
-const useMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disabled')
+const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disabled')
 </script>
 
 <template>
@@ -53,7 +53,7 @@ const useMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disabl
       <input v-model="metaEnableMaxHeight" type="checkbox" />
     </label>
 
-    <div :class="['option-item', useMaxHeightDisabled]">
+    <div :class="['option-item', ifMaxHeightDisabled]">
       <span class="label">Height</span>
       <ObSlider
         v-model="metaMaxHeight"
@@ -68,7 +68,7 @@ const useMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disabl
 
     <label
       v-if="flow === 'horizontal'"
-      :class="['option-item', useMaxHeightDisabled]"
+      :class="['option-item', ifMaxHeightDisabled]"
     >
       <span class="label">Elastic height</span>
       <input

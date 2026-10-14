@@ -73,12 +73,12 @@ const reset = () => {
   model.value = props.default
 }
 
-const cssDisabled = useCssIf(() => props.disabled, '-disabled')
+const ifDisabled = useCssIf(() => props.disabled, '-disabled')
 </script>
 
 <template>
   <div class="ob-slider">
-    <div :class="['clickable-icon', cssDisabled]" @click="reset">
+    <div :class="['clickable-icon', ifDisabled]" @click="reset">
       <ObIcon name="rotate-ccw" />
     </div>
     <div ref="$anchor" class="ob-slider-anchor"></div>

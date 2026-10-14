@@ -96,12 +96,12 @@ const shouldScrollY = computed(() => {
   }
 })
 
-const useScrollY = useCssIf(shouldScrollY, '-scrolly')
+const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 </script>
 
 <template>
   <FlakeFrame class="flake-edit" :id="flake.id">
-    <div :class="['editor-area', useScrollY]">
+    <div :class="['editor-area', ifScrollY]">
       <textarea
         ref="$textarea"
         v-model="contentEditing"

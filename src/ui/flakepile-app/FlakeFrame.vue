@@ -13,6 +13,8 @@ const isLayoutStable = inject('isLayoutStable') as IsLayoutStableRef
 const $flake = useTemplateRef('$flake')
 const listen = useListener(bus)
 
+/* Scroll Into View */
+
 listen('scroll-to', (id) => {
   if (typeof props.id === 'undefined') return
   if (props.id !== id) return
@@ -25,7 +27,30 @@ const timeout: UntilToMatchOptions = {
 
 async function scrollIntoView() {
   await until(isLayoutStable).toBe(true, timeout)
-  $flake.value?.scrollIntoView()
+  $flake.value!.scrollIntoView({ block: 'nearest' })
+}
+
+/* Callout */
+
+listen('callout', (payload) => {
+  if (typeof props.id === 'undefined') return
+  if (props.id !== payload.id) return
+  callout(payload.duration)
+})
+
+let calloutAnimation: Animation | null = null
+
+async function callout(duration: number = 500) {
+  await until($flake).not.toBeNull(timeout)
+
+  calloutAnimation?.cancel()
+  calloutAnimation = $flake.value?.animate(
+    [
+      { boxShadow: 'var(--shadow-heavy)' },
+      { boxShadow: 'var(--shadow-normal)' },
+    ],
+    { duration: duration, easing: 'ease-out' },
+  ) ?? null
 }
 </script>
 
@@ -39,5 +64,7 @@ async function scrollIntoView() {
 .fp-flake-frame {
   position: absolute;
   overflow: hidden;
+
+  scroll-margin: var(--size-4-2);
 }
 </style>

@@ -171,9 +171,12 @@ const styleMasonry = computed<StyleValue>(() => {
 
 /* Flake Management */
 
-function startEditing(id: string) {
+async function startEditing(id: string) {
   editingHeight.value = 0
   flakeIdEditing.value = id
+
+  await nextTick()
+  bus.emit('callout', { id })
 }
 
 function updateEditingHeight(height: number) {
@@ -192,6 +195,7 @@ async function cancelEditing() {
 async function finishEditing(id: string) {
   await cancelEditing()
   bus.emit('scroll-to', id)
+  bus.emit('callout', { id })
 }
 
 function deleteFlake(id: string) {
@@ -213,7 +217,6 @@ function deleteFlake(id: string) {
     <FlakeView
       v-for="flake of flakesViewing"
       :key="flake.id"
-      class="masonry-element"
       :style="stylesViewing.get(flake.id)"
       :flake="flake"
       :inner-height="innerHeight"
@@ -224,7 +227,6 @@ function deleteFlake(id: string) {
 
     <FlakeEdit
       v-if="flakeEditing"
-      class="masonry-element"
       :style="styleEditing"
       :flake="flakeEditing"
       :inner-height="innerHeight"
@@ -238,9 +240,5 @@ function deleteFlake(id: string) {
 <style scoped lang="scss">
 .layout-masonry {
   position: relative;
-}
-
-.masonry-element {
-  position: absolute;
 }
 </style>
