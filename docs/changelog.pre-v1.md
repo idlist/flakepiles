@@ -5,7 +5,7 @@ Changelog (pre 1.0)
 - Refactored the codebase to have cleaner overall structure.
 - Supports pinning Flakes at the top of the Flakepile.
 - Supports setting font size for Flakes.
-- Fixes scrolling issue ([#flakepiles-legacy/4](https://github.com/idlist/flakepiles-legacy/issues/4)) via CSS `field-sizing`.
+- Fixes scrolling issue ([flakepiles-legacy/#4](https://github.com/idlist/flakepiles-legacy/issues/4)) via CSS `field-sizing`.
 - Flake editing can be cancelled with double check.
 - Flake deletion also requires double check by default. This can be disabled on each Flakepile.
 - Deprecates flake name.

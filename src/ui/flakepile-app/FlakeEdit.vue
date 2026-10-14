@@ -111,11 +111,7 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
     </div>
 
     <div ref="$settings" class="flake-settings">
-      <button
-        v-if="!tryCancelEditing"
-        class="fp-btn-icon fp-danger"
-        @click="tryCancelEditing = true"
-      >
+      <button class="fp-btn-icon fp-danger" @click="tryCancelEditing = true">
         <ObIcon name="pencil-off" />
       </button>
       <button v-if="isDev" class="fp-btn-icon">
@@ -185,7 +181,7 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   line-height: var(--line-height-normal);
 
   .is-mobile & {
-    padding: 0.5em var(--size-4-3);
+    padding: calc(0.375em + var(--size-4-1)) var(--size-4-3);
   }
 }
 
@@ -196,6 +192,10 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 
   > .gap {
     flex-grow: 1;
+  }
+
+  .is-mobile & {
+    padding: var(--size-4-2);
   }
 }
 

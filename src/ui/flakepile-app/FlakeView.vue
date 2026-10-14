@@ -86,7 +86,7 @@ const times = computed<TimeInfo>(() => {
   const created = dayjs(props.flake.meta.createdAt)
   info.created = created.format('YYYY / M / D hh:mm:ss')
 
-  if (props.flake.meta.createdAt !== props.flake.meta.modifiedAt) {
+  if (props.flake.meta.createdAt === props.flake.meta.modifiedAt) {
     info.showModified = false
   }
   if (!info.showModified) return info
