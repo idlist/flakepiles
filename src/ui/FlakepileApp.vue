@@ -80,6 +80,7 @@ const usableSizeValues = computed<Size>(() => ({
 const searchQuery = ref<string>('')
 const searchQueryDebounced = refDebounced(searchQuery, 100)
 
+const showMenuMask = ref(false)
 const showOptions = ref(false)
 const showLabels = ref(false)
 
@@ -97,12 +98,14 @@ watch(() => props.pile.id, () => {
 
 // When start editing:
 watch(flakeIdEditing, (val, old) => {
-  if (val == null) return
-  if (val === old) return
+  if (val != null && val !== old) {
+    // Close panels.
+    showOptions.value = false
+    showLabels.value = false
+  }
 
-  // Close panels.
-  showOptions.value = false
-  showLabels.value = false
+  // Mask the menu
+  showMenuMask.value = val != null
 })
 
 /* Flake Management */
@@ -135,8 +138,6 @@ async function newFlake() {
   <div ref="$root" class="flakepile-app">
     <div class="layout">
       <div class="flakepile-menu">
-        <div class="menu-padding"></div>
-
         <MenuShrinked
           v-if="meta.menu === 'shrinked'"
           :meta="meta"
@@ -157,7 +158,7 @@ async function newFlake() {
           v-model:show-labels="showLabels"
         />
 
-        <div v-if="false" class="header-masking"></div>
+        <div v-if="showMenuMask" class="menu-masking"></div>
       </div>
 
       <div class="flakepile-content">

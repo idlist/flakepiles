@@ -34,7 +34,7 @@ const flakeEditing = computed<Flake | null>(() => {
 /* Masonry Layout */
 
 // Collect dependency of all size cache.
-const sizeCacheSignal = computed<number[]>(() => {
+const sizeCache = computed<number[]>(() => {
   return props.flakes.flatMap((flake) => [flake.cache.width, flake.cache.height])
 })
 
@@ -69,7 +69,7 @@ const resolveMasonryThrottled = useThrottleFn(resolveMasonry, 10, true)
 
 watch(
   [
-    sizeCacheSignal,
+    sizeCache,
     () => props.id,
     () => props.flow,
     () => props.usableSize.width,
@@ -137,7 +137,7 @@ const styleEditing = computed<StyleValue>(() => {
   const actualHeight = Math.min(cachedHeight, innerHeight.value)
 
   let y: number
-  const spaceBelow = innerHeight.value - rect.y
+  const spaceBelow = innerHeight.value + props.scroll.y - rect.y
 
   if (rect.y < props.scroll.y || actualHeight > innerHeight.value) {
     // 1. The top of the Flake in edit has scrolled out of the top of usable area;
@@ -170,6 +170,15 @@ const styleMasonry = computed<StyleValue>(() => {
 })
 
 /* Flake Management */
+
+function togglePinning(id: string, value: boolean) {
+  plugin.updateFlakeMeta(id, 'pinned', value)
+
+  if (value) {
+    bus.emit('scroll-to', id)
+    bus.emit('callout', { id })
+  }
+}
 
 async function startEditing(id: string) {
   editingHeight.value = 0
@@ -221,6 +230,7 @@ function deleteFlake(id: string) {
       :flake="flake"
       :inner-height="innerHeight"
       :disable-delete="flakeIdEditing != null"
+      @pin="togglePinning"
       @edit="startEditing"
       @delete="deleteFlake"
     />

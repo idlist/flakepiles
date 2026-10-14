@@ -11,8 +11,8 @@
     0 0 4px color-mix(in oklch, var(--color-primary) 15%, transparent),
     0 1px 2px color-mix(in oklch, var(--color-primary) 5%, transparent);
   --shadow-heavy:
-    0 0 8px color-mix(in oklch, var(--color-primary) 50%, transparent),
-    0 1px 4px color-mix(in oklch, var(--color-primary) 25%, transparent);
+    0 0 8px color-mix(in oklch, var(--color-primary) 75%, transparent),
+    0 1px 4px color-mix(in oklch, var(--color-primary) 50%, transparent);
 
   &.-highlight {
     box-shadow: var(--shadow-heavy);

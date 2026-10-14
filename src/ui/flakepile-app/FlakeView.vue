@@ -2,9 +2,10 @@
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake } from '@/schemes/v1'
 import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf, useFlakeMetaBinder } from '@/use.ts'
+import { useCssIf } from '@/use.ts'
 import { ObIcon } from '@/wrappers'
-import { useDebounceFn, useResizeObserver } from '@vueuse/core'
+import { delay } from '@rewl/kit'
+import { useResizeObserver, useThrottleFn } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from 'vue'
 import FlakeFrame from './FlakeFrame.vue'
@@ -21,14 +22,13 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  pin: [id: string]
+  pin: [id: string, value: boolean]
   edit: [id: string]
   delete: [id: string]
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
 const meta = inject('meta') as FlakepileMetaRef
-const bind = useFlakeMetaBinder(plugin)
 
 const $flake = useTemplateRef('$flake')
 const $anchor = useTemplateRef('$anchor')
@@ -54,7 +54,7 @@ function updateSizeCache() {
   )
 }
 
-const updateSizeCacheDebounced = useDebounceFn(updateSizeCache, 50)
+const updateSizeCacheThrottled = useThrottleFn(updateSizeCache, 10, true)
 
 function initializeSizeCache() {
   if (props.flake.cache.width !== 0 && props.flake.cache.height !== 0) return
@@ -66,12 +66,14 @@ onMounted(async () => {
 
   await nextTick()
   initializeSizeCache()
-  useResizeObserver([$anchor, $meta], updateSizeCacheDebounced)
+
+  await delay(100)
+  useResizeObserver([$anchor, $meta], updateSizeCacheThrottled)
 })
 
 /* Flake Meta */
 
-const pinned = bind(props.flake.meta, props.flake.id, 'pinned')
+const pinned = computed(() => props.flake.meta.pinned)
 
 interface TimeInfo {
   showCreated: boolean
@@ -197,7 +199,7 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
       <button class="fp-btn-icon" @click="copyContent">
         <ObIcon name="copy" />
       </button>
-      <button class="fp-btn-icon" @click="pinned = !pinned">
+      <button class="fp-btn-icon" @click="emit('pin', flake.id, !pinned)">
         <ObIcon :name="pinned ? 'pin-off' : 'pin'" />
       </button>
       <button class="fp-btn-icon" @click="emit('edit', flake.id)">

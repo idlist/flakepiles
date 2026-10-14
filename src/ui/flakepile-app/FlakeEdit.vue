@@ -5,7 +5,7 @@ import type { Flake } from '@/schemes/v1'
 import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf } from '@/use'
 import { ObIcon } from '@/wrappers'
-import { useDebounceFn, useFocus, useResizeObserver } from '@vueuse/core'
+import { useFocus, useResizeObserver, useThrottleFn } from '@vueuse/core'
 import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
 import FlakeFrame from './FlakeFrame.vue'
 
@@ -45,8 +45,8 @@ function updateHeight() {
   emit('updateHeight', height)
 }
 
-const reportHeightDebounced = useDebounceFn(updateHeight, 0)
-useResizeObserver([$textarea, $settings], reportHeightDebounced)
+const reportHeightThrottled = useThrottleFn(updateHeight, 1, true)
+useResizeObserver([$textarea, $settings], reportHeightThrottled)
 
 onMounted(() => {
   watch(
@@ -116,7 +116,7 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
         class="fp-btn-icon fp-danger"
         @click="tryCancelEditing = true"
       >
-        <ObIcon name="x" />
+        <ObIcon name="pencil-off" />
       </button>
       <button v-if="isDev" class="fp-btn-icon">
         <ObIcon name="text-wrap" />
