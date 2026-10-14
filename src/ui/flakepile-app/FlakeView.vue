@@ -30,45 +30,39 @@ const emit = defineEmits<{
 const plugin = inject('plugin') as FlakepilePluginRef
 const meta = inject('meta') as FlakepileMetaRef
 
-const $flake = useTemplateRef('$flake')
 const $anchor = useTemplateRef('$anchor')
 const $meta = useTemplateRef('$meta')
 
 /* Dynamic Sizing */
 
-function updateSizeCache() {
-  if (!$flake.value) return
-  const $el = $flake.value.$el as HTMLDivElement
+const heightCache = computed(() => plugin.heightCache.value?.heights[props.flake.id] ?? 0)
 
+function updateHeightCache() {
   const heightAnchor = $anchor.value?.scrollHeight ?? 0
   const heightMeta = $meta.value?.scrollHeight ?? 0
   const height = heightAnchor + heightMeta
 
-  const diff = height - props.flake.cache.height
+  const diff = height - heightCache.value
   if (Math.abs(diff) < 2) return
 
-  plugin.updateFlakeSizeCache(
-    props.flake.id,
-    $el.scrollWidth,
-    height,
-  )
+  plugin.updateHeightCache(props.flake.id, height)
 }
 
-const updateSizeCacheThrottled = useThrottleFn(updateSizeCache, 10, true)
+const updateHeightCacheThrottled = useThrottleFn(updateHeightCache, 10, true)
 
-function initializeSizeCache() {
-  if (props.flake.cache.width !== 0 && props.flake.cache.height !== 0) return
-  updateSizeCache()
+function initializeHeightCache() {
+  if (heightCache.value !== 0) return
+  updateHeightCache()
 }
 
 onMounted(async () => {
   await plugin.renderContent($anchor.value!, props.flake.content)
 
   await nextTick()
-  initializeSizeCache()
+  initializeHeightCache()
 
   await delay(100)
-  useResizeObserver([$anchor, $meta], updateSizeCacheThrottled)
+  useResizeObserver([$anchor, $meta], updateHeightCacheThrottled)
 })
 
 /* Flake Meta */
@@ -154,9 +148,9 @@ const ifDisableDelete = useCssIf(() => props.disableDelete, '-disabled')
 
 const shouldScrollY = computed(() => {
   if (meta.value.enableMaxHeight) {
-    return props.flake.cache.height > meta.value.maxHeight + 2
+    return heightCache.value > meta.value.maxHeight + 2
   } else {
-    return props.flake.cache.height > props.innerHeight + 2
+    return heightCache.value > props.innerHeight + 2
   }
 })
 
@@ -245,6 +239,11 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 .flake-anchor {
   display: flow-root;
   min-height: var(--size-4-10);
+
+  .is-tablet &,
+  .is-phone & {
+    min-height: 52px; // Comply to mobile view.
+  }
 }
 
 .flake-time {

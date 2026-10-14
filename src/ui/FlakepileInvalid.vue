@@ -11,7 +11,7 @@ const plugin = inject('plugin') as FlakepilePluginRef
     <div class="content">
       <div class="invalid-message">
         <p class="title"><ObIcon name="triangle-alert" /><span>Oops...</span></p>
-        <p>"<b>{{ plugin.meta.filename }}</b>" cannot be loaded.</p>
+        <p><b>{{ plugin.meta.filename }}</b> cannot be loaded.</p>
         <p>Please fix the error in the source file (as JSON) with an external editor.</p>
       </div>
 
@@ -24,11 +24,13 @@ const plugin = inject('plugin') as FlakepilePluginRef
 .flakepile-invalid {
   position: fixed;
   inset: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
 
-  font-size: var(--font-ui-medium);
+  padding: var(--size-4-2);
+  font-size: var(--font-ui-small);
 
   > .content {
     max-width: 400px;
@@ -36,8 +38,8 @@ const plugin = inject('plugin') as FlakepilePluginRef
 }
 
 .invalid-message {
-  padding: 0.25em 0.5em;
-  margin-bottom: 0.5em;
+  padding: var(--size-4-1) var(--size-4-2);
+  margin: var(--size-4-1) 0;
 
   color: var(--text-error);
   background-color: color-mix(in srgb, var(--text-error) 1%, transparent);
@@ -45,23 +47,24 @@ const plugin = inject('plugin') as FlakepilePluginRef
   border-radius: var(--radius-m);
 
   & > p {
-    margin: 0.25em 0;
-    line-height: 1.5;
+    margin: var(--size-4-1);
+    line-height: var(--line-height-normal);
   }
 
   & > .title {
     display: flex;
     align-items: center;
-    column-gap: 0.25em;
+    column-gap: var(--size-4-1);
     font-weight: bold;
   }
 }
 
 .loading-error {
-  font-size: var(--font-ui-small);
+  font-size: var(--font-ui-smaller);
   font-family: var(--font-monospace);
 
-  line-height: 1.5;
+  margin: var(--size-4-2);
+  line-height: var(--line-height-normal);
   white-space: pre-wrap;
   user-select: text;
 }

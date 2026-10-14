@@ -32,7 +32,7 @@ export default class Flakepiles extends Plugin {
       })
     }))
 
-    // Register "New flakepile" command.
+    // Register "New Flakepile" command.
     this.addCommand({
       id: 'new',
       name: 'Create a new Flakepile',
@@ -92,7 +92,7 @@ export default class Flakepiles extends Plugin {
       await this.app.workspace.getLeaf().openFile(newFile)
     } catch (e) {
       new Notice('Failed to create Flakepile. Check dev console for more information.', 0)
-      console.error('Failed to create flakepile: ', e)
+      console.error('Failed to create Flakepile: ', e)
     }
   }
 
@@ -123,6 +123,6 @@ export default class Flakepiles extends Plugin {
 
     // TODO: adapt with tag filters.
     const count = view.flakepile.value.flakes.length
-    this.$flakeCount?.setText(`${count} flake${count === 1 ? '' : 's'}`)
+    this.$flakeCount?.setText(`${count} Flake${count === 1 ? '' : 's'}`)
   }
 }

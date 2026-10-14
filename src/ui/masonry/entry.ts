@@ -1,4 +1,4 @@
-import type { Flake, FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/v1'
+import type { FlakepileAdaptiveFlow, FlakepileMeta, HeightRecord } from '@/schemes/v1'
 import type { Rect, Size } from '@/utils'
 import { computeHorizontalMasonry } from './horizontal'
 import { computeMobileMasonry } from './mobile'
@@ -21,19 +21,24 @@ export function setupComputedMasonry(): ComputedMasonry {
   }
 }
 
+export interface ComputeMasonryRequirements {
+  ids: string[]
+  heights: HeightRecord
+  meta: FlakepileMeta
+  usableSize: Size
+}
+
 export function computeMasonry(
   flow: FlakepileAdaptiveFlow,
-  flakes: Flake[],
-  meta: FlakepileMeta,
-  usableSize: Size,
+  required: ComputeMasonryRequirements,
 ): ComputedMasonry {
   switch (flow) {
     case 'vertical':
-      return computeVerticalMasonry(flakes, meta, usableSize)
+      return computeVerticalMasonry(required)
     case 'horizontal':
-      return computeHorizontalMasonry(flakes, meta, usableSize)
+      return computeHorizontalMasonry(required)
     case 'mobile':
-      return computeMobileMasonry(flakes, meta, usableSize)
+      return computeMobileMasonry(required)
   }
 }
 

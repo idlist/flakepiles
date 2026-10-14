@@ -203,7 +203,6 @@ async function newFlake() {
   position: fixed;
   inset: 0;
   top: var(--header-height);
-  min-width: 400px;
 
   .layout {
     position: relative;

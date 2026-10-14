@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { Flake, FlakepileAdaptiveFlow } from '@/schemes/v1'
+import { type Flake, type FlakepileAdaptiveFlow } from '@/schemes/v1'
 import type { FlakeIdEditingRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { bus } from '@/ui/logic/event-bus.ts'
 import { type ComputedMasonry, computeInitialWidth, computeMasonry, design } from '@/ui/masonry/entry'
@@ -33,11 +33,7 @@ const flakeEditing = computed<Flake | null>(() => {
 
 /* Masonry Layout */
 
-// Collect dependency of all size cache.
-const sizeCache = computed<number[]>(() => {
-  return props.flakes.flatMap((flake) => [flake.cache.width, flake.cache.height])
-})
-
+const heights = computed(() => plugin.heightCache.value?.heights ?? {})
 const resolvedMasonry = shallowRef<ComputedMasonry>()
 const editingHeight = ref(0)
 
@@ -50,15 +46,15 @@ provide('isLayoutStable', isLayoutStable)
 export type IsLayoutStableRef = typeof isLayoutStable
 
 function resolveMasonry() {
-  // Do not reflow when some Flake is being edit.
+  // Do not recalculate layout when some Flake is being edit.
   if (flakeIdEditing.value != null) return
 
-  resolvedMasonry.value = computeMasonry(
-    props.flow,
-    props.flakes,
-    meta.value,
-    props.usableSize,
-  )
+  resolvedMasonry.value = computeMasonry(props.flow, {
+    ids: props.flakes.map((f) => f.id),
+    heights: heights.value,
+    meta: meta.value,
+    usableSize: props.usableSize,
+  })
 
   stableTimerHandler.start()
 }
@@ -69,7 +65,7 @@ const resolveMasonryThrottled = useThrottleFn(resolveMasonry, 10, true)
 
 watch(
   [
-    sizeCache,
+    heights,
     () => props.id,
     () => props.flow,
     () => props.usableSize.width,
@@ -79,6 +75,7 @@ watch(
     () => meta.value.enableMaxHeight,
     () => meta.value.maxHeight,
     () => meta.value.elasticHeight,
+    () => meta.value.showTags,
     () => meta.value.showTimes,
   ],
   () => {
@@ -88,7 +85,7 @@ watch(
   { immediate: true },
 )
 
-const initialWidth = computed(() => {
+const flakeWidth = computed(() => {
   return computeInitialWidth(props.flow, meta.value, props.usableSize)
 })
 
@@ -107,7 +104,7 @@ const stylesViewing = computed<Map<string, StyleValue>>(() => {
       })
     } else {
       styles.set(flake.id, {
-        width: px(initialWidth.value),
+        width: px(flakeWidth.value),
         visibility: 'hidden',
       })
     }
@@ -129,7 +126,7 @@ const styleEditing = computed<StyleValue>(() => {
     // this is a newly craeted Flake and is to be put at the top left.
     return {
       translate: point(design.pad.x, props.scroll.y + design.pad.y),
-      width: px(initialWidth.value),
+      width: px(flakeWidth.value),
     }
   }
 

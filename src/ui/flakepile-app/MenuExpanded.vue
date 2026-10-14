@@ -30,6 +30,8 @@ const metaFlow = bind(props.meta, 'flow')
 const metaShowTimes = bind(props.meta, 'showTimes')
 const metaDirectDelete = bind(props.meta, 'directDelete')
 
+/* Options Panel */
+
 const $buttonOptions = useTemplateRef('$buttonOptions')
 const $panelOptions = useTemplateRef<ComponentPublicInstance>('$panelOptions')
 
@@ -79,6 +81,12 @@ function toggleOptionsMobile(event: MouseEvent) {
 
   menu.showAtMouseEvent(event)
 }
+
+/* Labels Panel */
+
+function toggleLabels() {
+  showLabels.value = !showLabels.value
+}
 </script>
 
 <template>
@@ -124,17 +132,16 @@ function toggleOptionsMobile(event: MouseEvent) {
 
   <div class="menu-expand">
     <MenuButton
-      v-if="isDev"
       ref="$buttonLabels"
       :class="['fp-btn-icon-label', ifIconOnly]"
       icon="tags"
       label="Labels"
-      @click="showLabels = !showLabels"
+      @click="toggleLabels"
     />
 
     <div class="gap"></div>
 
-    <label>Sort by</label>
+    <label>Sort</label>
     <select v-model="metaSortBy" class="dropdown">
       <option value="createdAt">Time created</option>
       <option value="modifiedAt">Time modified</option>

@@ -182,7 +182,7 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 
   font-family: var(--font-text-theme);
   font-size: var(--font-text-size);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
 }
 
 .flake-settings {

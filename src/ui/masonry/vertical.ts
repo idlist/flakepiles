@@ -1,7 +1,7 @@
-import type { Flake, FlakepileMeta } from '@/schemes/v1'
+import type { FlakepileMeta } from '@/schemes/v1'
 import type { Size } from '@/utils'
 import { createArray } from '@rewl/kit'
-import { type ComputedMasonry, design, setupComputedMasonry } from './entry'
+import { type ComputedMasonry, type ComputeMasonryRequirements, design, setupComputedMasonry } from './entry'
 
 export function computeVerticalBase(
   meta: FlakepileMeta,
@@ -26,10 +26,9 @@ export function computeVerticalBase(
 }
 
 export function computeVerticalMasonry(
-  flakes: Flake[],
-  meta: FlakepileMeta,
-  usableSize: Size,
+  required: ComputeMasonryRequirements,
 ): ComputedMasonry {
+  const { ids, heights, meta, usableSize } = required
   const computed = setupComputedMasonry()
 
   const { width, column } = computeVerticalBase(meta, usableSize)
@@ -66,11 +65,10 @@ export function computeVerticalMasonry(
     return { foundColumn, foundHeight }
   }
 
-  for (const flake of flakes) {
-    if (flake.cache.height === 0) continue
+  for (const id of ids) {
+    const height = heights[id]
+    if (!height) continue
 
-    const id = flake.id
-    const height = flake.cache.height
     const { foundColumn, foundHeight } = findShortestColumn()
 
     const x = masonryCenter

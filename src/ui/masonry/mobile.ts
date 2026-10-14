@@ -1,22 +1,17 @@
-import type { Flake, FlakepileMeta } from '@/schemes/v1'
-import type { Size } from '@/utils'
-import { type ComputedMasonry, design, setupComputedMasonry } from './entry'
+import { type ComputedMasonry, type ComputeMasonryRequirements, design, setupComputedMasonry } from './entry'
 
 export function computeMobileMasonry(
-  flakes: Flake[],
-  _meta: FlakepileMeta,
-  usableSize: Size,
+  required: ComputeMasonryRequirements,
 ): ComputedMasonry {
+  const { ids, heights, usableSize } = required
   const computed = setupComputedMasonry()
 
   const width = usableSize.width - 2 * design.pad.x
   let columnHeight = 0
 
-  for (const flake of flakes) {
-    if (flake.cache.height === 0) continue
-
-    const id = flake.id
-    const height = flake.cache.height
+  for (const id of ids) {
+    const height = heights[id]
+    if (!height) continue
 
     computed.rects.set(id, {
       x: design.pad.x,
@@ -29,7 +24,8 @@ export function computeMobileMasonry(
   }
 
   computed.size.width = usableSize.width
-  computed.size.height = columnHeight + design.gap.y + 2 * design.pad.y + 80
+  computed.size.height = columnHeight + design.gap.y + 2 * design.pad.y
+    + 80 // Safety space for bottom menu.
 
   return computed
 }

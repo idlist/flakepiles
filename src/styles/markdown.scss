@@ -5,7 +5,7 @@
 .fp-markdown {
   font-size: var(--font-text-size);
   font-family: var(--font-text-theme);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
 
   p, pre, ul, ol {
     margin: 0.5em 0;
@@ -74,7 +74,7 @@
     font-size: var(--font-small);
     white-space: pre-wrap;
 
-    line-height: 1.5;
-    letter-spacing: -0.2px;
+    line-height: var(--line-height-normal);
+    letter-spacing: -0.05em;
   }
 }

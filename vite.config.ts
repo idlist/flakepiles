@@ -60,7 +60,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      target: 'es2018',
+      target: 'es2022',
       outDir: '.',
       emptyOutDir: false,
       sourcemap: isProd ? false : 'inline',

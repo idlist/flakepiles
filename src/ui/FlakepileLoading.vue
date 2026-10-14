@@ -20,6 +20,8 @@ const plugin = inject('plugin') as FlakepilePluginRef
   align-items: center;
   justify-content: center;
 
+  padding: var(--size-4-2);
+
   .loading {
     color: var(--text-faint);
     font-size: var(--font-ui-medium);

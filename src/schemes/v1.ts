@@ -6,18 +6,11 @@ export interface FlakeMeta {
   modifiedAt: number
   pinned: boolean
   textWrap: boolean
-  desiredHeight: number
-}
-
-export interface FlakeCache {
-  width: number
-  height: number
 }
 
 export interface Flake extends WithVersion {
   id: string
   meta: FlakeMeta
-  cache: FlakeCache
   labels: string[]
   content: string
 }
@@ -31,11 +24,6 @@ export function createFlake(): Flake {
       modifiedAt: Date.now(),
       pinned: false,
       textWrap: true,
-      desiredHeight: 0,
-    },
-    cache: {
-      width: 0,
-      height: 0,
     },
     labels: [],
     content: '',
@@ -119,5 +107,20 @@ export function createFlakepile(): Flakepile {
     },
     labels: [],
     flakes: [],
+  }
+}
+
+export type HeightCacheCollection = Record<string, HeightCache>
+
+export interface HeightCache extends WithVersion {
+  heights: HeightRecord
+}
+
+export type HeightRecord = Record<string, number>
+
+export function createHeightCache(): HeightCache {
+  return {
+    version: 1,
+    heights: {},
   }
 }

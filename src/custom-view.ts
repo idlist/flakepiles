@@ -1,8 +1,20 @@
-import { createFlake, type Flake, type FlakeMeta, type Flakepile, type FlakepileMeta } from '@/schemes/v1'
+import { get, update } from 'idb-keyval'
 import { Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
-import { type App as VueApp, type Component, createApp, reactive, ref } from 'vue'
+import { funnel } from 'remeda'
+import { type App as VueApp, type Component, createApp, reactive, ref, toRaw } from 'vue'
 import FlakepileApp from './App.vue'
-import { noopAsync } from './utils'
+import { dbKey, noopAsync } from './utils'
+
+import {
+  createFlake,
+  createHeightCache,
+  type Flake,
+  type FlakeMeta,
+  type Flakepile,
+  type FlakepileMeta,
+  type HeightCache,
+  type HeightCacheCollection,
+} from '@/schemes/v1'
 
 export const VIEW_TYPE = 'flakepile'
 
@@ -26,8 +38,10 @@ export class FlakepileView extends TextFileView {
   vueApp: VueApp | null = null
   rawData: string = ''
   meta: PluginMeta = reactive(createAppMeta())
+
   flakepile = ref<Flakepile | null>(null)
   flakeMap = new Map<string, Flake>()
+  heightCache = ref<HeightCache | null>(null)
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf)
@@ -42,10 +56,12 @@ export class FlakepileView extends TextFileView {
   }
 
   async onOpen() {
+    // Create an anchor to mount Vue app.
     const $container = this.contentEl
     $container.empty()
     const $anchor = $container.createDiv({ cls: 'flakepile-reset' })
 
+    // Mount Vue app.
     this.vueApp = createApp(FlakepileApp as Component, {
       flakepile: this.flakepile,
     })
@@ -53,21 +69,26 @@ export class FlakepileView extends TextFileView {
     this.vueApp.provide('plugin', this)
     this.vueApp.mount($anchor)
 
+    // Register events.
     this.registerEvent(this.app.vault.on('rename', () => {
       this.updateFileInfo()
     }))
 
-    // Comply with Auto-review bot.
     await noopAsync()
   }
 
   async onClose() {
+    // Unmount Vue app.
     if (this.vueApp) {
       this.vueApp.unmount()
       this.vueApp = null
     }
 
+    // Clean up data.
     this.flakepile.value = null
+    this.flakeMap = new Map()
+    this.heightCache.value = null
+
     await noopAsync()
   }
 
@@ -76,29 +97,11 @@ export class FlakepileView extends TextFileView {
     this.meta.loadingError = null
     this.updateFileInfo()
 
-    if (this.meta.loadingState === 'invalid') {
-      this.meta.loadingState = 'loading'
-    }
-    if (this.meta.loadingState === 'success') {
-      this.meta.loadingState = 'swapping'
-    }
+    // Load file data.
+    this.loadJsonData()
 
-    try {
-      const nextFlakepile = JSON.parse(data) as Flakepile
-
-      this.meta.loadingState = 'success'
-      this.flakepile.value = nextFlakepile
-      this.initializeFlakeMap()
-    } catch (e) {
-      this.meta.loadingState = 'invalid'
-
-      if (e instanceof Error) {
-        this.meta.loadingError = e
-      } else {
-        new Notice('Cannot parse the Flakepile. Check the dev console for more information.')
-        console.error('Cannot parse Flakepile: ', e)
-      }
-    }
+    // Load height cache.
+    void this.loadHeightCache()
   }
 
   getViewData(): string {
@@ -110,8 +113,11 @@ export class FlakepileView extends TextFileView {
   }
 
   clear() {
-    this.vueApp = null
-    this.flakepile.value = null
+    // Do nothing for now.
+  }
+
+  notice(message: string | DocumentFragment, duration?: number) {
+    new Notice(message, duration)
   }
 
   updateFileInfo() {
@@ -123,9 +129,79 @@ export class FlakepileView extends TextFileView {
     void this.save()
   }
 
-  trySaveLazy() {
-    if (this.meta.loadingState !== 'success') return
-    this.requestSave()
+  loadJsonData() {
+    if (this.meta.loadingState === 'invalid') {
+      this.meta.loadingState = 'loading'
+    }
+    if (this.meta.loadingState === 'success') {
+      this.meta.loadingState = 'swapping'
+    }
+
+    try {
+      const nextFlakepile = JSON.parse(this.rawData) as Flakepile
+
+      this.meta.loadingState = 'success'
+      this.flakepile.value = nextFlakepile
+      this.initializeFlakeMap()
+    } catch (e) {
+      this.meta.loadingState = 'invalid'
+
+      if (e instanceof Error) {
+        this.meta.loadingError = e
+      }
+
+      new Notice('Cannot parse the Flakepile. Check the dev console for more information.')
+      console.error('Cannot parse Flakepile: ', e)
+    }
+  }
+
+  async loadHeightCache() {
+    if (this.flakepile.value == null) return
+    const pile = this.flakepile.value
+
+    const collection = await get<HeightCacheCollection>(dbKey)
+    if (typeof collection === 'undefined' || !(pile.id in collection)) {
+      this.heightCache.value = createHeightCache()
+      return
+    }
+
+    this.heightCache.value = collection[pile.id]!
+  }
+
+  async saveHeightCache() {
+    if (this.flakepile.value == null) return
+    if (this.heightCache.value == null) return
+    if (Object.isEmpty(this.heightCache.value.heights)) return
+
+    const pile = this.flakepile.value
+
+    await update<HeightCacheCollection>(dbKey, (collection) => {
+      if (!collection) collection = {}
+      collection[pile.id] = toRaw(this.heightCache.value)!
+      return collection
+    })
+  }
+
+  heightCacheLazySave = funnel(
+    () => {
+      void this.saveHeightCache()
+    },
+    { minGapMs: 100, triggerAt: 'both' },
+  )
+
+  updateHeightCache(id: string, height: number) {
+    if (!this.heightCache.value) return
+    this.heightCache.value.heights[id] = height
+    this.heightCacheLazySave.call()
+  }
+
+  clearHeightCache(id: string) {
+    this.updateHeightCache(id, 0)
+  }
+
+  clearAllHeightCache() {
+    if (!this.heightCache.value) return
+    this.heightCache.value.heights = {}
   }
 
   async renderContent($anchor: HTMLElement, content: string) {
@@ -140,6 +216,14 @@ export class FlakepileView extends TextFileView {
       sourcePath,
       this,
     )
+
+    // Postprocess rendered markdown.
+    this.postprocessMarkdown($anchor)
+  }
+
+  postprocessMarkdown($anchor: HTMLElement) {
+    if (!this.file) return
+    const sourcePath = this.file.path
 
     // Disable input of task item checkbox.
     const taskItemChechboxes = $anchor.querySelectorAll('.task-list-item>input')
@@ -171,10 +255,6 @@ export class FlakepileView extends TextFileView {
         sourcePath,
       })
     })
-  }
-
-  notice(message: string | DocumentFragment, duration?: number) {
-    new Notice(message, duration)
   }
 
   initializeFlakeMap() {
@@ -238,46 +318,20 @@ export class FlakepileView extends TextFileView {
     flake.meta.modifiedAt = Date.now()
     this.trySave()
   }
-
-  updateFlakeSizeCache(id: string, width: number, height: number) {
-    if (!this.flakepile.value) return
-
-    const flake = this.flakeMap.get(id)
-    if (!flake) return
-
-    flake.cache.width = width
-    flake.cache.height = height
-    this.trySaveLazy()
-  }
-
-  clearFlakeSizeCache(id: string) {
-    this.updateFlakeSizeCache(id, 0, 0)
-  }
-
-  clearAllFlakeSizeCache() {
-    if (!this.flakepile.value) return
-
-    for (const flake of this.flakepile.value.flakes) {
-      flake.cache.width = 0
-      flake.cache.height = 0
-    }
-
-    this.trySaveLazy()
-  }
 }
 
 export type FlakepilePluginRef = Pick<
   FlakepileView,
   | 'meta'
   | 'flakeMap'
-  | 'trySave'
-  | 'trySaveLazy'
+  | 'heightCache'
   | 'notice'
+  | 'heightCacheLazySave'
+  | 'updateHeightCache'
   | 'renderContent'
   | 'updateFlakepileMeta'
   | 'addFlake'
   | 'deleteFlake'
   | 'updateFlakeMeta'
   | 'updateFlakeContent'
-  | 'updateFlakeSizeCache'
 >

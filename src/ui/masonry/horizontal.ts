@@ -1,12 +1,9 @@
-import type { Flake, FlakepileMeta } from '@/schemes/v1'
-import type { Size } from '@/utils'
-import { type ComputedMasonry, design, setupComputedMasonry } from './entry'
+import { type ComputedMasonry, type ComputeMasonryRequirements, design, setupComputedMasonry } from './entry'
 
 export function computeHorizontalMasonry(
-  flakes: Flake[],
-  meta: FlakepileMeta,
-  usableSize: Size,
+  required: ComputeMasonryRequirements,
 ): ComputedMasonry {
+  const { ids, heights, meta, usableSize } = required
   const computed = setupComputedMasonry()
 
   const width = meta.width
@@ -103,11 +100,10 @@ export function computeHorizontalMasonry(
     stash = []
   }
 
-  for (const flake of flakes) {
-    if (flake.cache.height === 0) continue
+  for (const id of ids) {
+    const height = heights[id]
+    if (!height) continue
 
-    const id = flake.id
-    const height = flake.cache.height
     const actualHeight = height > maxHeight ? maxHeight : height
     const isColumnFull = columnHeight + actualHeight > usableHeight
 
@@ -120,7 +116,7 @@ export function computeHorizontalMasonry(
       }
 
       stash.push({
-        id: flake.id,
+        id,
         height: height,
         overflow: height > maxHeight,
         allocated: actualHeight,

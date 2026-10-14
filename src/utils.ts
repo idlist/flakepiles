@@ -4,16 +4,7 @@ export const point = (x: number, y: number) => `${x}px ${y}px`
 
 export const noopAsync = async () => await Promise.resolve()
 
-export class CausedError<T> extends Error {
-  cause: string
-  data?: T
-
-  constructor(message: string, cause: string, data?: T) {
-    super(message)
-    this.cause = cause
-    this.data = data
-  }
-}
+export const dbKey = 'flakepiles:height-cache'
 
 export interface Point {
   x: number
