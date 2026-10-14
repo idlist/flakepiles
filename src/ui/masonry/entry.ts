@@ -1,12 +1,27 @@
 import type { FlakepileAdaptiveFlow, FlakepileMeta, HeightRecord } from '@/schemes/v1'
-import type { Rect, Size } from '@/utils'
+import type { Point, Rect, Size } from '@/utils'
+import { Platform } from 'obsidian'
 import { computeHorizontalMasonry } from './horizontal'
 import { computeMobileMasonry } from './mobile'
 import { computeVerticalBase, computeVerticalMasonry } from './vertical'
 
-export const design = {
-  gap: { x: 12, y: 12 },
-  pad: { x: 4, y: 8 },
+interface Design {
+  gap: Point
+  pad: Point
+}
+
+export function getDesign(): Design {
+  if (Platform.isMobile) {
+    return {
+      gap: { x: 12, y: 12 },
+      pad: { x: 16, y: 12 },
+    }
+  } else {
+    return {
+      gap: { x: 12, y: 12 },
+      pad: { x: 4, y: 8 },
+    }
+  }
 }
 
 export interface ComputedMasonry {
@@ -47,6 +62,8 @@ export function computeInitialWidth(
   meta: FlakepileMeta,
   usableSize: Size,
 ): number {
+  const design = getDesign()
+
   if (flow === 'mobile') {
     return usableSize.width - 2 * design.pad.x
   } else if (flow === 'vertical' && meta.elasticWidth) {

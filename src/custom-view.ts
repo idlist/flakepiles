@@ -64,7 +64,7 @@ export class FlakepileView extends TextFileView {
     // Create an anchor to mount Vue app.
     const $container = this.contentEl
     $container.empty()
-    this.$anchor = $container.createDiv({ cls: 'flakepile-reset' })
+    this.$anchor = $container.createDiv({ cls: 'flakepile-plugin' })
 
     // Set up custom font size.
     this.useCustomFontSize()

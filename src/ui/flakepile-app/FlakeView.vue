@@ -240,9 +240,9 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   display: flow-root;
   min-height: var(--size-4-10);
 
-  .is-tablet &,
-  .is-phone & {
-    min-height: 52px; // Comply to big mobile buttons.
+  .is-mobile & {
+    min-height: var(--size-4-16); // Comply to big mobile buttons.
+    padding: var(--size-4-1) var(--size-4-3);
   }
 }
 
@@ -281,6 +281,10 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   > .gap {
     flex-grow: 1;
   }
+
+  .is-mobile & {
+    inset: var(--size-4-2);
+  }
 }
 
 .flake-view:hover > .flake-tooltip {
@@ -299,5 +303,10 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   position: absolute;
   top: var(--size-4-1);
   left: var(--size-4-1);
+
+  .is-mobile & {
+    top: var(--size-4-2);
+    left: var(--size-4-2);
+  }
 }
 </style>

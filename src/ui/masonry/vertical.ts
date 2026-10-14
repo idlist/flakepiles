@@ -1,12 +1,11 @@
 import type { FlakepileMeta } from '@/schemes/v1'
 import type { Size } from '@/utils'
 import { createArray } from '@rewl/kit'
-import { type ComputedMasonry, type ComputeMasonryRequirements, design, setupComputedMasonry } from './entry'
+import { type ComputedMasonry, type ComputeMasonryRequirements, getDesign, setupComputedMasonry } from './entry'
 
-export function computeVerticalBase(
-  meta: FlakepileMeta,
-  usableSize: Size,
-) {
+export function computeVerticalBase(meta: FlakepileMeta, usableSize: Size) {
+  const design = getDesign()
+
   let width = meta.width
   const usableWidth = usableSize.width - 2 * design.pad.x
   let column: number = 1
@@ -29,6 +28,7 @@ export function computeVerticalMasonry(
   required: ComputeMasonryRequirements,
 ): ComputedMasonry {
   const { ids, heights, meta, usableSize } = required
+  const design = getDesign()
   const computed = setupComputedMasonry()
 
   const { width, column } = computeVerticalBase(meta, usableSize)

@@ -1,9 +1,10 @@
-import { type ComputedMasonry, type ComputeMasonryRequirements, design, setupComputedMasonry } from './entry'
+import { type ComputedMasonry, type ComputeMasonryRequirements, getDesign, setupComputedMasonry } from './entry'
 
 export function computeHorizontalMasonry(
   required: ComputeMasonryRequirements,
 ): ComputedMasonry {
   const { ids, heights, meta, usableSize } = required
+  const design = getDesign()
   const computed = setupComputedMasonry()
 
   const width = meta.width

@@ -216,6 +216,10 @@ async function newFlake() {
   .is-phone & {
     padding-top: calc(var(--safe-area-inset-top) + var(--size-4-1));
   }
+
+  .is-tablet & {
+    padding-top: var(--size-4-2);
+  }
 }
 
 .flakepile-menu {

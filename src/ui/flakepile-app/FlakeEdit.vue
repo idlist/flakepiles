@@ -183,6 +183,10 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   font-size: var(--flakepile-font-size, var(--font-text-size));
   font-family: var(--font-text);
   line-height: var(--line-height-normal);
+
+  .is-mobile & {
+    padding: 0.5em var(--size-4-3);
+  }
 }
 
 .flake-settings {
@@ -207,5 +211,10 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   position: absolute;
   bottom: var(--size-4-1);
   left: var(--size-4-1);
+
+  .is-mobile & {
+    bottom: var(--size-4-2);
+    left: var(--size-4-2);
+  }
 }
 </style>

@@ -3,7 +3,7 @@ import type { FlakepilePluginRef } from '@/custom-view'
 import { type Flake, type FlakepileAdaptiveFlow } from '@/schemes/v1'
 import type { FlakeIdEditingRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { bus } from '@/ui/logic/event-bus.ts'
-import { type ComputedMasonry, computeInitialWidth, computeMasonry, design } from '@/ui/masonry/entry'
+import { type ComputedMasonry, computeInitialWidth, computeMasonry, getDesign } from '@/ui/masonry/entry'
 import { type Point, point, px, type Size } from '@/utils'
 import { useThrottleFn, useTimeoutFn } from '@vueuse/core'
 import { computed, inject, nextTick, provide, ref, shallowRef, type StyleValue, watch } from 'vue'
@@ -72,6 +72,7 @@ watch(
     heightsWatched,
     () => props.id,
     () => props.flow,
+    () => props.flakes,
     () => props.usableSize.width,
     () => props.usableSize.height,
     () => meta.value.width,
@@ -117,13 +118,14 @@ const stylesViewing = computed<Map<string, StyleValue>>(() => {
   return styles
 })
 
-const innerHeight = computed(() => props.usableSize.height - 2 * design.pad.y)
+const innerHeight = computed(() => props.usableSize.height - 2 * getDesign().pad.y)
 
 // The Flake in edit is to be taken out of the original masonry.
 const styleEditing = computed<StyleValue>(() => {
   const id = flakeIdEditing.value
   if (!id) return
 
+  const design = getDesign()
   const rect = resolvedMasonry.value?.rects.get(id)
   if (!rect) {
     // If cannot find originally computed rect,

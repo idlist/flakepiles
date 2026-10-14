@@ -49,10 +49,10 @@ const { floatingStyles: stylesPanelOptions } = useFloating(
 )
 
 function toggleOptions(event: MouseEvent) {
-  if (Platform.isDesktop) {
+  if (Platform.isDesktop || Platform.isTablet) {
     toggleOptionsDesktop()
   }
-  if (Platform.isMobile || Platform.isTablet) {
+  if (Platform.isPhone) {
     toggleOptionsMobile(event)
   }
 }
@@ -186,7 +186,7 @@ function toggleLabels() {
 .menu-expand-gap {
   padding-bottom: var(--size-2-3);
 
-  .is-phone & {
+  .is-mobile & {
     padding-bottom: 0;
   }
 }

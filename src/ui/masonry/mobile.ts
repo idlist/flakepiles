@@ -1,8 +1,9 @@
-import { type ComputedMasonry, type ComputeMasonryRequirements, design, setupComputedMasonry } from './entry'
+import { type ComputedMasonry, type ComputeMasonryRequirements, getDesign, setupComputedMasonry } from './entry'
 
 export function computeMobileMasonry(
   required: ComputeMasonryRequirements,
 ): ComputedMasonry {
+  const design = getDesign()
   const { ids, heights, usableSize } = required
   const computed = setupComputedMasonry()
 

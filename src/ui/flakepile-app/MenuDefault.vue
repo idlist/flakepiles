@@ -24,13 +24,13 @@ const ifIconOnly = useCssIf(() => env.value.size === 'small', '-icononly')
 </script>
 
 <template>
-  <h1 class="fp-filename menu-filename">
+  <h1 v-if="Platform.isDesktop" class="fp-filename menu-filename">
     {{ plugin.meta.filename }}
   </h1>
 
   <div class="menu-default">
     <button
-      v-if="!Platform.isPhone"
+      v-if="Platform.isDesktop"
       class="fp-btn-icon"
       @click="plugin.updateFlakepileMeta('menu', 'shrinked')"
     >
