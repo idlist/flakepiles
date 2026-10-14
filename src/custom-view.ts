@@ -15,6 +15,7 @@ import {
   type HeightCache,
   type HeightCacheCollection,
 } from '@/schemes/v1'
+import { parseFlakepile } from './schemes/common.ts'
 
 export const VIEW_TYPE = 'flakepile'
 
@@ -138,7 +139,7 @@ export class FlakepileView extends TextFileView {
     }
 
     try {
-      const nextFlakepile = JSON.parse(this.rawData) as Flakepile
+      const nextFlakepile = parseFlakepile(this.rawData)
 
       this.meta.loadingState = 'success'
       this.flakepile.value = nextFlakepile

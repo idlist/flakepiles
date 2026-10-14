@@ -1,14 +1,24 @@
 import './styles/colors.scss'
 import './styles/globals.scss'
 import './styles/markdown.scss'
+import { get, set } from 'idb-keyval'
 import { Notice, Plugin, TFolder } from 'obsidian'
 import { FlakepileView, VIEW_TYPE } from './custom-view'
-import { createFlakepile } from './schemes/v1'
+import { parseFlakepile } from './schemes/common'
+import { createFlakepile, type HeightCacheCollection } from './schemes/v1'
+import { createPluginSettings, type FlakepilePluginSettings, FlakepileSettingTab } from './settings'
+import { dbKey } from './utils'
 
-export default class Flakepiles extends Plugin {
+export default class FlakepilesPlugin extends Plugin {
+  settings = createPluginSettings()
   $flakeCount?: HTMLElement
 
-  onload() {
+  async onload() {
+    // Setup settings.
+    await this.loadSettings()
+
+    this.addSettingTab(new FlakepileSettingTab(this.app, this))
+
     // Register Flakepile view.
     this.registerView(
       VIEW_TYPE,
@@ -36,8 +46,14 @@ export default class Flakepiles extends Plugin {
     this.addCommand({
       id: 'new',
       name: 'Create a new Flakepile',
-      callback: async () => {
-        await this.createFlakepileFile()
+      checkCallback: (checking) => {
+        if (this.settings.enableCommands) {
+          if (!checking) {
+            void this.createFlakepileFile()
+          }
+          return true
+        }
+        return false
       },
     })
 
@@ -56,6 +72,15 @@ export default class Flakepiles extends Plugin {
 
   onunload() {
     this.removeCssMarker()
+  }
+
+  async loadSettings() {
+    const settingsData = await this.loadData() as FlakepilePluginSettings
+    this.settings = Object.assign(createPluginSettings(), settingsData)
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings)
   }
 
   async createFlakepileFile(folder?: TFolder) {
@@ -124,5 +149,37 @@ export default class Flakepiles extends Plugin {
     // TODO: adapt with tag filters.
     const count = view.flakepile.value.flakes.length
     this.$flakeCount?.setText(`${count} Flake${count === 1 ? '' : 's'}`)
+  }
+
+  async clearUnusedCache() {
+    const collection = await get<HeightCacheCollection>(dbKey)
+    if (!collection) return
+
+    const allFiles = this.app.vault.getFiles()
+    const allFlakepiles = allFiles.filter((f) => f.extension === 'flakes')
+
+    const aliveIds = new Set<string>()
+
+    await Promise.allSettled(allFlakepiles.map(async (f) => {
+      const content = await this.app.vault.read(f)
+      const pile = parseFlakepile(content)
+      aliveIds.add(pile.id)
+    }))
+
+    let count = 0
+    for (const id of Object.keys(collection)) {
+      if (!aliveIds.has(id)) {
+        delete collection[id]
+        count++
+      }
+    }
+
+    await set(dbKey, collection)
+    new Notice(`${count} Unused cache cleared.`)
+  }
+
+  async clearAllCache() {
+    await set(dbKey, {})
+    new Notice('All cache cleared.')
   }
 }

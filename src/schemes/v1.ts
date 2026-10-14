@@ -40,7 +40,7 @@ export interface FlakeLabel extends WithVersion {
   id: string
   name: string
   color: FlakeLabelColor
-  shortened: boolean
+  collapsed: boolean
   filtered: boolean
 }
 
@@ -50,7 +50,7 @@ export function createFlakeLabel(): FlakeLabel {
     id: nanoid(8),
     name: '',
     color: 'none',
-    shortened: false,
+    collapsed: false,
     filtered: false,
   }
 }
