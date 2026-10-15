@@ -6,6 +6,7 @@ import { bus } from '@/ui/logic/event-bus.ts'
 import { type ComputedMasonry, computeInitialWidth, computeMasonry, getDesign } from '@/ui/masonry/entry'
 import { type Point, point, px, type Size } from '@/utils'
 import { useThrottleFn, useTimeoutFn } from '@vueuse/core'
+import { Platform } from 'obsidian'
 import { computed, inject, nextTick, provide, ref, shallowRef, type StyleValue, watch } from 'vue'
 import FlakeEdit from './FlakeEdit.vue'
 import FlakeView from './FlakeView.vue'
@@ -34,21 +35,25 @@ const flakeEditing = computed<Flake | null>(() => {
 /* Masonry Layout */
 
 const heights = computed(() => plugin.heightCache.value?.heights ?? {})
-const heightsWatched = computed(() => Object.values(heights.value))
 const resolvedMasonry = shallowRef<ComputedMasonry>()
 const editingHeight = ref(0)
 
+/** A signal for Flakes to recognize if the layout has stabilized,
+    so that the Flakes can perform actions like scrolling into view. */
 const isLayoutStable = ref(false)
+provide('isLayoutStable', isLayoutStable)
+export type IsLayoutStableRef = typeof isLayoutStable
+
 const stableTimerHandler = useTimeoutFn(() => {
   isLayoutStable.value = true
 }, 100)
 
-provide('isLayoutStable', isLayoutStable)
-export type IsLayoutStableRef = typeof isLayoutStable
-
 async function resolveMasonry() {
   // Do not recalculate layout when some Flake is being edit.
   if (flakeIdEditing.value != null) return
+
+  // Mark the layout to be unstable.
+  isLayoutStable.value = false
 
   // Always wait for the next tick.
   await nextTick()
@@ -68,8 +73,13 @@ async function resolveMasonry() {
 const resolveMasonryThrottled = useThrottleFn(resolveMasonry, 10, true)
 
 watch(
+  heights,
+  resolveMasonryThrottled,
+  { immediate: true, deep: true },
+)
+
+watch(
   [
-    heightsWatched,
     () => props.id,
     () => props.flow,
     () => props.flakes,
@@ -83,10 +93,7 @@ watch(
     () => meta.value.showLabels,
     () => meta.value.showTimes,
   ],
-  () => {
-    isLayoutStable.value = false
-    resolveMasonryThrottled()
-  },
+  resolveMasonryThrottled,
   { immediate: true },
 )
 
@@ -127,9 +134,10 @@ const styleEditing = computed<StyleValue>(() => {
 
   const design = getDesign()
   const rect = resolvedMasonry.value?.rects.get(id)
+
+  // If cannot find originally computed rect,
+  // this is a newly craeted Flake and is to be put at the top left.
   if (!rect) {
-    // If cannot find originally computed rect,
-    // this is a newly craeted Flake and is to be put at the top left.
     return {
       translate: point(design.pad.x, props.scroll.y + design.pad.y),
       width: px(flakeWidth.value),
@@ -137,7 +145,16 @@ const styleEditing = computed<StyleValue>(() => {
   }
 
   const cachedHeight = editingHeight.value || rect.height
-  const actualHeight = Math.min(cachedHeight, innerHeight.value)
+  let availableHeight = innerHeight.value
+
+  // As on mobile the usable height changes when the keyboard rises,
+  // It's impossible to have a relative available height
+  // and reserve space for the bottom menu at the same time.
+  if (Platform.isMobile) {
+    availableHeight = Math.min(availableHeight, 400)
+  }
+
+  const actualHeight = Math.min(cachedHeight, availableHeight)
 
   let y: number
   const spaceBelow = innerHeight.value + props.scroll.y - rect.y
@@ -199,8 +216,6 @@ function updateEditingHeight(height: number) {
 async function cancelEditing() {
   flakeIdEditing.value = null
   editingHeight.value = 0
-  isLayoutStable.value = false
-
   resolveMasonry()
 }
 
@@ -216,8 +231,6 @@ function deleteFlake(id: string) {
   if (flakeIdEditing.value) return
 
   plugin.deleteFlake(id)
-  isLayoutStable.value = false
-
   resolveMasonry()
 }
 </script>
@@ -229,6 +242,7 @@ function deleteFlake(id: string) {
       :key="flake.id"
       :style="stylesViewing.get(flake.id)"
       :flake="flake"
+      :flow="flow"
       :inner-height="innerHeight"
       :disable-delete="flakeIdEditing != null"
       @pin="togglePinning"

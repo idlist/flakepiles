@@ -94,7 +94,7 @@ When running `npm run build`, the output files will be copied to the `dist` fold
 
 ### Cache storage
 
-This plugin used IndexedDB with [`idb-keyval`](https://github.com/jakearchibald/idb-keyval) to store cache data, which means (by default) the data is stored in database `keyval-store` and table `keyval`.
+This plugin uses IndexedDB with [`idb-keyval`](https://github.com/jakearchibald/idb-keyval) to store cache data, which means (by default) the data is stored in database `keyval-store` and table `keyval`.
 
 ## Changelog
 

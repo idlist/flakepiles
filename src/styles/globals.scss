@@ -8,16 +8,12 @@
 
 /* Utilities */
 
-.fp-warning {
+.fp-warning, button.fp-warning {
   color: var(--color-base-00);
   background-color: var(--text-warning);
 }
 
-button.fp-warning {
-  @extend .fp-warning;
-}
-
-.fp-danger {
+.fp-danger, button.fp-danger {
   color: var(--color-base-00);
   background-color: var(--text-error);
 
@@ -27,11 +23,7 @@ button.fp-warning {
   }
 }
 
-button.fp-danger {
-  @extend .fp-danger;
-}
-
-.fp-invert {
+.fp-invert, button.fp-invert {
   color: var(--color-base-00);
   background-color: var(--text-normal);
 }
@@ -63,11 +55,6 @@ button.fp-danger {
     padding-left: var(--size-4-3);
   }
 
-  .is-tablet & {
-    padding-left: var(--size-4-3) !important;
-    padding-right: var(--size-4-3) !important;
-  }
-
   .is-phone &.-icononly {
     padding-left: var(--size-4-2);
   }
@@ -75,6 +62,12 @@ button.fp-danger {
   &.-icononly .label {
     display: none;
   }
+}
+
+// Dirty CSS selector to heighten specificity.
+.is-tablet button.fp-btn-icon-label {
+  padding-left: var(--size-4-3);
+  padding-right: var(--size-4-3);
 }
 
 .fp-image {

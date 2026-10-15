@@ -3,7 +3,8 @@ import type { IsDevRef } from '@/App.vue'
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake } from '@/schemes/common'
 import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf } from '@/use'
+import { useCssIf, useFlakeMetaBinder } from '@/use'
+import { getScrollbarHeight } from '@/utils'
 import { ObIcon } from '@/wrappers'
 import { useFocus, useResizeObserver, useThrottleFn } from '@vueuse/core'
 import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
@@ -28,6 +29,9 @@ const $textarea = useTemplateRef('$textarea')
 const $settings = useTemplateRef('$settings')
 const { focused } = useFocus($textarea)
 
+const bind = useFlakeMetaBinder(plugin)
+const textWrap = bind(props.flake.meta, props.flake.id, 'textWrap')
+
 /* Dynamic Sizing */
 
 const contentEditing = ref<string>('')
@@ -36,7 +40,8 @@ const lastHeight = ref<number>(0)
 function updateHeight() {
   const heightTextarea = $textarea.value?.scrollHeight ?? 0
   const heightSettings = $settings.value?.scrollHeight ?? 0
-  const height = heightTextarea + heightSettings
+  const heightScrollbar = getScrollbarHeight($textarea.value)
+  const height = heightTextarea + heightSettings + heightScrollbar
 
   const diff = height - lastHeight.value
   if (Math.abs(diff) < 2) return
@@ -97,24 +102,32 @@ const shouldScrollY = computed(() => {
 })
 
 const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
+const ifNoWrap = useCssIf(() => !textWrap.value, '-nowrap')
+const ifTextWrap = useCssIf(textWrap, 'fp-invert')
 </script>
 
 <template>
   <FlakeFrame class="flake-edit" :id="flake.id">
-    <div :class="['editor-area', ifScrollY]">
+    <div :class="['scrollable', ifScrollY]">
       <textarea
         ref="$textarea"
         v-model="contentEditing"
-        class="content-editor"
+        :class="['content-editor', ifNoWrap]"
         placeholder="Note here..."
       ></textarea>
     </div>
 
     <div ref="$settings" class="flake-settings">
-      <button class="fp-btn-icon fp-danger" @click="tryCancelEditing = true">
+      <button
+        class="fp-btn-icon fp-danger"
+        @click="tryCancelEditing = true"
+      >
         <ObIcon name="pencil-off" />
       </button>
-      <button v-if="isDev" class="fp-btn-icon">
+      <button
+        :class="['fp-btn-icon', ifTextWrap]"
+        @click="textWrap = !textWrap"
+      >
         <ObIcon name="text-wrap" />
       </button>
       <button v-if="isDev" class="fp-btn-icon">
@@ -152,13 +165,13 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   grid-template-rows: auto max-content;
   z-index: 2;
 
-  > .editor-area {
+  > .scrollable {
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-gutter: stable both-edges;
   }
 
-  > .editor-area.-scrolly {
+  > .scrollable.-scrolly {
     overflow-y: scroll;
   }
 }
@@ -168,8 +181,8 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   width: 100%;
   background-color: transparent;
 
-  padding: 0.5em 0;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   overflow-wrap: break-word;
   resize: none;
   border: none;
@@ -179,9 +192,14 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   font-size: var(--flakepile-font-size, var(--font-text-size));
   font-family: var(--font-text);
   line-height: var(--line-height-normal);
+  padding: calc(0.5em + var(--size-2-1)) 0;
 
   .is-mobile & {
     padding: calc(0.375em + var(--size-4-1)) var(--size-4-3);
+  }
+
+  &.-nowrap {
+    white-space: nowrap;
   }
 }
 

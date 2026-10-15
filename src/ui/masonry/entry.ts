@@ -10,17 +10,21 @@ interface Design {
   pad: Point
 }
 
+const designForMobile: Design = {
+  gap: { x: 12, y: 12 },
+  pad: { x: 24, y: 12 },
+}
+
+const designForDesktop: Design = {
+  gap: { x: 12, y: 12 },
+  pad: { x: 4, y: 8 },
+}
+
 export function getDesign(): Design {
   if (Platform.isMobile) {
-    return {
-      gap: { x: 12, y: 12 },
-      pad: { x: 24, y: 12 },
-    }
+    return designForMobile
   } else {
-    return {
-      gap: { x: 12, y: 12 },
-      pad: { x: 4, y: 8 },
-    }
+    return designForDesktop
   }
 }
 

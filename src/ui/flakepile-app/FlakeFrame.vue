@@ -49,7 +49,7 @@ async function callout(duration: number = 500) {
       { boxShadow: 'var(--shadow-heavy)' },
       { boxShadow: 'var(--shadow-normal)' },
     ],
-    { duration: duration, easing: 'ease-out' },
+    { duration: duration, easing: 'ease-in' },
   ) ?? null
 }
 </script>

@@ -6,8 +6,8 @@ import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
 import { ObIcon } from '@/wrappers'
 import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
-import { Menu, Platform } from 'obsidian'
-import { type ComponentPublicInstance, inject, useTemplateRef } from 'vue'
+import { Platform } from 'obsidian'
+import { inject, useTemplateRef } from 'vue'
 import MenuButton from './MenuButton.vue'
 import PanelOptions from './PanelOptions.vue'
 
@@ -27,13 +27,11 @@ const ifIconOnly = useCssIf(() => env.value.size === 'small', '-icononly')
 const bind = useFlakepileMetaBinder(plugin)
 const metaSortBy = bind(props.meta, 'sortBy')
 const metaFlow = bind(props.meta, 'flow')
-const metaShowTimes = bind(props.meta, 'showTimes')
-const metaDirectDelete = bind(props.meta, 'directDelete')
 
 /* Options Panel */
 
 const $buttonOptions = useTemplateRef('$buttonOptions')
-const $panelOptions = useTemplateRef<ComponentPublicInstance>('$panelOptions')
+const $panelOptions = useTemplateRef<InstanceType<typeof PanelOptions>>('$panelOptions')
 
 const { floatingStyles: stylesPanelOptions } = useFloating(
   $buttonOptions,
@@ -50,36 +48,11 @@ const { floatingStyles: stylesPanelOptions } = useFloating(
 
 function toggleOptions(event: MouseEvent) {
   if (Platform.isDesktop || Platform.isTablet) {
-    toggleOptionsDesktop()
+    showOptions.value = !showOptions.value
   }
   if (Platform.isPhone) {
-    toggleOptionsMobile(event)
+    $panelOptions.value?.showOptionsMobile(event)
   }
-}
-
-function toggleOptionsDesktop() {
-  showOptions.value = !showOptions.value
-}
-
-function toggleOptionsMobile(event: MouseEvent) {
-  const menu = new Menu()
-
-  menu.addItem((item) => {
-    item.setTitle('Show times')
-    item.setChecked(metaShowTimes.value)
-    item.onClick(() => {
-      metaShowTimes.value = !metaShowTimes.value
-    })
-  })
-  menu.addItem((item) => {
-    item.setTitle('Delete without confirmation')
-    item.setChecked(metaDirectDelete.value)
-    item.onClick(() => {
-      metaDirectDelete.value = !metaDirectDelete.value
-    })
-  })
-
-  menu.showAtMouseEvent(event)
 }
 
 /* Labels Panel */

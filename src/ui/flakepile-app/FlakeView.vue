@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { Flake } from '@/schemes/common'
+import type { Flake, FlakepileAdaptiveFlow } from '@/schemes/common'
 import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf } from '@/use.ts'
+import { getScrollbarHeight } from '@/utils.ts'
 import { ObIcon } from '@/wrappers'
 import { delay } from '@rewl/kit'
 import { useResizeObserver, useThrottleFn } from '@vueuse/core'
@@ -13,6 +14,7 @@ import FlakeFrame from './FlakeFrame.vue'
 const props = withDefaults(
   defineProps<{
     flake: Flake
+    flow: FlakepileAdaptiveFlow
     innerHeight: number
     disableDelete?: boolean
   }>(),
@@ -30,6 +32,7 @@ const emit = defineEmits<{
 const plugin = inject('plugin') as FlakepilePluginRef
 const meta = inject('meta') as FlakepileMetaRef
 
+const $scrollable = useTemplateRef('$scrollable')
 const $anchor = useTemplateRef('$anchor')
 const $meta = useTemplateRef('$meta')
 
@@ -40,7 +43,8 @@ const heightCache = computed(() => plugin.heightCache.value?.heights[props.flake
 function updateHeightCache() {
   const heightAnchor = $anchor.value?.scrollHeight ?? 0
   const heightMeta = $meta.value?.scrollHeight ?? 0
-  const height = heightAnchor + heightMeta
+  const heightScrollbar = getScrollbarHeight($scrollable.value)
+  const height = heightAnchor + heightMeta + heightScrollbar
 
   const diff = height - heightCache.value
   if (Math.abs(diff) < 2) return
@@ -62,7 +66,7 @@ onMounted(async () => {
   initializeHeightCache()
 
   await delay(100)
-  useResizeObserver([$anchor, $meta], updateHeightCacheThrottled)
+  useResizeObserver([$scrollable, $anchor, $meta], updateHeightCacheThrottled)
 })
 
 /* Flake Meta */
@@ -147,20 +151,30 @@ const ifDisableDelete = useCssIf(() => props.disableDelete, '-disabled')
 /* Flake Scrollable State */
 
 const shouldScrollY = computed(() => {
+  // TODO: This behavior can be refined with mobile-specific layout options.
+  // I'll leave it as is for now.
+  if (props.flow === 'mobile') {
+    return false
+  }
+
   if (meta.value.enableMaxHeight) {
     return heightCache.value > meta.value.maxHeight + 2
-  } else {
+  }
+  if (props.flow === 'horizontal') {
     return heightCache.value > props.innerHeight + 2
   }
+
+  return false
 })
 
+const ifNoWrap = useCssIf(() => !props.flake.meta.textWrap, '-nowrap')
 const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 </script>
 
 <template>
-  <FlakeFrame ref="$flake" class="flake-view" :id="flake.id">
-    <div :class="['scrollable', ifScrollY]">
-      <div ref="$anchor" class="fp-markdown flake-anchor"></div>
+  <FlakeFrame class="flake-view" :id="flake.id">
+    <div ref="$scrollable" :class="['scrollable', ifScrollY]">
+      <div ref="$anchor" :class="['fp-markdown', 'flake-anchor', ifNoWrap]"></div>
     </div>
 
     <div v-if="showMeta" ref="$meta" class="flake-meta">
@@ -232,10 +246,6 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
   }
 }
 
-.flake-meta {
-  padding: 0 var(--size-4-2) var(--size-2-1) var(--size-4-2);
-}
-
 .flake-anchor {
   display: flow-root;
   min-height: var(--size-4-10);
@@ -244,6 +254,14 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
     min-height: var(--size-4-16); // Comply to big mobile buttons.
     padding: var(--size-4-1) var(--size-4-3);
   }
+
+  &.-nowrap {
+    white-space: nowrap;
+  }
+}
+
+.flake-meta {
+  padding: 0 var(--size-4-2) var(--size-2-1) var(--size-4-2);
 }
 
 .flake-time {
