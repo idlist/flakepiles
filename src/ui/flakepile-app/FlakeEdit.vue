@@ -199,7 +199,7 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
   }
 
   &.-nowrap {
-    white-space: nowrap;
+    white-space: pre;
   }
 }
 

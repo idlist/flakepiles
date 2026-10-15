@@ -52,6 +52,10 @@
     padding-inline-start: calc(var(--size-4-4) + 0.5em);
   }
 
+  .is-mobile :is(ul, ol) {
+    padding-inline-start: calc(var(--size-4-6) + 0.5em);
+  }
+
   // Indentation for other levels.
   :is(ul, ol) :is(ul, ol) {
     padding-inline-start: 0.5em;
@@ -80,7 +84,10 @@
     margin: 0.5em 0;
     padding: 0.375em 0.5em;
     line-height: var(--line-height-tight);
-    width: max-content;
+
+    &.-nowrap {
+      width: max-content;
+    }
 
     .is-mobile & {
       margin: 0.375em 0;
@@ -132,6 +139,6 @@
 
   &.-nowrap code,
   &.-nowrap pre code {
-    white-space: nowrap;
+    white-space: pre;
   }
 }
