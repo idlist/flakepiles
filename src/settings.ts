@@ -28,7 +28,7 @@ export class FlakepileSettingTab extends PluginSettingTab {
     return [
       {
         name: 'Enable commands',
-        desc: 'Enable command pallete actions and shortcuts (though there are not many).',
+        desc: 'Enable command pallete actions and shortcuts (though there are only a few).',
         control: {
           type: 'toggle',
           key: 'enableCommands',
@@ -36,7 +36,7 @@ export class FlakepileSettingTab extends PluginSettingTab {
       },
       {
         name: 'Use another font size',
-        desc: 'Use a different font size from Obsidian.',
+        desc: 'Use a different font size from Obsidian to display Flakes.',
         control: {
           type: 'toggle',
           key: 'useFontSize',
@@ -60,7 +60,7 @@ export class FlakepileSettingTab extends PluginSettingTab {
         items: [
           {
             name: 'Clear unused cache',
-            desc: 'Check if there is cache for unused Flakepiles, and delete them.',
+            desc: 'Check if there is cache for Flakepiles that no longer exists.',
             render: (settings: Setting) => {
               settings.addButton((button) => {
                 button
@@ -73,7 +73,7 @@ export class FlakepileSettingTab extends PluginSettingTab {
           },
           {
             name: 'Clear all cache',
-            desc: 'Flakepiles may take longer to load after the deletion.',
+            desc: 'Flakepiles may take longer to load after this action.',
             render: (settings: Setting) => {
               settings.addButton((button) => {
                 button

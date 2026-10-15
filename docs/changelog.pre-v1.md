@@ -1,5 +1,11 @@
 Changelog (pre 1.0)
 
+## 0.2.1
+
+- Fixed various bugs.
+- Adjusted for mobile layout.
+  - The desktop layout was heavily relied on `scrollbar-gutter` property, which is essentially 0 in mobile view. Now there should be proper layout.
+
 ## 0.2.0
 
 - Refactored the codebase to have cleaner overall structure.

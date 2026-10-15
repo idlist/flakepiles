@@ -258,8 +258,8 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 
 .flake-pinned {
   position: absolute;
-  top: var(--size-4-1);
-  right: var(--size-4-1);
+  top: var(--size-4-2);
+  right: var(--size-4-2);
   z-index: 4;
 
   pointer-events: none;

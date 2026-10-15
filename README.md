@@ -12,6 +12,11 @@ Somewhat newer version of Obsidian. The plugin relies on CSS [`field-sizing`](ht
 
 I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about information density.
 
+## Features
+
+- UI design that (tried my best to) align with Obsidian's design language.
+- Edit Flakes in place instead of having to open another window.
+
 ## Roadmap
 
 Plugin side:
@@ -39,6 +44,7 @@ Plugin side:
 
 Obsidian side:
 
+- [x] Optional Obsidian commands
 - [x] "Flake count" status bar item [1]
 - [x] Preview other markdown files via `[[file link]]`
 
@@ -47,7 +53,6 @@ Obsidian side:
 ## Long term goals
 
 - Search keywords highlighting
-- Move and copy one or multiple Flakes across Flakepiles
 - Embed a Flake into another markdown file
 - Export a Flakepile as markdown
   - Export as a single markdown file
@@ -71,6 +76,8 @@ The tech stack of the plugin is Vite + Vue 3 + TypeScript + Sass.
 
 The underlying file format (`.flakes`) is JSON.
 
+### Build from source
+
 If you want to build the plugin from source, you can clone this repository and:
 
 ```
@@ -83,6 +90,10 @@ npm run build     // Build for production
 [1] [Hot reload](https://github.com/pjeby/hot-reload)
 
 When running `npm run build`, the output files will be copied to the `dist` folder.
+
+### Cache storage
+
+This plugin used IndexedDB with [`idb-keyval`](https://github.com/jakearchibald/idb-keyval) to store cache data, which means (by default) the data is stored in database `keyval-store` and table `keyval`.
 
 ## Changelog
 

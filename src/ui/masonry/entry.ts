@@ -14,7 +14,7 @@ export function getDesign(): Design {
   if (Platform.isMobile) {
     return {
       gap: { x: 12, y: 12 },
-      pad: { x: 16, y: 12 },
+      pad: { x: 24, y: 12 },
     }
   } else {
     return {
