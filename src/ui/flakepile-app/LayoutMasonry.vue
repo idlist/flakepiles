@@ -251,7 +251,7 @@ function deleteFlake(id: string) {
     />
 
     <FlakeEdit
-      v-if="flakeEditing"
+      v-if="flakeEditing != null"
       :style="styleEditing"
       :flake="flakeEditing"
       :inner-height="innerHeight"

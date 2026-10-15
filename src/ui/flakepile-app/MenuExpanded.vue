@@ -8,8 +8,10 @@ import { ObIcon } from '@/wrappers'
 import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
 import { Platform } from 'obsidian'
 import { inject, useTemplateRef } from 'vue'
+import LabelsPanel from './LabelsPanel.vue'
 import MenuButton from './MenuButton.vue'
-import PanelOptions from './PanelOptions.vue'
+import { useOptionsMobileMenu } from './OptionsMobileMenu.ts'
+import OptionsPanel from './OptionsPanel.vue'
 
 const props = defineProps<{
   meta: FlakepileMeta
@@ -28,14 +30,16 @@ const bind = useFlakepileMetaBinder(plugin)
 const metaSortBy = bind(props.meta, 'sortBy')
 const metaFlow = bind(props.meta, 'flow')
 
+const openOptionsMobileMenu = useOptionsMobileMenu(plugin, props.meta)
+
 /* Options Panel */
 
-const $buttonOptions = useTemplateRef('$buttonOptions')
-const $panelOptions = useTemplateRef<InstanceType<typeof PanelOptions>>('$panelOptions')
+const $optionsButton = useTemplateRef('$optionsButton')
+const $optionsPanel = useTemplateRef<InstanceType<typeof OptionsPanel>>('$optionsPanel')
 
-const { floatingStyles: stylesPanelOptions } = useFloating(
-  $buttonOptions,
-  $panelOptions,
+const { floatingStyles: optionsPanelStyle } = useFloating(
+  $optionsButton,
+  $optionsPanel,
   {
     placement: 'bottom-end',
     middleware: [
@@ -46,19 +50,40 @@ const { floatingStyles: stylesPanelOptions } = useFloating(
   },
 )
 
-function toggleOptions(event: MouseEvent) {
+function toggleOptions() {
   if (Platform.isDesktop || Platform.isTablet) {
     showOptions.value = !showOptions.value
   }
   if (Platform.isPhone) {
-    $panelOptions.value?.showOptionsMobile(event)
+    openOptionsMobileMenu()
   }
 }
 
 /* Labels Panel */
 
+const $labelsButton = useTemplateRef('$labelsButton')
+const $labelsPanel = useTemplateRef<InstanceType<typeof LabelsPanel>>('$labelsPanel')
+
+const { floatingStyles: labelsPanelStyle } = useFloating(
+  $labelsButton,
+  $labelsPanel,
+  {
+    placement: 'bottom-start',
+    middleware: [
+      offset(4),
+      shift({ padding: 8 }),
+    ],
+    whileElementsMounted: autoUpdate,
+  },
+)
+
 function toggleLabels() {
-  showLabels.value = !showLabels.value
+  if (Platform.isDesktop) {
+    showLabels.value = !showLabels.value
+  }
+  if (Platform.isMobile) {
+    // TODO...
+  }
 }
 </script>
 
@@ -95,7 +120,7 @@ function toggleLabels() {
     </template>
 
     <MenuButton
-      ref="$buttonOptions"
+      ref="$optionsButton"
       class="fp-btn-icon-label"
       icon="scaling"
       label="Options"
@@ -106,7 +131,7 @@ function toggleLabels() {
   <div class="menu-expand menu-expand-row">
     <MenuButton
       v-if="isDev"
-      ref="$buttonLabels"
+      ref="$labelsButton"
       :class="['fp-btn-icon-label', ifIconOnly]"
       icon="tags"
       label="Labels"
@@ -145,12 +170,18 @@ function toggleLabels() {
   </div>
 
   <Teleport defer to="#fp-floating-area">
-    <PanelOptions
+    <OptionsPanel
       v-if="showOptions"
-      ref="$panelOptions"
+      ref="$optionsPanel"
+      :style="optionsPanelStyle"
       :meta="meta"
       :flow="flow"
-      :style="stylesPanelOptions"
+    />
+
+    <LabelsPanel
+      v-if="showLabels"
+      ref="$labelsPanel"
+      :style="labelsPanelStyle"
     />
   </Teleport>
 </template>

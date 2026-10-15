@@ -14,6 +14,9 @@
     0 0 8px color-mix(in oklch, var(--color-primary) 75%, transparent),
     0 1px 4px color-mix(in oklch, var(--color-primary) 50%, transparent);
 
+  --flake-text: var(--text-normal);
+  --flake-background: var(--background-primary);
+
   &.-highlight {
     box-shadow: var(--shadow-heavy);
   }
@@ -21,7 +24,45 @@
   &.-none {
     --color-tag: var(--color-base-100);
     --color-primary: var(--color-base-70);
-    --flake-text: var(--text-normal);
-    --flake-background: var(--background-primary);
+  }
+
+  &.-red {
+    --color-tag: var(--color-red);
+    --color-primary: color-mix(in oklch, var(--color-red) 70%, white);
+  }
+
+  &.-orange {
+    --color-tag: var(--color-orange);
+    --color-primary: color-mix(in oklch, var(--color-orange) 70%, white);
+  }
+
+  &.-yellow {
+    --color-tag: var(--color-yellow);
+    --color-primary: color-mix(in oklch, var(--color-yellow) 70%, white);
+  }
+
+  &.-green {
+    --color-tag: var(--color-green);
+    --color-primary: color-mix(in oklch, var(--color-green) 70%, white);
+  }
+
+  &.-cyan {
+    --color-tag: var(--color-cyan);
+    --color-primary: color-mix(in oklch, var(--color-cyan) 70%, white);
+  }
+
+  &.-blue {
+    --color-tag: var(--color-blue);
+    --color-primary: color-mix(in oklch, var(--color-blue) 70%, white);
+  }
+
+  &.-purple {
+    --color-tag: var(--color-purple);
+    --color-primary: color-mix(in oklch, var(--color-purple) 70%, white);
+  }
+
+  &.-pink {
+    --color-tag: var(--color-pink);
+    --color-primary: color-mix(in oklch, var(--color-pink) 70%, white);
   }
 }

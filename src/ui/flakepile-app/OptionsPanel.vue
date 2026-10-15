@@ -4,7 +4,6 @@ import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/common'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
 import { ObSlider } from '@/wrappers'
-import { Menu } from 'obsidian'
 import { inject } from 'vue'
 
 const props = defineProps<{
@@ -26,31 +25,6 @@ const metaShowTimes = bind(props.meta, 'showTimes')
 const metaDirectDelete = bind(props.meta, 'directDelete')
 
 const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disabled')
-
-function showOptionsMobile(event: MouseEvent) {
-  const menu = new Menu()
-
-  menu.addItem((item) => {
-    item.setTitle('Show times')
-    item.setChecked(metaShowTimes.value)
-    item.onClick(() => {
-      metaShowTimes.value = !metaShowTimes.value
-    })
-  })
-  menu.addItem((item) => {
-    item.setTitle('Delete without confirmation')
-    item.setChecked(metaDirectDelete.value)
-    item.onClick(() => {
-      metaDirectDelete.value = !metaDirectDelete.value
-    })
-  })
-
-  menu.showAtMouseEvent(event)
-}
-
-defineExpose({
-  showOptionsMobile,
-})
 </script>
 
 <template>

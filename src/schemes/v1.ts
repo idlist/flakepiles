@@ -16,6 +16,14 @@ export interface Flake extends WithVersion {
 
 export const flakeLabelColors = [
   'none',
+  'red',
+  'orange',
+  'yellow',
+  'green',
+  'cyan',
+  'blue',
+  'purple',
+  'pink',
 ] as const
 
 export type FlakeLabelColor = typeof flakeLabelColors[number]
