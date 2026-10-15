@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { IsDevRef } from '@/App.vue'
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/v1'
+import type { FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/common'
 import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
 import { ObIcon } from '@/wrappers'

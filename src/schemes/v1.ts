@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid'
 import type { WithVersion } from './common'
 
 export interface FlakeMeta {
@@ -15,26 +14,11 @@ export interface Flake extends WithVersion {
   content: string
 }
 
-export function createFlake(): Flake {
-  return {
-    version: 1,
-    id: nanoid(16),
-    meta: {
-      createdAt: Date.now(),
-      modifiedAt: Date.now(),
-      pinned: false,
-      textWrap: true,
-    },
-    labels: [],
-    content: '',
-  }
-}
-
-export const FlakeLabelColors = [
+export const flakeLabelColors = [
   'none',
 ] as const
 
-export type FlakeLabelColor = typeof FlakeLabelColors[number]
+export type FlakeLabelColor = typeof flakeLabelColors[number]
 
 export interface FlakeLabel extends WithVersion {
   id: string
@@ -42,17 +26,6 @@ export interface FlakeLabel extends WithVersion {
   color: FlakeLabelColor
   collapsed: boolean
   filtered: boolean
-}
-
-export function createFlakeLabel(): FlakeLabel {
-  return {
-    version: 1,
-    id: nanoid(8),
-    name: '',
-    color: 'none',
-    collapsed: false,
-    filtered: false,
-  }
 }
 
 export type FlakepileMenuState = 'default' | 'shrinked' | 'expanded'
@@ -85,29 +58,6 @@ export interface Flakepile extends WithVersion {
   meta: FlakepileMeta
   labels: FlakeLabel[]
   flakes: Flake[]
-}
-
-export function createFlakepile(): Flakepile {
-  return {
-    version: 1,
-    id: nanoid(16),
-    meta: {
-      menu: 'default',
-      flow: 'horizontal',
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
-      width: 320,
-      elasticWidth: false,
-      enableMaxHeight: false,
-      maxHeight: 640,
-      elasticHeight: false,
-      showLabels: true,
-      showTimes: false,
-      directDelete: false,
-    },
-    labels: [],
-    flakes: [],
-  }
 }
 
 export type HeightCacheCollection = Record<string, HeightCache>

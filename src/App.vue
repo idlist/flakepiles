@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { FlakepilePluginRef } from '@/custom-view.ts'
-import type { Flakepile } from '@/schemes/v1.ts'
+import type { FlakepilePluginRef } from '@/custom-view'
+import type { Flakepile } from '@/schemes/common'
 import { computed, inject, provide, type Ref, ref } from 'vue'
 import FlakepileApp from './ui/FlakepileApp.vue'
 import FlakepileInvalid from './ui/FlakepileInvalid.vue'

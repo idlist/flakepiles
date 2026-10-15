@@ -1,4 +1,4 @@
-import type { FlakepileMeta } from '@/schemes/v1'
+import type { FlakepileMeta } from '@/schemes/common'
 import type { Size } from '@/utils'
 import { createArray } from '@rewl/kit'
 import { type ComputedMasonry, type ComputeMasonryRequirements, getDesign, setupComputedMasonry } from './entry'

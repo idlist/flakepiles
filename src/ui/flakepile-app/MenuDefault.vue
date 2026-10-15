@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { FlakepileMeta } from '@/schemes/v1'
+import type { FlakepileMeta } from '@/schemes/common'
 import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf } from '@/use.ts'
 import { ObIcon, ObSearch } from '@/wrappers'

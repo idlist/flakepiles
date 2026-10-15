@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { FlakepileMeta } from '@/schemes/v1'
+import type { FlakepileMeta } from '@/schemes/common'
 import { ObIcon } from '@/wrappers'
 import { inject } from 'vue'
 

@@ -1,4 +1,4 @@
-import type { FlakepileAdaptiveFlow, FlakepileMeta, HeightRecord } from '@/schemes/v1'
+import type { FlakepileAdaptiveFlow, FlakepileMeta, HeightRecord } from '@/schemes/common'
 import type { Point, Rect, Size } from '@/utils'
 import { Platform } from 'obsidian'
 import { computeHorizontalMasonry } from './horizontal'

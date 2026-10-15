@@ -1,7 +1,7 @@
 import type { Emitter } from 'mitt'
 import { computed, type MaybeRefOrGetter, onScopeDispose, toValue } from 'vue'
 import type { FlakepilePluginRef } from './custom-view'
-import type { FlakeMeta, FlakepileMeta } from './schemes/v1'
+import type { FlakeMeta, FlakepileMeta } from './schemes/common'
 
 // Uses are ordered roughly from more general to more specific.
 

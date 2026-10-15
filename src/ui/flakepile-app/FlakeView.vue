@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { Flake } from '@/schemes/v1'
+import type { Flake } from '@/schemes/common'
 import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf } from '@/use.ts'
 import { ObIcon } from '@/wrappers'

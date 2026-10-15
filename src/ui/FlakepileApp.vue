@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { Flake, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/v1'
+import type { Flake, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/common'
 import { useCssWith } from '@/use.ts'
 import type { Point, Size } from '@/utils'
 import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'

@@ -16,7 +16,7 @@ import {
   type FlakepileMeta,
   type HeightCache,
   type HeightCacheCollection,
-} from '@/schemes/v1'
+} from '@/schemes/common'
 
 export const VIEW_TYPE = 'flakepile'
 

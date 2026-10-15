@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import { type Flake, type FlakepileAdaptiveFlow } from '@/schemes/v1'
+import { type Flake, type FlakepileAdaptiveFlow } from '@/schemes/common'
 import type { FlakeIdEditingRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { bus } from '@/ui/logic/event-bus.ts'
 import { type ComputedMasonry, computeInitialWidth, computeMasonry, getDesign } from '@/ui/masonry/entry'

@@ -1,4 +1,4 @@
-import type { Flake, FlakepileMeta } from '@/schemes/v1'
+import type { Flake, FlakepileMeta } from '@/schemes/common'
 import { prepareSimpleSearch } from 'obsidian'
 
 type FlakeComparator = (a: Flake, b: Flake) => number

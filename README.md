@@ -16,6 +16,7 @@ I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about in
 
 - UI design that (tried my best to) align with Obsidian's design language.
 - Edit Flakes in place instead of having to open another window.
+- Easy to copy and paste your Flakes from everywhere to everywhere.
 
 ## Roadmap
 
