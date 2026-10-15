@@ -36,6 +36,8 @@ function createAppMeta(): PluginMeta {
   }
 }
 
+export type FlakeType = 'normal' | 'code' | 'image'
+
 export class FlakepileView extends TextFileView {
   plugin: FlakepilesPlugin
   $anchor: HTMLDivElement | null = null
@@ -46,6 +48,8 @@ export class FlakepileView extends TextFileView {
   flakepile = ref<Flakepile | null>(null)
   flakeMap = new Map<string, Flake>()
   heightCache = ref<HeightCache | null>(null)
+
+  /* Obsidian Lifecycles */
 
   constructor(leaf: WorkspaceLeaf, plugin: FlakepilesPlugin) {
     super(leaf)
@@ -105,7 +109,6 @@ export class FlakepileView extends TextFileView {
 
   setViewData(data: string) {
     this.rawData = data
-    this.meta.loadingError = null
     this.updateFileInfo()
 
     // Load file data.
@@ -127,11 +130,9 @@ export class FlakepileView extends TextFileView {
     // Do nothing for now.
   }
 
-  notice(message: string | DocumentFragment, duration?: number) {
-    new Notice(message, duration)
-  }
+  /* Obsidian-wise Operations */
 
-  updateFileInfo() {
+  private updateFileInfo() {
     this.meta.filename = this.file?.basename ?? ''
   }
 
@@ -151,7 +152,9 @@ export class FlakepileView extends TextFileView {
     void this.save()
   }
 
-  loadJsonData() {
+  private loadJsonData() {
+    this.meta.loadingError = null
+
     if (this.meta.loadingState === 'invalid') {
       this.meta.loadingState = 'loading'
     }
@@ -176,6 +179,106 @@ export class FlakepileView extends TextFileView {
       console.error('Cannot parse Flakepile: ', e)
     }
   }
+
+  /* Content Renderer */
+
+  async renderContent($anchor: HTMLElement, content: string): Promise<FlakeType> {
+    if (!this.file) return 'normal'
+    const sourcePath = this.file.path
+
+    // Render the markdown using Obsidian's internal renderer.
+    await MarkdownRenderer.render(
+      this.app,
+      content,
+      $anchor,
+      sourcePath,
+      this,
+    )
+
+    const flakeType = this.detectFlakeType($anchor)
+
+    // Postprocess rendered markdown.
+    if (flakeType === 'image') {
+      this.expandImageFlake($anchor)
+    }
+    if (flakeType === 'normal') {
+      this.postprocessMarkdown($anchor)
+    }
+
+    return flakeType
+  }
+
+  private detectFlakeType($anchor: HTMLElement): FlakeType {
+    if ($anchor.childNodes.length !== 1) return 'normal'
+
+    const $root = $anchor.childNodes.item(0)
+    if (!$root || !$root.instanceOf(HTMLElement)) return 'normal'
+
+    if (this.isCodeFlake($root)) return 'code'
+    if (this.isImageFlake($root)) return 'image'
+    return 'normal'
+  }
+
+  private isCodeFlake($root: HTMLElement): boolean {
+    return $root.instanceOf(HTMLPreElement)
+  }
+
+  private isImageFlake($root: HTMLElement): boolean {
+    if (!$root.instanceOf(HTMLParagraphElement)) return false
+    if ($root.childNodes.length !== 1) return false
+
+    const $span = $root.childNodes.item(0)
+    if (!$span?.instanceOf(HTMLSpanElement)) return false
+
+    const $image = $span.childNodes.item(0)
+    if (!$image?.instanceOf(HTMLImageElement)) return false
+
+    return true
+  }
+
+  private expandImageFlake($anchor: HTMLElement) {
+    const $image = $anchor.querySelector('img')
+    if (!$image?.instanceOf(HTMLImageElement)) return
+    $anchor.replaceChildren($image)
+  }
+
+  postprocessMarkdown($anchor: HTMLElement) {
+    if (!this.file) return
+    const sourcePath = this.file.path
+
+    // Disable input of task item checkbox.
+    const taskItemChechboxes = $anchor.querySelectorAll('.task-list-item > input')
+
+    taskItemChechboxes.forEach((element) => {
+      element.setAttrs({ disabled: true })
+    })
+
+    // Support internal links.
+    $anchor.on('click', 'a.internal-link', (event, $target) => {
+      const linktext = $target.getAttribute('data-href')
+      if (!linktext) return
+
+      void this.app.workspace.openLinkText(linktext, sourcePath, Keymap.isModEvent(event))
+    })
+
+    // Support previewing other pages inside a Flakepile.
+    // Reference: https://gist.github.com/Quorafind/16202a6b07319a63846e7e534e64d8b2
+    $anchor.on('mouseover', 'a.internal-link', (event, $target) => {
+      const linktext = $target.getAttribute('data-href')
+      if (!linktext) return
+
+      this.app.workspace.trigger('hover-link', {
+        event,
+        source: 'preview',
+        hoverParent: $anchor,
+        targetEl: event.currentTarget,
+        linktext,
+        sourcePath,
+      })
+    })
+  }
+
+  /* Height Cache */
 
   async loadHeightCache() {
     if (this.flakepile.value == null) return
@@ -229,58 +332,7 @@ export class FlakepileView extends TextFileView {
     this.heightCache.value.heights = {}
   }
 
-  async renderContent($anchor: HTMLElement, content: string) {
-    if (!this.file) return
-    const sourcePath = this.file.path
-
-    // Render the markdown using Obsidian's internal renderer.
-    await MarkdownRenderer.render(
-      this.app,
-      content,
-      $anchor,
-      sourcePath,
-      this,
-    )
-
-    // Postprocess rendered markdown.
-    this.postprocessMarkdown($anchor)
-  }
-
-  postprocessMarkdown($anchor: HTMLElement) {
-    if (!this.file) return
-    const sourcePath = this.file.path
-
-    // Disable input of task item checkbox.
-    const taskItemChechboxes = $anchor.querySelectorAll('.task-list-item > input')
-
-    taskItemChechboxes.forEach((element) => {
-      element.setAttrs({ disabled: true })
-    })
-
-    // Support internal links.
-    $anchor.on('click', 'a.internal-link', (event, $target) => {
-      const linktext = $target.getAttribute('data-href')
-      if (!linktext) return
-
-      void this.app.workspace.openLinkText(linktext, sourcePath, Keymap.isModEvent(event))
-    })
-
-    // Support previewing other pages inside a Flakepile.
-    // Reference: https://gist.github.com/Quorafind/16202a6b07319a63846e7e534e64d8b2
-    $anchor.on('mouseover', 'a.internal-link', (event, $target) => {
-      const linktext = $target.getAttribute('data-href')
-      if (!linktext) return
-
-      this.app.workspace.trigger('hover-link', {
-        event,
-        source: 'preview',
-        hoverParent: $anchor,
-        targetEl: event.currentTarget,
-        linktext,
-        sourcePath,
-      })
-    })
-  }
+  /* Flakepile Management */
 
   initializeFlakeMap() {
     if (!this.flakepile.value) return
@@ -297,6 +349,8 @@ export class FlakepileView extends TextFileView {
     this.flakepile.value.meta[key] = value
     this.trySave()
   }
+
+  /* Flake Management */
 
   addFlake(): string | null {
     if (!this.flakepile.value) return null
@@ -350,7 +404,6 @@ export type FlakepilePluginRef = Pick<
   | 'meta'
   | 'flakeMap'
   | 'heightCache'
-  | 'notice'
   | 'heightCacheLazySave'
   | 'updateHeightCache'
   | 'renderContent'

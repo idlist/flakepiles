@@ -1,5 +1,11 @@
 Changelog (pre 1.0)
 
+## 0.2.2
+
+- Supports disabling text wrapping in a Flake.
+- Supports auto-expanding the content of a Flake to take its full space when there's only one image or one block of code inside a Flake.
+  - Copy button will copy the content without the outer fences (` ``` `) for code.
+
 ## 0.2.1
 
 - Fixed various bugs.

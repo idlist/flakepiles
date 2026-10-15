@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import type { FlakepilePluginRef } from '@/custom-view'
+import type { FlakepilePluginRef, FlakeType } from '@/custom-view'
 import type { Flake, FlakepileAdaptiveFlow } from '@/schemes/common'
 import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf } from '@/use.ts'
+import { useCssIf, useCssWith } from '@/use.ts'
 import { getScrollbarHeight } from '@/utils.ts'
 import { ObIcon } from '@/wrappers'
 import { delay } from '@rewl/kit'
 import { useResizeObserver, useThrottleFn } from '@vueuse/core'
 import dayjs from 'dayjs'
+import { Notice } from 'obsidian'
 import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from 'vue'
 import FlakeFrame from './FlakeFrame.vue'
 
@@ -35,6 +36,7 @@ const meta = inject('meta') as FlakepileMetaRef
 const $scrollable = useTemplateRef('$scrollable')
 const $anchor = useTemplateRef('$anchor')
 const $meta = useTemplateRef('$meta')
+const flakeType = ref<FlakeType>('normal')
 
 /* Dynamic Sizing */
 
@@ -60,7 +62,8 @@ function initializeHeightCache() {
 }
 
 onMounted(async () => {
-  await plugin.renderContent($anchor.value!, props.flake.content)
+  const type = await plugin.renderContent($anchor.value!, props.flake.content)
+  flakeType.value = type
 
   await nextTick()
   initializeHeightCache()
@@ -121,12 +124,25 @@ const showMeta = computed(() => {
 /* Flake Actions */
 
 async function copyContent() {
+  let content = props.flake.content
+
+  // If the Flake only contains one block of code,
+  // copy only the content of the code.
+  if (flakeType.value === 'code') {
+    const raw = content.trim()
+    const first = raw.indexOf('\n')
+    const last = raw.lastIndexOf('\n')
+
+    if (first === -1 || first >= last) content = ''
+    content = raw.slice(first + 1, last)
+  }
+
   try {
-    await navigator.clipboard.writeText(props.flake.content)
-    plugin.notice('Content copied.', 1000)
+    await navigator.clipboard.writeText(content)
+    new Notice('Content copied.', 1000)
   } catch (e) {
     console.warn(`Failed to copy the content of Flake ${props.flake.id}: `, e)
-    plugin.notice('Failed to copy content. Check dev console for detail.', 0)
+    new Notice('Failed to copy content. Check dev console for detail.', 0)
   }
 }
 
@@ -169,10 +185,11 @@ const shouldScrollY = computed(() => {
 
 const ifNoWrap = useCssIf(() => !props.flake.meta.textWrap, '-nowrap')
 const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
+const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
 </script>
 
 <template>
-  <FlakeFrame class="flake-view" :id="flake.id">
+  <FlakeFrame :class="['flake-view', withType]" :id="flake.id">
     <div ref="$scrollable" :class="['scrollable', ifScrollY]">
       <div ref="$anchor" :class="['fp-markdown', 'flake-anchor', ifNoWrap]"></div>
     </div>
@@ -241,6 +258,11 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
     scrollbar-gutter: stable both-edges;
   }
 
+  &.flake-type-image > .scrollable,
+  &.flake-type-code > .scrollable {
+    scrollbar-gutter: auto;
+  }
+
   > .scrollable.-scrolly {
     overflow-y: scroll;
   }
@@ -261,6 +283,10 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
     margin-right: var(--size-4-8);
   }
 
+  .flake-type-image & {
+    display: flex;
+  }
+
   .is-mobile & {
     // Comply to big mobile buttons.
     min-height: var(--size-4-16);
@@ -270,6 +296,10 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 
 .flake-meta {
   padding: 0 var(--size-4-2) var(--size-2-1) var(--size-4-2);
+
+  .flake-type-image & {
+    padding-top: var(--size-2-1);
+  }
 }
 
 .flake-time {

@@ -71,9 +71,15 @@
     }
   }
 
+  .flake-type-image & img {
+    margin: 0;
+    border-radius: 0;
+  }
+
   pre {
     margin: 0.5em 0;
     padding: 0.375em 0.5em;
+    line-height: var(--line-height-tight);
     width: max-content;
 
     .is-mobile & {
@@ -81,11 +87,20 @@
     }
   }
 
-  pre:has(> code) {
+  .flake-type-code & pre {
+    margin: 0;
+    padding: 0.375em 0.75em;
+  }
+
+  pre:has(code) {
     position: relative;
 
     border-radius: var(--radius-m);
     background-color: var(--code-background);
+  }
+
+  .flake-type-code & pre:has(code) {
+    border-radius: 0;
   }
 
   pre .copy-code-button {
@@ -101,13 +116,16 @@
     display: flex;
   }
 
+  .flake-type-code & pre:hover .copy-code-button {
+    display: none;
+  }
+
   code,
-  pre > code {
+  pre code {
     font-family: var(--font-monospace);
     font-size: var(--font-smaller);
     white-space: pre-wrap;
 
-    line-height: 1;
     letter-spacing: -0.01em;
   }
 
