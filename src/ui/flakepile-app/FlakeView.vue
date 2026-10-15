@@ -276,11 +276,16 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
   &.-nowrap {
     white-space: nowrap;
     width: max-content;
-  }
 
-  :not(.is-mobile) &.-nowrap {
     // Margin space for scrollbar gutters.
     margin-right: var(--size-4-8);
+  }
+
+  .is-mobile &.-nowrap,
+  .flake-type-code &.-nowrap,
+  .flake-type-image &.-nowrap {
+    // Margin space for scrollbar gutters.
+    margin-right: 0;
   }
 
   .flake-type-image & {

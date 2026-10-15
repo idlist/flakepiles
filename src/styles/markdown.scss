@@ -49,7 +49,7 @@
 
   // Indentation for the first level.
   :is(ul, ol) {
-    padding-inline-start: 1.5em;
+    padding-inline-start: calc(var(--size-4-4) + 0.5em);
   }
 
   // Indentation for other levels.
@@ -101,6 +101,7 @@
 
   .flake-type-code & pre:has(code) {
     border-radius: 0;
+    background-color: transparent;
   }
 
   pre .copy-code-button {
