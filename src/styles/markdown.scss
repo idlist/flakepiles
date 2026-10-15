@@ -72,16 +72,20 @@
   }
 
   pre {
-    border-radius: var(--radius-m);
-    background-color: var(--code-background);
-
-    position: relative;
     margin: 0.5em 0;
     padding: 0.375em 0.5em;
+    width: max-content;
 
     .is-mobile & {
       margin: 0.375em 0;
     }
+  }
+
+  pre:has(> code) {
+    position: relative;
+
+    border-radius: var(--radius-m);
+    background-color: var(--code-background);
   }
 
   pre .copy-code-button {
@@ -97,12 +101,18 @@
     display: flex;
   }
 
-  code, pre code {
+  code,
+  pre > code {
     font-family: var(--font-monospace);
     font-size: var(--font-smaller);
     white-space: pre-wrap;
 
     line-height: 1;
     letter-spacing: -0.01em;
+  }
+
+  &.-nowrap code,
+  &.-nowrap pre code {
+    white-space: nowrap;
   }
 }

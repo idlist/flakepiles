@@ -51,16 +51,12 @@
   column-gap: var(--size-4-1);
   padding-left: var(--size-4-2);
 
-  .is-phone & {
-    padding-left: var(--size-4-3);
-  }
-
-  .is-phone &.-icononly {
-    padding-left: var(--size-4-2);
-  }
-
   &.-icononly .label {
     display: none;
+  }
+
+  .is-phone &:not(.-icononly) {
+    padding-left: var(--size-4-3);
   }
 }
 

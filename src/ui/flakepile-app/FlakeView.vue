@@ -249,14 +249,22 @@ const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 .flake-anchor {
   display: flow-root;
   min-height: var(--size-4-10);
-
-  .is-mobile & {
-    min-height: var(--size-4-16); // Comply to big mobile buttons.
-    padding: var(--size-4-1) var(--size-4-3);
-  }
+  user-select: text;
 
   &.-nowrap {
     white-space: nowrap;
+    width: max-content;
+  }
+
+  :not(.is-mobile) &.-nowrap {
+    // Margin space for scrollbar gutters.
+    margin-right: var(--size-4-8);
+  }
+
+  .is-mobile & {
+    // Comply to big mobile buttons.
+    min-height: var(--size-4-16);
+    padding: var(--size-4-1) var(--size-4-3);
   }
 }
 
