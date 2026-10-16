@@ -1,6 +1,6 @@
 # Flakepiles for Obsidian
 
-An Obsidian plugin to put small notes / stickies / cards in a single file, and manage them in a masonry layout.
+An Obsidian plugin to put small notes / stickies / code snippets in a single file, and manage them in a masonry layout.
 
 > This is a refactor of the original [Flakepiles (legacy)](https://github.com/idlist/flakepiles-legacy) with a change to [license](#license). The original plugin will remain as open source, and is available via [BRAT](https://github.com/TfTHacker/obsidian42-brat).
 
@@ -15,10 +15,13 @@ I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about in
 ## Features
 
 - UI design that (tried my best to) align with Obsidian's design language.
-- Edit Flakes in place instead of having to open another window.
+- View and manage your Flakes (small pieces of notes) in masonry layout, vertical or horizontal.
+- Edit Flakes in place instead of having to open another window or dialog.
 - Easy to copy and paste your Flakes from everywhere to everywhere.
 
 ## Roadmap
+
+**Note:** Version 0.2.3 has currently covered all features back to 0.1.5 in the legacy version with some small addition (like displaying creation time or pinning) with pretty good stability. **Labels** are still in development and is supposed to be released in 0.3.0.
 
 Plugin side:
 
@@ -27,6 +30,7 @@ Plugin side:
   - [x] Masonry direction (vertical / horizontal)
   - [x] (Sort of) mobile-adaptive layout
   - [x] Flake size settings and elastic sizing
+  - [x] Auto expand on single image or block of code
   - [x] Flake sorting (time created, time modified, content)
 - [x] Flake
   - [x] Flake creation, update, deletion

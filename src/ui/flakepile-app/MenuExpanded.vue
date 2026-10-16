@@ -8,6 +8,7 @@ import { ObIcon } from '@/wrappers'
 import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
 import { Platform } from 'obsidian'
 import { inject, useTemplateRef } from 'vue'
+import LabelsMobileModal from './LabelsMobileModal.vue'
 import LabelsPanel from './LabelsPanel.vue'
 import MenuButton from './MenuButton.vue'
 import { useOptionsMobileMenu } from './OptionsMobileMenu.ts'
@@ -30,8 +31,6 @@ const bind = useFlakepileMetaBinder(plugin)
 const metaSortBy = bind(props.meta, 'sortBy')
 const metaFlow = bind(props.meta, 'flow')
 
-const openOptionsMobileMenu = useOptionsMobileMenu(plugin, props.meta)
-
 /* Options Panel */
 
 const $optionsButton = useTemplateRef('$optionsButton')
@@ -49,6 +48,8 @@ const { floatingStyles: optionsPanelStyle } = useFloating(
     whileElementsMounted: autoUpdate,
   },
 )
+
+const openOptionsMobileMenu = useOptionsMobileMenu(plugin, props.meta)
 
 function toggleOptions() {
   if (Platform.isDesktop || Platform.isTablet) {
@@ -77,12 +78,14 @@ const { floatingStyles: labelsPanelStyle } = useFloating(
   },
 )
 
+const $labelsMobileModal = useTemplateRef('$labelsMobileModal')
+
 function toggleLabels() {
   if (Platform.isDesktop) {
     showLabels.value = !showLabels.value
   }
   if (Platform.isMobile) {
-    // TODO...
+    $labelsMobileModal.value?.open()
   }
 }
 </script>
@@ -130,7 +133,6 @@ function toggleLabels() {
 
   <div class="menu-expand menu-expand-row">
     <MenuButton
-      v-if="isDev"
       ref="$labelsButton"
       :class="['fp-btn-icon-label', ifIconOnly]"
       icon="tags"
@@ -184,6 +186,8 @@ function toggleLabels() {
       :style="labelsPanelStyle"
     />
   </Teleport>
+
+  <LabelsMobileModal ref="$labelsMobileModal" />
 </template>
 
 <style lang="scss" scoped>

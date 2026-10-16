@@ -28,8 +28,8 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
 </script>
 
 <template>
-  <div class="menu panel-options">
-    <div class="option-item">
+  <div class="menu options-panel">
+    <div class="options-item">
       <span>Width</span>
       <ObSlider
         v-model="metaWidth"
@@ -41,19 +41,19 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
       />
     </div>
 
-    <label v-if="flow === 'vertical'" class="option-item">
+    <label v-if="flow === 'vertical'" class="options-item">
       <span>Elastic width</span>
       <input v-model="metaElasticWidth" type="checkbox" />
     </label>
 
     <hr />
 
-    <label class="option-item">
+    <label class="options-item">
       <span>Set maximum height</span>
       <input v-model="metaEnableMaxHeight" type="checkbox" />
     </label>
 
-    <div :class="['option-item', ifMaxHeightDisabled]">
+    <div :class="['options-item', ifMaxHeightDisabled]">
       <span class="label">Height</span>
       <ObSlider
         v-model="metaMaxHeight"
@@ -68,7 +68,7 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
 
     <label
       v-if="flow === 'horizontal'"
-      :class="['option-item', ifMaxHeightDisabled]"
+      :class="['options-item', ifMaxHeightDisabled]"
     >
       <span class="label">Elastic height</span>
       <input
@@ -80,17 +80,17 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
 
     <hr />
 
-    <label v-if="isDev" class="option-item">
+    <label v-if="isDev" class="options-item">
       <span>Show Labels</span>
       <input v-model="metaShowLabels" type="checkbox" />
     </label>
 
-    <label class="option-item">
+    <label class="options-item">
       <span>Show times</span>
       <input v-model="metaShowTimes" type="checkbox" />
     </label>
 
-    <label class="option-item">
+    <label class="options-item">
       <span>Delete without confirmation</span>
       <input v-model="metaDirectDelete" type="checkbox" />
     </label>
@@ -98,7 +98,7 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
 </template>
 
 <style lang="scss" scoped>
-.panel-options {
+.options-panel {
   display: grid;
   pointer-events: visible;
 
@@ -112,7 +112,7 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
   }
 }
 
-.option-item {
+.options-item {
   display: flex;
   align-items: center;
   justify-content: space-between;

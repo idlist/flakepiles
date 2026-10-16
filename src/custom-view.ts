@@ -132,6 +132,10 @@ export class FlakepileView extends TextFileView {
 
   /* Obsidian-wise Operations */
 
+  getApp() {
+    return this.app
+  }
+
   private updateFileInfo() {
     this.meta.filename = this.file?.basename ?? ''
   }
@@ -403,6 +407,7 @@ export type FlakepilePluginRef = Pick<
   FlakepileView,
   | 'meta'
   | 'flakeMap'
+  | 'getApp'
   | 'heightCache'
   | 'heightCacheLazySave'
   | 'updateHeightCache'
