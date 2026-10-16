@@ -1,5 +1,9 @@
 Changelog (pre 1.0)
 
+## 0.2.3
+
+- Fixed various bugs.
+
 ## 0.2.2
 
 - Supports disabling text wrapping in a Flake.

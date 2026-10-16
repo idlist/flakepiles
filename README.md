@@ -92,7 +92,7 @@ npm run build     // Build for production
 
 [1] [Hot reload](https://github.com/pjeby/hot-reload)
 
-When running `npm run build`, the output files will be copied to the `dist` folder.
+When running `npm run build`, the output files will also be copied to the `dist` folder, so that you don't need to manually select 3 files one by one.
 
 ### Cache storage
 
