@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from 'obsidian'
+import { App, PluginSettingTab, Setting, type SettingDefinitionItem } from 'obsidian'
 import type FlakepilesPlugin from './main'
 
 export interface FlakepilePluginSettings {
@@ -15,7 +15,6 @@ export function createPluginSettings(): FlakepilePluginSettings {
   }
 }
 
-// @ts-expect-error: getSettingDefinitions() overrides display().
 export class FlakepileSettingTab extends PluginSettingTab {
   plugin: FlakepilesPlugin
 
@@ -24,11 +23,11 @@ export class FlakepileSettingTab extends PluginSettingTab {
     this.plugin = plugin
   }
 
-  getSettingDefinitions() {
+  getSettingDefinitions(): SettingDefinitionItem[] {
     return [
       {
         name: 'Enable commands',
-        desc: 'Enable command pallete actions and shortcuts (though there are only a few).',
+        desc: 'Enable command pallete actions and shortcuts.',
         control: {
           type: 'toggle',
           key: 'enableCommands',
@@ -50,6 +49,7 @@ export class FlakepileSettingTab extends PluginSettingTab {
           key: 'fontSize',
           min: 10,
           max: 24,
+          step: 1,
           defaultValue: 16,
           disabled: () => !this.plugin.settings.useFontSize,
         },
@@ -93,8 +93,6 @@ export class FlakepileSettingTab extends PluginSettingTab {
     key: T,
     value: FlakepilePluginSettings[T],
   ) {
-    // @ts-expect-error: API exists without typings.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- API exists without typings.
     await super.setControlValue(key, value)
 
     if (key === 'useFontSize' || key === 'fontSize') {
