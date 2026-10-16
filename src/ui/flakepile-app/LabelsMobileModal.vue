@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
+import LabelsCore from '@/ui/labels/LabelsCore.vue'
 import { App, Modal } from 'obsidian'
 import { inject, onBeforeUnmount, shallowRef } from 'vue'
-import LabelsCore from './LabelsCore.vue'
 
 const plugin = inject('plugin') as FlakepilePluginRef
 
@@ -16,7 +16,6 @@ class LabelsModal extends Modal {
 
   onOpen() {
     this.setTitle('Manage Labels')
-
     $anchor.value = this.contentEl
   }
 

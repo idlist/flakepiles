@@ -164,7 +164,7 @@ function toggleLabels() {
     </button>
 
     <button
-      class="fp-btn-icon"
+      class="fp-btn-icon fp-invert"
       @click="plugin.updateFlakepileMeta('menu', 'default')"
     >
       <ObIcon name="cross" />

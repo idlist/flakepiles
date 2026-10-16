@@ -33,7 +33,7 @@ export interface FlakeLabel extends WithVersion {
   name: string
   color: FlakeLabelColor
   collapsed: boolean
-  filtered: boolean
+  filteredOut: boolean
 }
 
 export type FlakepileMenuState = 'default' | 'shrinked' | 'expanded'
@@ -59,6 +59,7 @@ export interface FlakepileMeta {
   showLabels: boolean
   showTimes: boolean
   directDelete: boolean
+  disableLabelFiltering: boolean
 }
 
 export interface Flakepile extends WithVersion {

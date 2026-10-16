@@ -1,10 +1,10 @@
 import { get, update } from 'idb-keyval'
-import { Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
+import { App, Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
 import { funnel } from 'remeda'
 import { type App as VueApp, type Component, createApp, reactive, ref, toRaw } from 'vue'
 import FlakepileApp from './App.vue'
 import type FlakepilesPlugin from './main.ts'
-import { parseFlakepile } from './schemes/common.ts'
+import { createFlakeLabel, parseFlakepile } from './schemes/common.ts'
 import { dbKey, noopAsync, px } from './utils'
 
 import {
@@ -132,7 +132,7 @@ export class FlakepileView extends TextFileView {
 
   /* Obsidian-wise Operations */
 
-  getApp() {
+  getApp(): Readonly<App> {
     return this.app
   }
 
@@ -401,6 +401,61 @@ export class FlakepileView extends TextFileView {
     flake.meta.modifiedAt = Date.now()
     this.trySave()
   }
+
+  /* Label Management */
+
+  addLabel(name: string) {
+    if (!this.flakepile.value) return
+
+    const trimmed = name.trim()
+    if (trimmed.length === 0) {
+      new Notice('Label name cannot be empty.')
+      return
+    }
+
+    const labels = this.flakepile.value.labels
+    const label = createFlakeLabel()
+    label.name = trimmed
+
+    labels.push(label)
+    this.trySave()
+  }
+
+  deleteLabel(id: string) {
+    if (!this.flakepile.value) return
+
+    const labels = this.flakepile.value.labels
+    const index = labels.findIndex((label) => label.id === id)
+    if (index === -1) return
+
+    labels.splice(index, 1)
+
+    for (const flake of this.flakepile.value.flakes) {
+      const labelIndex = flake.labels.indexOf(id)
+      if (labelIndex === -1) continue
+
+      flake.labels.splice(labelIndex, 1)
+    }
+
+    this.trySave()
+  }
+
+  clearUnusedLabels() {
+    if (!this.flakepile.value) return
+
+    const labels = this.flakepile.value.labels
+    const labelIds = new Set(labels.map((label) => label.id))
+
+    for (const flake of this.flakepile.value.flakes) {
+      for (let i = flake.labels.length - 1; i >= 0; i--) {
+        if (!labelIds.has(flake.labels[i]!)) {
+          flake.labels.splice(i, 1)
+        }
+      }
+    }
+
+    this.trySave()
+  }
 }
 
 export type FlakepilePluginRef = Pick<
@@ -417,4 +472,7 @@ export type FlakepilePluginRef = Pick<
   | 'deleteFlake'
   | 'updateFlakeMeta'
   | 'updateFlakeContent'
+  | 'addLabel'
+  | 'deleteLabel'
+  | 'clearUnusedLabels'
 >

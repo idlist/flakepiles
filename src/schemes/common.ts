@@ -39,7 +39,7 @@ export function createFlakeLabel(): FlakeLabel {
     name: '',
     color: 'none',
     collapsed: false,
-    filtered: false,
+    filteredOut: false,
   }
 }
 
@@ -60,6 +60,7 @@ export function createFlakepile(): Flakepile {
       showLabels: true,
       showTimes: false,
       directDelete: false,
+      disableLabelFiltering: false,
     },
     labels: [],
     flakes: [],
