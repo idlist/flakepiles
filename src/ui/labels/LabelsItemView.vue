@@ -4,7 +4,6 @@ import { ObIcon } from '@/wrappers'
 
 defineProps<{
   label: FlakeLabel
-  editing: { state: 'none' | 'name' | 'color'; target: string }
 }>()
 
 const emit = defineEmits<{

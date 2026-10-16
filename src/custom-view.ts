@@ -11,6 +11,7 @@ import {
   createFlake,
   createHeightCache,
   type Flake,
+  type FlakeLabel,
   type FlakeMeta,
   type Flakepile,
   type FlakepileMeta,
@@ -145,9 +146,9 @@ export class FlakepileView extends TextFileView {
     const size = this.plugin.settings.fontSize
 
     if (enable) {
-      this.$anchor?.style.setProperty('--flakepile-font-size', px(size))
+      this.$anchor?.style.setProperty('--fp-font-size', px(size))
     } else {
-      this.$anchor?.style.removeProperty('--flakepile-font-size')
+      this.$anchor?.style.removeProperty('--fp-font-size')
     }
   }
 
@@ -456,6 +457,17 @@ export class FlakepileView extends TextFileView {
 
     this.trySave()
   }
+
+  updateLabel<T extends keyof FlakeLabel>(id: string, key: T, value: FlakeLabel[T]) {
+    if (!this.flakepile.value) return
+
+    const labels = this.flakepile.value.labels
+    const label = labels.find((label) => label.id === id)
+    if (!label) return
+
+    label[key] = value
+    this.trySave()
+  }
 }
 
 export type FlakepilePluginRef = Pick<
@@ -475,4 +487,5 @@ export type FlakepilePluginRef = Pick<
   | 'addLabel'
   | 'deleteLabel'
   | 'clearUnusedLabels'
+  | 'updateLabel'
 >

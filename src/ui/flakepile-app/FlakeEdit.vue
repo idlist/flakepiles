@@ -107,7 +107,7 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
 </script>
 
 <template>
-  <FlakeFrame class="flake-edit" :id="flake.id">
+  <FlakeFrame class="flake-edit" :id="flake.id" color="none">
     <div :class="['scrollable', ifScrollY]">
       <textarea
         ref="$textarea"
@@ -189,7 +189,7 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
   box-shadow: none;
   field-sizing: content;
 
-  font-size: var(--flakepile-font-size, var(--font-text-size));
+  font-size: var(--fp-font-size, var(--font-text-size));
   font-family: var(--font-text);
   line-height: var(--line-height-normal);
   padding: calc(0.5em + var(--size-2-1)) 0;

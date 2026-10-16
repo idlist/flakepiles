@@ -10,14 +10,14 @@ const props = defineProps<{ pile: Flakepile }>()
 const actions = inject('actions') as FlakepileActions
 
 interface LabelEditingState {
-  state: 'none' | 'name' | 'color'
+  state: 'idle' | 'name' | 'color'
   target: string
 }
 
 const moreTools = ref(false)
 const newLabelName = ref('')
 const editLabelName = ref('')
-const editing = reactive<LabelEditingState>({ target: '', state: 'none' })
+const editing = reactive<LabelEditingState>({ target: '', state: 'idle' })
 const filterInvert = computed(() => props.pile.filterInvert)
 
 const toggleInvertFilter = () => {
@@ -75,7 +75,7 @@ const setListed = (id: string, value: boolean) => {
 }
 
 const tryApplyLastEdit = () => {
-  if (editing.state == 'none') return
+  if (editing.state == 'idle') return
 
   tryUpdateLabelName()
   tryUpdateLabelColor()
@@ -105,7 +105,7 @@ const tryUpdateLabelName = () => {
 const editNameFinish = () => {
   tryUpdateLabelName()
 
-  editing.state = 'none'
+  editing.state = 'idle'
   editLabelName.value = ''
   actions.save()
 }
@@ -129,7 +129,7 @@ const editColorBegin = (id: string) => {
 const editColorFinish = () => {
   tryUpdateLabelColor()
 
-  editing.state = 'none'
+  editing.state = 'idle'
   // TODO: Update Color
 }
 
@@ -204,7 +204,7 @@ const cssFilterInvert = useCssIf(() => filterInvert.value, 'invert')
 
           <template v-else>
             <div
-              v-if="editing.state == 'none'
+              v-if="editing.state == 'idle'
               || editing.state == 'color'
               || editing.state == 'name' && editing.target != label.id"
             >

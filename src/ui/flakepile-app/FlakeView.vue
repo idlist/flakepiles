@@ -189,7 +189,7 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
 </script>
 
 <template>
-  <FlakeFrame :class="['flake-view', withType]" :id="flake.id">
+  <FlakeFrame :class="['flake-view', withType]" :id="flake.id" color="none">
     <div ref="$scrollable" :class="['scrollable', ifScrollY]">
       <div ref="$anchor" :class="['fp-markdown', 'flake-anchor', ifNoWrap]"></div>
     </div>

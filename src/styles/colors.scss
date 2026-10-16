@@ -1,6 +1,6 @@
 .fp-flake-frame {
   border: var(--border-width) solid
-    color-mix(in oklch, var(--color-primary) 25%, transparent);
+    color-mix(in oklch, var(--fp-color-primary) 25%, transparent);
   border-radius: var(--radius-m);
   box-shadow: var(--shadow-normal);
 
@@ -8,61 +8,57 @@
   background-color: var(--flake-background);
 
   --shadow-normal:
-    0 0 4px color-mix(in oklch, var(--color-primary) 15%, transparent),
-    0 1px 2px color-mix(in oklch, var(--color-primary) 5%, transparent);
+    0 0 4px color-mix(in oklch, var(--fp-color-primary) 15%, transparent),
+    0 1px 2px color-mix(in oklch, var(--fp-color-primary) 5%, transparent);
   --shadow-heavy:
-    0 0 8px color-mix(in oklch, var(--color-primary) 75%, transparent),
-    0 1px 4px color-mix(in oklch, var(--color-primary) 50%, transparent);
+    0 0 8px color-mix(in oklch, var(--fp-color-primary) 75%, transparent),
+    0 1px 4px color-mix(in oklch, var(--fp-color-primary) 50%, transparent);
 
   --flake-text: var(--text-normal);
   --flake-background: var(--background-primary);
+}
 
-  &.-highlight {
-    box-shadow: var(--shadow-heavy);
-  }
+.fp-color-none {
+  --fp-color-tag: var(--color-base-100);
+  --fp-color-primary: var(--color-base-70);
+}
 
-  &.-none {
-    --color-tag: var(--color-base-100);
-    --color-primary: var(--color-base-70);
-  }
+.fp-color-red {
+  --fp-color-tag: var(--color-red);
+  --fp-color-primary: color-mix(in oklch, var(--color-red) 70%, white);
+}
 
-  &.-red {
-    --color-tag: var(--color-red);
-    --color-primary: color-mix(in oklch, var(--color-red) 70%, white);
-  }
+.fp-color-orange {
+  --fp-color-tag: var(--color-orange);
+  --fp-color-primary: color-mix(in oklch, var(--color-orange) 70%, white);
+}
 
-  &.-orange {
-    --color-tag: var(--color-orange);
-    --color-primary: color-mix(in oklch, var(--color-orange) 70%, white);
-  }
+.fp-color-yellow {
+  --fp-color-tag: var(--color-yellow);
+  --fp-color-primary: color-mix(in oklch, var(--color-yellow) 70%, white);
+}
 
-  &.-yellow {
-    --color-tag: var(--color-yellow);
-    --color-primary: color-mix(in oklch, var(--color-yellow) 70%, white);
-  }
+.fp-color-green {
+  --fp-color-tag: var(--color-green);
+  --fp-color-primary: color-mix(in oklch, var(--color-green) 70%, white);
+}
 
-  &.-green {
-    --color-tag: var(--color-green);
-    --color-primary: color-mix(in oklch, var(--color-green) 70%, white);
-  }
+.fp-color-cyan {
+  --fp-color-tag: var(--color-cyan);
+  --fp-color-primary: color-mix(in oklch, var(--color-cyan) 70%, white);
+}
 
-  &.-cyan {
-    --color-tag: var(--color-cyan);
-    --color-primary: color-mix(in oklch, var(--color-cyan) 70%, white);
-  }
+.fp-color-blue {
+  --fp-color-tag: var(--color-blue);
+  --fp-color-primary: color-mix(in oklch, var(--color-blue) 70%, white);
+}
 
-  &.-blue {
-    --color-tag: var(--color-blue);
-    --color-primary: color-mix(in oklch, var(--color-blue) 70%, white);
-  }
+.fp-color-purple {
+  --fp-color-tag: var(--color-purple);
+  --fp-color-primary: color-mix(in oklch, var(--color-purple) 70%, white);
+}
 
-  &.-purple {
-    --color-tag: var(--color-purple);
-    --color-primary: color-mix(in oklch, var(--color-purple) 70%, white);
-  }
-
-  &.-pink {
-    --color-tag: var(--color-pink);
-    --color-primary: color-mix(in oklch, var(--color-pink) 70%, white);
-  }
+.fp-color-pink {
+  --fp-color-tag: var(--color-pink);
+  --fp-color-primary: color-mix(in oklch, var(--color-pink) 70%, white);
 }

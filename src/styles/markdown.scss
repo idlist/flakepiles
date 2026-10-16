@@ -3,7 +3,7 @@
 /* Adjustment to markdown styles */
 
 .fp-markdown {
-  font-size: var(--flakepile-font-size, var(--font-text-size));
+  font-size: var(--fp-font-size, var(--font-text-size));
   font-family: var(--font-text);
   line-height: var(--line-height-normal);
 

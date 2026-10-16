@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import type { FlakeLabelColor } from '@/schemes/common'
 import { bus } from '@/ui/logic/event-bus'
-import { useListener } from '@/use'
+import { useCssWith, useListener } from '@/use'
 import { until, type UntilToMatchOptions } from '@vueuse/core'
 import { inject, useTemplateRef } from 'vue'
 import type { IsLayoutStableRef } from './LayoutMasonry.vue'
 
 const props = defineProps<{
   id?: string
+  color: FlakeLabelColor
 }>()
 
 const isLayoutStable = inject('isLayoutStable') as IsLayoutStableRef
@@ -52,10 +54,12 @@ async function callout(duration: number = 500) {
     { duration: duration, easing: 'ease-in' },
   ) ?? null
 }
+
+const withColor = useCssWith(() => props.color, (val) => `fp-color-${val}`)
 </script>
 
 <template>
-  <div ref="$flake" :class="['fp-flake-frame', '-none']">
+  <div ref="$flake" :class="['fp-flake-frame', withColor]">
     <slot></slot>
   </div>
 </template>
