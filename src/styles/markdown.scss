@@ -52,7 +52,7 @@
     padding-inline-start: calc(var(--size-4-4) + 0.5em);
   }
 
-  .is-mobile :is(ul, ol) {
+  .is-mobile & :is(ul, ol) {
     padding-inline-start: calc(var(--size-4-6) + 0.5em);
   }
 

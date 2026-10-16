@@ -1,3 +1,4 @@
+import { Platform } from 'obsidian'
 import { type ComputedMasonry, type ComputeMasonryRequirements, getDesign, setupComputedMasonry } from './entry'
 
 export function computeMobileMasonry(
@@ -26,7 +27,10 @@ export function computeMobileMasonry(
 
   computed.size.width = usableSize.width
   computed.size.height = columnHeight + design.gap.y + 2 * design.pad.y
-    + 80 // Safety space for bottom menu.
+
+  if (Platform.isMobile) {
+    computed.size.height += 80 // Safety space for bottom menu.
+  }
 
   return computed
 }

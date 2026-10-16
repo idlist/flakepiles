@@ -38,7 +38,7 @@ Plugin side:
   - [ ] Search labels
 - [ ] Flake labels
   - [ ] Label creation, update, deletion
-  - [ ] Add / remove label to flake
+  - [ ] Add / remove labels to Flake
   - [ ] Label color (as Flake color)
   - [ ] Collapse certain labels in flakes (display as `+N`)
   - [ ] Hide flake with certain labels
@@ -52,6 +52,8 @@ Obsidian side:
 [1] Due to the nature of this plugin, other status bar items are hidden in flakepile view. Please let me know if you think some other status bar items should be displayed.
 
 ## Long term goals
+
+These are something I want to achieve if I've completed the roadmap and still have extra time. Most of them are desktop-only features.
 
 - Search keywords highlighting
 - Embed a Flake into another markdown file
@@ -95,6 +97,11 @@ When running `npm run build`, the output files will be copied to the `dist` fold
 ### Cache storage
 
 This plugin uses IndexedDB with [`idb-keyval`](https://github.com/jakearchibald/idb-keyval) to store cache data, which means (by default) the data is stored in database `keyval-store` and table `keyval`.
+
+### Overrides in `package.json`
+
+- `chokidar`: Resolves vulunrability in `vite-plugin-static-copy`.
+- `moment`: Resolves vulunrability in `obsidian` (package). As the plugin itself uses `dayjs` instead and never touches `moment`, it's safe to have (maybe) inconsistent version with Obsidian.
 
 ## Changelog
 
