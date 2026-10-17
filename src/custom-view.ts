@@ -376,7 +376,7 @@ export class FlakepileView extends TextFileView {
     if (!this.flakepile.value) return
 
     const flakes = this.flakepile.value.flakes
-    const index = flakes.findIndex((flake) => flake.id === id)
+    const index = flakes.findIndex((f) => f.id === id)
     if (index === -1) return
 
     this.flakepile.value.flakes.splice(index, 1)
@@ -491,8 +491,12 @@ export class FlakepileView extends TextFileView {
     const from = labels.findIndex((label) => label.id === id)
     if (from === -1) return
 
-    const to = Math.min(Math.max(toIndex, 0), labels.length - 1)
-    if (from === to) return
+    const to = Math.clamp(
+      from < toIndex ? toIndex - 1 : toIndex,
+      0,
+      labels.length - 1,
+    )
+    if (to === from) return
 
     const [moved] = labels.splice(from, 1)
     labels.splice(to, 0, moved!)

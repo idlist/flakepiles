@@ -10,12 +10,14 @@ const props = defineProps<{
   label: FlakeLabel
   more: boolean
   state: LabelEditingState
+  isDragging: boolean
 }>()
 
 const emit = defineEmits<{
   edit: [type: LabelEditingState, id: string]
   finish: []
   delete: [id: string]
+  dragstart: [id: string]
 }>()
 
 function updateEditingState(type: LabelEditingState, id: string) {
@@ -38,8 +40,10 @@ function updateEditingState(type: LabelEditingState, id: string) {
     <LabelsItemViewMore
       :label="label"
       :state="state"
+      :is-dragging="isDragging"
       @edit="updateEditingState"
       @delete="(id) => emit('delete', id)"
+      @dragstart="(id) => emit('dragstart', id)"
     />
 
     <LabelsColorPicker

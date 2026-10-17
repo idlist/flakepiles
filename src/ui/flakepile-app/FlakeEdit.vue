@@ -61,7 +61,7 @@ onMounted(() => {
 
       contentUnderEdit.value = props.flake.content
       lastHeight.value = 0
-      tryCancelEdit.value = false
+      tryCancelling.value = false
       focused.value = true
 
       await nextTick()
@@ -80,13 +80,13 @@ function selectAll() {
   $textarea.value.select()
 }
 
-const tryCancelEdit = ref(false)
+const tryCancelling = ref(false)
 
-function cancelEdit() {
+function cancelEditing() {
   emit('cancel')
 }
 
-function finishEdit() {
+function finishEditing() {
   plugin.updateFlakeContent(props.flake.id, contentUnderEdit.value)
   emit('finish', props.flake.id)
 }
@@ -120,7 +120,7 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
     <div ref="$settings" class="flake-settings">
       <button
         class="fp-btn-icon fp-danger"
-        @click="tryCancelEdit = true"
+        @click="tryCancelling = true"
       >
         <ObIcon name="pencil-off" />
       </button>
@@ -139,19 +139,19 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
       <button class="fp-btn-icon" @click="selectAll">
         <ObIcon name="scan" />
       </button>
-      <button class="fp-btn-icon" @click="finishEdit">
+      <button class="fp-btn-icon" @click="finishEditing">
         <ObIcon name="check" />
       </button>
     </div>
 
     <div
-      v-if="tryCancelEdit"
+      v-if="tryCancelling"
       class="flake-edit-cancel-fuse"
-      @click="tryCancelEdit = false"
+      @click="tryCancelling = false"
     >
       <button
         class="fp-btn-icon fp-warning flake-edit-cancel"
-        @click="cancelEdit"
+        @click="cancelEditing"
       >
         <ObIcon name="message-circle-question-mark" />
       </button>

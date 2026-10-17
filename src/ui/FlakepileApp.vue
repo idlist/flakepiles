@@ -115,12 +115,14 @@ const flakesArranged = computed<Flake[]>(() => {
   if (queried.length === 0) return queried
 
   const comparator = getFlakeComparator(meta.value)
-  const pinned = queried.filter((flake) => flake.meta.pinned)
-  const unpinned = queried.filter((flake) => !flake.meta.pinned)
+  const pinned = queried.filter((f) => f.meta.pinned)
+  const unpinned = queried.filter((f) => !f.meta.pinned)
 
   pinned.sort(comparator)
   unpinned.sort(comparator)
-  return [...pinned, ...unpinned]
+  const merged = [...pinned, ...unpinned]
+
+  return merged
 })
 
 async function newFlake() {

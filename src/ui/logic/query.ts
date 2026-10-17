@@ -38,8 +38,8 @@ export function queryFlakes(flakes: Flake[], query: string): Flake[] {
 
   const simpleSearch = prepareSimpleSearch(query)
 
-  const filtered = flakes.filter((flake) => {
-    const result = simpleSearch(flake.content)
+  const filtered = flakes.filter((f) => {
+    const result = simpleSearch(f.content)
     const hasMatch = result != null
 
     return hasMatch

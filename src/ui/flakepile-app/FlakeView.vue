@@ -146,7 +146,7 @@ async function copyContent() {
   }
 }
 
-const tryDelete = ref(false)
+const tryDeleting = ref(false)
 
 function tryRequestDelete() {
   if (props.disableDelete) return
@@ -154,7 +154,7 @@ function tryRequestDelete() {
   if (meta.value.directDelete) {
     requestDelete()
   } else {
-    tryDelete.value = true
+    tryDeleting.value = true
   }
 }
 
@@ -233,9 +233,9 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
     </div>
 
     <div
-      v-if="tryDelete"
+      v-if="tryDeleting"
       class="flake-view-delete-fuse"
-      @click="tryDelete = false"
+      @click="tryDeleting = false"
     >
       <button
         class="fp-btn-icon fp-warning flake-view-delete"

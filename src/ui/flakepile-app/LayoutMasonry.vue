@@ -24,11 +24,11 @@ const flakeIdUnderEdit = inject('flakeIdUnderEdit') as FlakeIdUnderEditRef
 const meta = inject('meta') as FlakepileMetaRef
 
 const flakesUnderView = computed<Flake[]>(() => {
-  return props.flakes.filter((flake) => flake.id !== flakeIdUnderEdit.value)
+  return props.flakes.filter((f) => f.id !== flakeIdUnderEdit.value)
 })
 
 const flakeUnderEdit = computed<Flake | null>(() => {
-  const found = props.flakes.find((flake) => flake.id === flakeIdUnderEdit.value)
+  const found = props.flakes.find((f) => f.id === flakeIdUnderEdit.value)
   return typeof found !== 'undefined' ? found : null
 })
 
@@ -201,7 +201,7 @@ async function togglePinning(id: string, value: boolean) {
   }
 }
 
-async function startEdit(id: string) {
+async function startEditing(id: string) {
   heightUnderEdit.value = 0
   flakeIdUnderEdit.value = id
 
@@ -213,14 +213,14 @@ function updateHeightUnderEdit(height: number) {
   heightUnderEdit.value = height
 }
 
-async function cancelEdit() {
+async function cancelEditing() {
   flakeIdUnderEdit.value = null
   heightUnderEdit.value = 0
   resolveMasonry()
 }
 
-async function finishEdit(id: string) {
-  await cancelEdit()
+async function finishEditing(id: string) {
+  await cancelEditing()
   bus.emit('scroll-to', id)
   bus.emit('callout', { id })
 }
@@ -246,7 +246,7 @@ function deleteFlake(id: string) {
       :inner-height="innerHeight"
       :disable-delete="flakeIdUnderEdit != null"
       @pin="togglePinning"
-      @edit="startEdit"
+      @edit="startEditing"
       @delete="deleteFlake"
     />
 
@@ -256,8 +256,8 @@ function deleteFlake(id: string) {
       :flake="flakeUnderEdit"
       :inner-height="innerHeight"
       @update-height="updateHeightUnderEdit"
-      @finish="finishEdit"
-      @cancel="cancelEdit"
+      @finish="finishEditing"
+      @cancel="cancelEditing"
     />
   </div>
 </template>

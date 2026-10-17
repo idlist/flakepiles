@@ -19,7 +19,7 @@ onMounted(() => {
   nameUnderEdit.value = props.label.name
 })
 
-function finishEdit() {
+function finishEditing() {
   const success = plugin.updateLabelProps(props.label.id, 'name', nameUnderEdit.value)
   if (success) {
     emit('finish')
@@ -36,7 +36,7 @@ function finishEdit() {
       placeholder="Edit label..."
     />
 
-    <button class="fp-btn-icon" @click="finishEdit">
+    <button class="fp-btn-icon" @click="finishEditing">
       <ObIcon name="check" />
     </button>
   </div>
