@@ -18,7 +18,6 @@
     "strictBindCallApply": true,
     "allowSyntheticDefaultImports": true,
     "useUnknownInCatchVariables": true,
-    "lib": ["es2022"],
     "paths": {
       "@/*": ["./src/*"]
     }
