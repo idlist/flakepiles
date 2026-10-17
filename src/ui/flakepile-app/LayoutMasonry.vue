@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
 import { type Flake, type FlakepileAdaptiveFlow } from '@/schemes/common'
-import type { FlakeIdEditingRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
+import type { FlakeIdUnderEditRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { bus } from '@/ui/logic/event-bus.ts'
 import { type ComputedMasonry, computeInitialWidth, computeMasonry, getDesign } from '@/ui/masonry/entry'
 import { type Point, point, px, type Size } from '@/utils'
@@ -20,15 +20,15 @@ const props = defineProps<{
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
-const flakeIdEditing = inject('flakeIdEditing') as FlakeIdEditingRef
+const flakeIdUnderEdit = inject('flakeIdUnderEdit') as FlakeIdUnderEditRef
 const meta = inject('meta') as FlakepileMetaRef
 
-const flakesViewing = computed<Flake[]>(() => {
-  return props.flakes.filter((flake) => flake.id !== flakeIdEditing.value)
+const flakesUnderView = computed<Flake[]>(() => {
+  return props.flakes.filter((flake) => flake.id !== flakeIdUnderEdit.value)
 })
 
-const flakeEditing = computed<Flake | null>(() => {
-  const found = props.flakes.find((flake) => flake.id === flakeIdEditing.value)
+const flakeUnderEdit = computed<Flake | null>(() => {
+  const found = props.flakes.find((flake) => flake.id === flakeIdUnderEdit.value)
   return typeof found !== 'undefined' ? found : null
 })
 
@@ -36,7 +36,7 @@ const flakeEditing = computed<Flake | null>(() => {
 
 const heights = computed(() => plugin.heightCache.value?.heights ?? {})
 const resolvedMasonry = shallowRef<ComputedMasonry>()
-const editingHeight = ref(0)
+const heightUnderEdit = ref(0)
 
 /** A signal for Flakes to recognize if the layout has stabilized,
     so that the Flakes can perform actions like scrolling into view. */
@@ -50,7 +50,7 @@ const stableTimerHandler = useTimeoutFn(() => {
 
 async function resolveMasonry() {
   // Do not recalculate layout when some Flake is being edit.
-  if (flakeIdEditing.value != null) return
+  if (flakeIdUnderEdit.value != null) return
 
   // Mark the layout to be unstable.
   isLayoutStable.value = false
@@ -101,11 +101,11 @@ const flakeWidth = computed(() => {
   return computeInitialWidth(props.flow, meta.value, props.usableSize)
 })
 
-const stylesViewing = computed<Map<string, StyleValue>>(() => {
+const stylesUnderView = computed<Map<string, StyleValue>>(() => {
   const styles = new Map<string, StyleValue>()
   const rects = resolvedMasonry.value?.rects
 
-  for (const flake of flakesViewing.value) {
+  for (const flake of flakesUnderView.value) {
     const rect = rects?.get(flake.id)
 
     if (rect) {
@@ -128,8 +128,8 @@ const stylesViewing = computed<Map<string, StyleValue>>(() => {
 const innerHeight = computed(() => props.usableSize.height - 2 * getDesign().pad.y)
 
 // The Flake in edit is to be taken out of the original masonry.
-const styleEditing = computed<StyleValue>(() => {
-  const id = flakeIdEditing.value
+const styleUnderEdit = computed<StyleValue>(() => {
+  const id = flakeIdUnderEdit.value
   if (!id) return
 
   const design = getDesign()
@@ -144,7 +144,7 @@ const styleEditing = computed<StyleValue>(() => {
     }
   }
 
-  const cachedHeight = editingHeight.value || rect.height
+  const cachedHeight = heightUnderEdit.value || rect.height
   let availableHeight = innerHeight.value
 
   // As on mobile the usable height changes when the keyboard rises,
@@ -201,26 +201,26 @@ async function togglePinning(id: string, value: boolean) {
   }
 }
 
-async function startEditing(id: string) {
-  editingHeight.value = 0
-  flakeIdEditing.value = id
+async function startEdit(id: string) {
+  heightUnderEdit.value = 0
+  flakeIdUnderEdit.value = id
 
   await nextTick()
   bus.emit('callout', { id })
 }
 
-function updateEditingHeight(height: number) {
-  editingHeight.value = height
+function updateHeightUnderEdit(height: number) {
+  heightUnderEdit.value = height
 }
 
-async function cancelEditing() {
-  flakeIdEditing.value = null
-  editingHeight.value = 0
+async function cancelEdit() {
+  flakeIdUnderEdit.value = null
+  heightUnderEdit.value = 0
   resolveMasonry()
 }
 
-async function finishEditing(id: string) {
-  await cancelEditing()
+async function finishEdit(id: string) {
+  await cancelEdit()
   bus.emit('scroll-to', id)
   bus.emit('callout', { id })
 }
@@ -228,7 +228,7 @@ async function finishEditing(id: string) {
 function deleteFlake(id: string) {
   // Disable the ability to delete other flakes when editing a flake.
   // This is an extra guard, as it is already guarded in FlakeView.
-  if (flakeIdEditing.value) return
+  if (flakeIdUnderEdit.value) return
 
   plugin.deleteFlake(id)
   resolveMasonry()
@@ -238,26 +238,26 @@ function deleteFlake(id: string) {
 <template>
   <div class="layout-masonry" :style="styleMasonry">
     <FlakeView
-      v-for="flake of flakesViewing"
+      v-for="flake of flakesUnderView"
       :key="flake.id"
-      :style="stylesViewing.get(flake.id)"
+      :style="stylesUnderView.get(flake.id)"
       :flake="flake"
       :flow="flow"
       :inner-height="innerHeight"
-      :disable-delete="flakeIdEditing != null"
+      :disable-delete="flakeIdUnderEdit != null"
       @pin="togglePinning"
-      @edit="startEditing"
+      @edit="startEdit"
       @delete="deleteFlake"
     />
 
     <FlakeEdit
-      v-if="flakeEditing != null"
-      :style="styleEditing"
-      :flake="flakeEditing"
+      v-if="flakeUnderEdit != null"
+      :style="styleUnderEdit"
+      :flake="flakeUnderEdit"
       :inner-height="innerHeight"
-      @update-height="updateEditingHeight"
-      @finish="finishEditing"
-      @cancel="cancelEditing"
+      @update-height="updateHeightUnderEdit"
+      @finish="finishEdit"
+      @cancel="cancelEdit"
     />
   </div>
 </template>

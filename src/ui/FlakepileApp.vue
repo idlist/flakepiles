@@ -26,9 +26,9 @@ const labels = computed(() => props.pile.labels)
 provide('labels', labels)
 export type FlakepileLabelsRef = typeof labels
 
-const flakeIdEditing = ref<string | null>(null)
-provide('flakeIdEditing', flakeIdEditing)
-export type FlakeIdEditingRef = typeof flakeIdEditing
+const flakeIdUnderEdit = ref<string | null>(null)
+provide('flakeIdUnderEdit', flakeIdUnderEdit)
+export type FlakeIdUnderEditRef = typeof flakeIdUnderEdit
 
 /* Responsive Layout */
 
@@ -89,7 +89,7 @@ const showLabels = ref(true) // * debug
 // Wwhen Flakepile changes:
 watch(() => props.pile.id, () => {
   // Reset editing state (without saving).
-  flakeIdEditing.value = null
+  flakeIdUnderEdit.value = null
 
   // Close panels.
   showOptions.value = false
@@ -97,7 +97,7 @@ watch(() => props.pile.id, () => {
 })
 
 // When start editing:
-watch(flakeIdEditing, (val, old) => {
+watch(flakeIdUnderEdit, (val, old) => {
   if (val != null && val !== old) {
     // Close panels.
     showOptions.value = false
@@ -127,7 +127,7 @@ async function newFlake() {
   const flakeId = plugin.addFlake()
   if (!flakeId) return
 
-  flakeIdEditing.value = flakeId
+  flakeIdUnderEdit.value = flakeId
 
   await nextTick()
   bus.emit('scroll-to', flakeId)

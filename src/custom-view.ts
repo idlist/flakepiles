@@ -483,6 +483,22 @@ export class FlakepileView extends TextFileView {
     this.trySave()
     return true
   }
+
+  updateLabelOrder(id: string, toIndex: number) {
+    if (!this.flakepile.value) return
+
+    const labels = this.flakepile.value.labels
+    const from = labels.findIndex((label) => label.id === id)
+    if (from === -1) return
+
+    const to = Math.min(Math.max(toIndex, 0), labels.length - 1)
+    if (from === to) return
+
+    const [moved] = labels.splice(from, 1)
+    labels.splice(to, 0, moved!)
+
+    this.trySave()
+  }
 }
 
 export type FlakepilePluginRef = Pick<
@@ -503,4 +519,5 @@ export type FlakepilePluginRef = Pick<
   | 'deleteLabel'
   | 'clearUnusedLabels'
   | 'updateLabelProps'
+  | 'updateLabelOrder'
 >

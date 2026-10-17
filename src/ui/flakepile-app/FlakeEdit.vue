@@ -34,7 +34,7 @@ const textWrap = bind(props.flake.meta, props.flake.id, 'textWrap')
 
 /* Dynamic Sizing */
 
-const contentEditing = ref<string>('')
+const contentUnderEdit = ref<string>('')
 const lastHeight = ref<number>(0)
 
 function updateHeight() {
@@ -59,9 +59,9 @@ onMounted(() => {
     async (val, old) => {
       if (val === old) return
 
-      contentEditing.value = props.flake.content
+      contentUnderEdit.value = props.flake.content
       lastHeight.value = 0
-      tryCancelEditing.value = false
+      tryCancelEdit.value = false
       focused.value = true
 
       await nextTick()
@@ -80,14 +80,14 @@ function selectAll() {
   $textarea.value.select()
 }
 
-const tryCancelEditing = ref(false)
+const tryCancelEdit = ref(false)
 
-function cancelEditing() {
+function cancelEdit() {
   emit('cancel')
 }
 
-function finishEditing() {
-  plugin.updateFlakeContent(props.flake.id, contentEditing.value)
+function finishEdit() {
+  plugin.updateFlakeContent(props.flake.id, contentUnderEdit.value)
   emit('finish', props.flake.id)
 }
 
@@ -111,7 +111,7 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
     <div :class="['scrollable', ifScrollY]">
       <textarea
         ref="$textarea"
-        v-model="contentEditing"
+        v-model="contentUnderEdit"
         :class="['content-editor', ifNoWrap]"
         placeholder="Note here..."
       ></textarea>
@@ -120,7 +120,7 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
     <div ref="$settings" class="flake-settings">
       <button
         class="fp-btn-icon fp-danger"
-        @click="tryCancelEditing = true"
+        @click="tryCancelEdit = true"
       >
         <ObIcon name="pencil-off" />
       </button>
@@ -139,19 +139,19 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
       <button class="fp-btn-icon" @click="selectAll">
         <ObIcon name="scan" />
       </button>
-      <button class="fp-btn-icon" @click="finishEditing">
+      <button class="fp-btn-icon" @click="finishEdit">
         <ObIcon name="check" />
       </button>
     </div>
 
     <div
-      v-if="tryCancelEditing"
+      v-if="tryCancelEdit"
       class="flake-edit-cancel-fuse"
-      @click="tryCancelEditing = false"
+      @click="tryCancelEdit = false"
     >
       <button
         class="fp-btn-icon fp-warning flake-edit-cancel"
-        @click="cancelEditing"
+        @click="cancelEdit"
       >
         <ObIcon name="message-circle-question-mark" />
       </button>

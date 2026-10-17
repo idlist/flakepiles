@@ -13,14 +13,14 @@ const emit = defineEmits<{
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
-const nameEditing = ref('')
+const nameUnderEdit = ref('')
 
 onMounted(() => {
-  nameEditing.value = props.label.name
+  nameUnderEdit.value = props.label.name
 })
 
-function finishEditing() {
-  const success = plugin.updateLabelProps(props.label.id, 'name', nameEditing.value)
+function finishEdit() {
+  const success = plugin.updateLabelProps(props.label.id, 'name', nameUnderEdit.value)
   if (success) {
     emit('finish')
   }
@@ -31,12 +31,12 @@ function finishEditing() {
   <div class="fp-labels-item">
     <input
       type="text"
-      v-model="nameEditing"
+      v-model="nameUnderEdit"
       class="expand"
       placeholder="Edit label..."
     />
 
-    <button class="fp-btn-icon" @click="finishEditing">
+    <button class="fp-btn-icon" @click="finishEdit">
       <ObIcon name="check" />
     </button>
   </div>

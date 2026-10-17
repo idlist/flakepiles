@@ -15,12 +15,12 @@ const emit = defineEmits<{
   delete: [id: string]
 }>()
 
-const IfEditingColor = useCssIf(() => props.state === 'color', 'fp-invert')
+const IfColorUnderEdit = useCssIf(() => props.state === 'color', 'fp-invert')
 </script>
 
 <template>
   <div class="fp-labels-item">
-    <div class="fp-btn-icon fp-dragger">
+    <div class="fp-btn-icon fp-dragger" draggable="true">
       <ObIcon name="grip-horizontal" />
     </div>
 
@@ -36,7 +36,7 @@ const IfEditingColor = useCssIf(() => props.state === 'color', 'fp-invert')
     </button>
 
     <button
-      :class="['fp-btn-icon', IfEditingColor]"
+      :class="['fp-btn-icon', IfColorUnderEdit]"
       @click="emit('edit', 'color', label.id)"
     >
       <ObIcon name="palette" />
@@ -58,5 +58,10 @@ const IfEditingColor = useCssIf(() => props.state === 'color', 'fp-invert')
   justify-content: center;
 
   border: var(--border-width) solid transparent;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
 }
 </style>
