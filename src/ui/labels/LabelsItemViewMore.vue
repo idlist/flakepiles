@@ -2,7 +2,6 @@
 import type { FlakeLabel } from '@/schemes/common'
 import { useCssIf } from '@/use'
 import { ObIcon } from '@/wrappers'
-import { useTemplateRef } from 'vue'
 import LabelsBadge from './LabelsBadge.vue'
 import type { LabelEditingState } from './LabelsCore.vue'
 
@@ -15,45 +14,25 @@ const props = defineProps<{
 const emit = defineEmits<{
   edit: [type: LabelEditingState, id: string]
   delete: [id: string]
-  dragstart: [id: string]
+  reorder: [id: string]
 }>()
 
-const $item = useTemplateRef('$item')
+function startReorder(event: PointerEvent) {
+  if (event.button !== 0) return
 
-function onDragStart(event: DragEvent) {
-  if (!event.dataTransfer) return
+  const target = event.currentTarget as HTMLElement
+  target.setPointerCapture(event.pointerId)
 
-  event.dataTransfer.effectAllowed = 'move'
-  event.dataTransfer.setData('text/plain', props.label.id)
-
-  if ($item.value) {
-    $item.value.classList.add('fp-dragging')
-    const rect = $item.value.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
-    event.dataTransfer.setDragImage($item.value!, x, y)
-  }
-
-  emit('dragstart', props.label.id)
+  emit('reorder', props.label.id)
 }
 
-function onDragEnd() {
-  if ($item.value) {
-    $item.value.classList.remove('fp-dragging')
-  }
-}
-
+const ifDragging = useCssIf(() => props.isDragging, '-dragging')
 const ifColorUnderEdit = useCssIf(() => props.state === 'color', 'fp-invert')
 </script>
 
 <template>
-  <div class="fp-labels-item" ref="$item">
-    <div
-      class="fp-btn-icon fp-grabbler"
-      draggable="true"
-      @dragstart="onDragStart"
-      @dragend="onDragEnd"
-    >
+  <div :class="['fp-labels-item', ifDragging]">
+    <div class="fp-btn-icon fp-grabbler" @pointerdown="startReorder">
       <ObIcon name="grip-horizontal" />
     </div>
 
@@ -62,25 +41,27 @@ const ifColorUnderEdit = useCssIf(() => props.state === 'color', 'fp-invert')
     <div class="gap"></div>
 
     <button
-      class="fp-btn-icon hidden-when-dragging"
+      class="fp-btn-icon"
       @click="emit('edit', 'name', label.id)"
     >
       <ObIcon name="square-pen" />
     </button>
 
     <button
-      :class="['fp-btn-icon', 'hidden-when-dragging', ifColorUnderEdit]"
+      :class="['fp-btn-icon', ifColorUnderEdit]"
       @click="emit('edit', 'color', label.id)"
     >
       <ObIcon name="palette" />
     </button>
 
     <button
-      class="fp-btn-icon hidden-when-dragging fp-danger"
+      class="fp-btn-icon fp-danger"
       @click="emit('delete', label.id)"
     >
       <ObIcon name="trash-2" />
     </button>
+
+    <div v-if="isDragging" class="labels-mask"></div>
   </div>
 </template>
 
@@ -91,14 +72,17 @@ const ifColorUnderEdit = useCssIf(() => props.state === 'color', 'fp-invert')
   justify-content: center;
 
   border: var(--border-width) solid transparent;
+  touch-action: none;
   cursor: grab;
 }
 
-.fp-dragging {
-  opacity: 0.5;
+.fp-labels-item.-grabbing > .fp-grabbler {
+  cursor: grabbing;
+}
 
-  > .hidden-when-dragging {
-    visibility: hidden;
-  }
+.labels-mask {
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(in oklch, var(--background-primary) 50%, transparent);
 }
 </style>

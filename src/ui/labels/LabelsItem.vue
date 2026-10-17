@@ -17,7 +17,7 @@ const emit = defineEmits<{
   edit: [type: LabelEditingState, id: string]
   finish: []
   delete: [id: string]
-  dragstart: [id: string]
+  reorder: [id: string]
 }>()
 
 function updateEditingState(type: LabelEditingState, id: string) {
@@ -43,7 +43,7 @@ function updateEditingState(type: LabelEditingState, id: string) {
       :is-dragging="isDragging"
       @edit="updateEditingState"
       @delete="(id) => emit('delete', id)"
-      @dragstart="(id) => emit('dragstart', id)"
+      @reorder="(id) => emit('reorder', id)"
     />
 
     <LabelsColorPicker

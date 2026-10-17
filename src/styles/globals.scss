@@ -71,6 +71,8 @@
   align-items: center;
   column-gap: var(--size-4-1);
 
+  position: relative;
+
   > .expand,
   > .gap {
     flex-grow: 1;
