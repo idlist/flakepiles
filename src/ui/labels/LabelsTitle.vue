@@ -16,8 +16,10 @@ const disableLabelFiltering = bind(meta.value, 'disableLabelFiltering')
 const newLabelName = ref('')
 
 const addLabel = () => {
-  plugin.addLabel(newLabelName.value)
-  newLabelName.value = ''
+  const success = plugin.addLabel(newLabelName.value)
+  if (success) {
+    newLabelName.value = ''
+  }
 }
 
 const ifDisableFiltering = useCssIf(disableLabelFiltering, 'fp-invert')

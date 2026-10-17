@@ -82,7 +82,7 @@ const searchQueryDebounced = refDebounced(searchQuery, 100)
 
 const showMenuMask = ref(false)
 const showOptions = ref(false)
-const showLabels = ref(false)
+const showLabels = ref(true) // * debug
 
 /* Element State Tweaks */
 
@@ -228,7 +228,9 @@ async function newFlake() {
 
   padding: var(--size-4-2) var(--size-4-4);
   background-color: var(--background-primary);
-  border-bottom: var(--fp-border);
+
+  border: none;
+  border-bottom: var(--border-width) solid var(--background-modifier-border);
 }
 
 .menu-masking {

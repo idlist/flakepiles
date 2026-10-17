@@ -1,48 +1,43 @@
 <script setup lang="ts">
+import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakeLabel } from '@/schemes/common'
 import { ObIcon } from '@/wrappers'
-import { ref } from 'vue'
+import { inject, onMounted, ref } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   label: FlakeLabel
 }>()
 
 const emit = defineEmits<{
-  (e: 'finish'): void
+  finish: []
 }>()
 
-// TODO: Replace the placeholder ref with the shared editing state once it is lifted upward.
-const editLabelName = ref('')
+const plugin = inject('plugin') as FlakepilePluginRef
+const nameEditing = ref('')
+
+onMounted(() => {
+  nameEditing.value = props.label.name
+})
+
+function finishEditing() {
+  const success = plugin.updateLabelProps(props.label.id, 'name', nameEditing.value)
+  if (success) {
+    emit('finish')
+  }
+}
 </script>
 
 <template>
-  <div class="label-item">
+  <div class="fp-labels-item">
     <input
-      v-model="editLabelName"
       type="text"
+      v-model="nameEditing"
       class="expand"
       placeholder="Edit label..."
     />
 
-    <button
-      class="fp-btn-icon"
-      @click="emit('finish')"
-    >
+    <button class="fp-btn-icon" @click="finishEditing">
       <ObIcon name="check" />
     </button>
   </div>
 </template>
-
-<style scoped lang="scss">
-.label-item {
-  display: flex;
-  align-items: center;
-  column-gap: var(--size-4-1);
-
-  min-width: 0;
-
-  > .expand {
-    flex-grow: 1;
-  }
-}
-</style>

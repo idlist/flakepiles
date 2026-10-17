@@ -12,6 +12,8 @@ import LabelsCore from '@/ui/labels/LabelsCore.vue'
 .labels-panel {
   padding: var(--size-4-2) var(--size-4-3);
   font-size: var(--font-ui-small);
-  max-width: 320px;
+  max-width: 360px;
+
+  pointer-events: visible;
 }
 </style>

@@ -36,6 +36,8 @@ export interface FlakeLabel extends WithVersion {
   filteredOut: boolean
 }
 
+export type FlakeLabelProps = Exclude<keyof FlakeLabel, 'id'>
+
 export type FlakepileMenuState = 'default' | 'shrinked' | 'expanded'
 
 export type FlakepileFlow = 'vertical' | 'horizontal'

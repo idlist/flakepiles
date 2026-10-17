@@ -1,44 +1,46 @@
 <script setup lang="ts">
+import type { FlakepilePluginRef } from '@/custom-view.ts'
 import type { FlakeLabel, FlakeLabelColor } from '@/schemes/common'
 import { flakeLabelColors } from '@/schemes/common'
+import { inject } from 'vue'
 import LabelsColorDot from './LabelsColorDot.vue'
 
-defineProps<{
+const props = defineProps<{
   label: FlakeLabel
 }>()
 
-const emit = defineEmits<{
-  (e: 'select', color: FlakeLabelColor): void
-}>()
+const plugin = inject('plugin') as FlakepilePluginRef
+
+function pickColor(color: FlakeLabelColor) {
+  plugin.updateLabelProps(props.label.id, 'color', color)
+}
 </script>
 
 <template>
-  <div class="label-item -colorpicker">
+  <div class="labels-color-picker">
     <LabelsColorDot
       v-for="color of flakeLabelColors"
       :key="color"
       :color="color"
-      :selected="label.color == color"
-      @select="emit('select', color)"
+      :picked="label.color === color"
+      @pick="pickColor"
     />
   </div>
 </template>
 
 <style scoped lang="scss">
-.label-item {
+.labels-color-picker {
   display: flex;
   align-items: center;
+  justify-content: center;
   column-gap: var(--size-4-1);
 
-  min-width: 0;
+  margin-top: var(--size-4-1);
+  padding-top: var(--size-2-3);
+  padding-bottom: var(--size-2-3);
+  background-color: var(--background-primary);
 
-  &.-colorpicker {
-    margin-top: var(--size-4-1);
-    padding-top: var(--size-4-1);
-    padding-bottom: var(--size-4-1);
-    border-top: var(--fp-border);
-    border-bottom: var(--fp-border);
-    background-color: var(--background-primary-alt);
-  }
+  border: var(--border-width) solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
 }
 </style>

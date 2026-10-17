@@ -1,97 +1,43 @@
 <script setup lang="ts">
+import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakeLabel } from '@/schemes/common'
+import { useCssIf, useFlakeLabelPropsBinder } from '@/use'
 import { ObIcon } from '@/wrappers'
+import { inject } from 'vue'
+import LabelsBadge from './LabelsBadge.vue'
 
-defineProps<{
+const props = defineProps<{
   label: FlakeLabel
 }>()
 
-const emit = defineEmits<{
-  (e: 'remove', id: string): void
-  (e: 'editNameBegin', id: string): void
-  (e: 'editColorBegin', id: string): void
-  (e: 'editColorFinish'): void
-  (e: 'setListed', id: string, value: boolean): void
-}>()
+const plugin = inject('plugin') as FlakepilePluginRef
+const bind = useFlakeLabelPropsBinder(plugin)
+
+const filteredOut = bind(props.label, 'filteredOut')
+const collapsed = bind(props.label, 'collapsed')
+
+const ifFilteredOut = useCssIf(filteredOut, 'fp-invert')
+const ifCollapsed = useCssIf(collapsed, 'fp-invert')
 </script>
 
 <template>
-  <div class="label-item">
+  <div class="fp-labels-item">
     <button
-      class="fp-btn-icon danger"
-      @click="emit('remove', label.id)"
+      :class="['fp-btn-icon', ifFilteredOut]"
+      @click="filteredOut = !filteredOut"
     >
-      <ObIcon name="trash-2" />
+      <ObIcon :name="filteredOut ? 'eye-closed' : 'eye'" />
     </button>
 
-    <div class="name" :title="label.name">
-      {{ label.name }}
-    </div>
+    <LabelsBadge :name="label.name" :color="label.color" />
 
     <div class="expand"></div>
 
     <button
-      class="fp-btn-icon"
-      @click="emit('editNameBegin', label.id)"
+      :class="['fp-btn-icon', ifCollapsed]"
+      @click="collapsed = !collapsed"
     >
-      <ObIcon name="square-pen" />
-    </button>
-
-    <button
-      v-if="editing.state != 'color' || editing.target != label.id"
-      class="fp-btn-icon"
-      @click="emit('editColorBegin', label.id)"
-    >
-      <ObIcon name="palette" />
-    </button>
-    <button
-      v-else
-      class="fp-btn-icon invert"
-      @click="emit('editColorFinish')"
-    >
-      <ObIcon name="palette" />
-    </button>
-
-    <button
-      v-if="label.collapsed"
-      class="fp-btn-icon"
-      @click="emit('setListed', label.id, false)"
-    >
-      <ObIcon name="text-align-start" />
-    </button>
-    <button
-      v-else
-      class="fp-btn-icon invert"
-      @click="emit('setListed', label.id, true)"
-    >
-      <ObIcon name="circle-off" />
+      <ObIcon :name="collapsed ? 'list-plus' : 'circle-off'" />
     </button>
   </div>
 </template>
-
-<style scoped lang="scss">
-.label-item {
-  display: flex;
-  align-items: center;
-  column-gap: var(--size-4-1);
-
-  min-width: 0;
-
-  > .expand {
-    flex-grow: 1;
-  }
-
-  > .name {
-    color: #ffffff;
-    background-color: #333333;
-
-    font-size: var(--font-ui-smaller);
-    padding: var(--size-2-1) var(--size-2-3);
-    border-radius: var(--size-4-4);
-
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-</style>

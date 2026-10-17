@@ -80,6 +80,7 @@ export type {
   Flake,
   FlakeLabel,
   FlakeLabelColor,
+  FlakeLabelProps,
   FlakeMeta,
   Flakepile,
   FlakepileAdaptiveFlow,

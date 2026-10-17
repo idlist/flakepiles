@@ -1,7 +1,7 @@
 import type { Emitter } from 'mitt'
 import { computed, type MaybeRefOrGetter, onScopeDispose, toValue } from 'vue'
 import type { FlakepilePluginRef } from './custom-view'
-import type { FlakeLabel, FlakeMeta, FlakepileMeta } from './schemes/common'
+import type { FlakeLabel, FlakeLabelProps, FlakeMeta, FlakepileMeta } from './schemes/common'
 
 // Uses are ordered roughly from more general to more specific.
 
@@ -56,11 +56,11 @@ export function useFlakeMetaBinder(plugin: FlakepilePluginRef) {
   return bind
 }
 
-export function useFlakeLabelBinder(plugin: FlakepilePluginRef) {
-  const bind = <T extends keyof FlakeLabel>(label: FlakeLabel, key: T) => {
+export function useFlakeLabelPropsBinder(plugin: FlakepilePluginRef) {
+  const bind = <T extends FlakeLabelProps>(label: FlakeLabel, key: T) => {
     return computed<FlakeLabel[T]>({
       get: () => label[key],
-      set: (val) => plugin.updateLabel(label.id, key, val),
+      set: (val) => plugin.updateLabelProps(label.id, key, val),
     })
   }
 

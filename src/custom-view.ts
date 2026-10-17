@@ -4,19 +4,21 @@ import { funnel } from 'remeda'
 import { type App as VueApp, type Component, createApp, reactive, ref, toRaw } from 'vue'
 import FlakepileApp from './App.vue'
 import type FlakepilesPlugin from './main.ts'
-import { createFlakeLabel, parseFlakepile } from './schemes/common.ts'
 import { dbKey, noopAsync, px } from './utils'
 
 import {
   createFlake,
+  createFlakeLabel,
   createHeightCache,
   type Flake,
   type FlakeLabel,
+  type FlakeLabelProps,
   type FlakeMeta,
   type Flakepile,
   type FlakepileMeta,
   type HeightCache,
   type HeightCacheCollection,
+  parseFlakepile,
 } from '@/schemes/common'
 
 export const VIEW_TYPE = 'flakepile'
@@ -405,14 +407,20 @@ export class FlakepileView extends TextFileView {
 
   /* Label Management */
 
-  addLabel(name: string) {
-    if (!this.flakepile.value) return
+  private validateLabelName(name: string): boolean {
+    if (name.length === 0) {
+      new Notice('Label name cannot be empty.', 500)
+      return false
+    }
+
+    return true
+  }
+
+  addLabel(name: string): boolean {
+    if (!this.flakepile.value) return false
 
     const trimmed = name.trim()
-    if (trimmed.length === 0) {
-      new Notice('Label name cannot be empty.')
-      return
-    }
+    if (!this.validateLabelName(trimmed)) return false
 
     const labels = this.flakepile.value.labels
     const label = createFlakeLabel()
@@ -420,6 +428,7 @@ export class FlakepileView extends TextFileView {
 
     labels.push(label)
     this.trySave()
+    return true
   }
 
   deleteLabel(id: string) {
@@ -458,15 +467,21 @@ export class FlakepileView extends TextFileView {
     this.trySave()
   }
 
-  updateLabel<T extends keyof FlakeLabel>(id: string, key: T, value: FlakeLabel[T]) {
-    if (!this.flakepile.value) return
+  updateLabelProps<T extends FlakeLabelProps>(
+    id: string,
+    key: T,
+    value: FlakeLabel[T],
+  ): boolean {
+    if (!this.flakepile.value) return false
 
     const labels = this.flakepile.value.labels
     const label = labels.find((label) => label.id === id)
-    if (!label) return
+    if (!label) return false
+    if (key === 'name' && !this.validateLabelName(value as string)) return false
 
     label[key] = value
     this.trySave()
+    return true
   }
 }
 
@@ -487,5 +502,5 @@ export type FlakepilePluginRef = Pick<
   | 'addLabel'
   | 'deleteLabel'
   | 'clearUnusedLabels'
-  | 'updateLabel'
+  | 'updateLabelProps'
 >

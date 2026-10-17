@@ -1,5 +1,13 @@
 Changelog (pre 1.0)
 
+## 0.2.5
+
+- Fixed wrong TypeScript lib settings.
+
+## 0.2.4
+
+- Fixed outdated typings that might caused the auto-review process to fail.
+
 ## 0.2.3
 
 - Fixed various bugs.

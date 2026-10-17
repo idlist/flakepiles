@@ -19,46 +19,46 @@
 }
 
 .fp-color-none {
-  --fp-color-tag: var(--color-base-100);
+  --fp-color-tag: var(--color-base-70);
   --fp-color-primary: var(--color-base-70);
 }
 
 .fp-color-red {
   --fp-color-tag: var(--color-red);
-  --fp-color-primary: color-mix(in oklch, var(--color-red) 70%, white);
+  --fp-color-primary: var(--color-red);
 }
 
 .fp-color-orange {
   --fp-color-tag: var(--color-orange);
-  --fp-color-primary: color-mix(in oklch, var(--color-orange) 70%, white);
+  --fp-color-primary: var(--color-orange);
 }
 
 .fp-color-yellow {
   --fp-color-tag: var(--color-yellow);
-  --fp-color-primary: color-mix(in oklch, var(--color-yellow) 70%, white);
+  --fp-color-primary: var(--color-yellow);
 }
 
 .fp-color-green {
   --fp-color-tag: var(--color-green);
-  --fp-color-primary: color-mix(in oklch, var(--color-green) 70%, white);
+  --fp-color-primary: var(--color-green);
 }
 
 .fp-color-cyan {
   --fp-color-tag: var(--color-cyan);
-  --fp-color-primary: color-mix(in oklch, var(--color-cyan) 70%, white);
+  --fp-color-primary: var(--color-cyan);
 }
 
 .fp-color-blue {
   --fp-color-tag: var(--color-blue);
-  --fp-color-primary: color-mix(in oklch, var(--color-blue) 70%, white);
+  --fp-color-primary: var(--color-blue);
 }
 
 .fp-color-purple {
   --fp-color-tag: var(--color-purple);
-  --fp-color-primary: color-mix(in oklch, var(--color-purple) 70%, white);
+  --fp-color-primary: var(--color-purple);
 }
 
 .fp-color-pink {
   --fp-color-tag: var(--color-pink);
-  --fp-color-primary: color-mix(in oklch, var(--color-pink) 70%, white);
+  --fp-color-primary: var(--color-pink);
 }
