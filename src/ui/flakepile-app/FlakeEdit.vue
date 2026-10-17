@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import type { IsDevRef } from '@/App.vue'
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake } from '@/schemes/common'
 import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf, useFlakeMetaBinder } from '@/use'
-import { getScrollbarHeight } from '@/utils'
+import { getScrollbarHeight, idFloatingArea } from '@/utils'
 import { ObIcon } from '@/wrappers'
+import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
 import { useFocus, useResizeObserver, useThrottleFn } from '@vueuse/core'
+import { Platform } from 'obsidian'
 import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
+import AttachLabelsMobileModal from './AttachLabelsMobileModal.vue'
+import AttachLabelsPanel from './AttachLabelsPanel.vue'
 import FlakeFrame from './FlakeFrame.vue'
 
 const props = defineProps<{
@@ -22,7 +25,6 @@ const emit = defineEmits<{
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
-const isDev = inject('isDev') as IsDevRef
 const meta = inject('meta') as FlakepileMetaRef
 
 const $textarea = useTemplateRef('$textarea')
@@ -31,6 +33,8 @@ const { focused } = useFocus($textarea)
 
 const bind = useFlakeMetaBinder(plugin)
 const textWrap = bind(props.flake.meta, props.flake.id, 'textWrap')
+
+const showAttachLabels = ref(false)
 
 /* Dynamic Sizing */
 
@@ -63,6 +67,7 @@ onMounted(() => {
       lastHeight.value = 0
       tryCancelling.value = false
       focused.value = true
+      showAttachLabels.value = false
 
       await nextTick()
       updateHeight()
@@ -91,6 +96,35 @@ function finishEditing() {
   emit('finish', props.flake.id)
 }
 
+/* Attach Labels Panel */
+
+const $attachLabelsButton = useTemplateRef('$attachLabelsButton')
+const $attachLabelsPanel = useTemplateRef<InstanceType<typeof AttachLabelsPanel>>('$attachLabelsPanel')
+
+const { floatingStyles: attachLabelsPanelStyle } = useFloating(
+  $attachLabelsButton,
+  $attachLabelsPanel,
+  {
+    placement: 'top',
+    middleware: [
+      offset(4),
+      shift({ padding: 8 }),
+    ],
+    whileElementsMounted: autoUpdate,
+  },
+)
+
+const $attachLabelsMobileModal = useTemplateRef('$attachLabelsMobileModal')
+
+function toggleAttachLabels() {
+  if (Platform.isDesktop || Platform.isTablet) {
+    showAttachLabels.value = !showAttachLabels.value
+  }
+  if (Platform.isPhone) {
+    $attachLabelsMobileModal.value?.open()
+  }
+}
+
 /* Flake Scrollable State */
 
 const shouldScrollY = computed(() => {
@@ -104,6 +138,7 @@ const shouldScrollY = computed(() => {
 const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 const ifNoWrap = useCssIf(() => !textWrap.value, '-nowrap')
 const ifTextWrap = useCssIf(textWrap, 'fp-invert')
+const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
 </script>
 
 <template>
@@ -130,7 +165,11 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
       >
         <ObIcon name="text-wrap" />
       </button>
-      <button v-if="isDev" class="fp-btn-icon">
+      <button
+        ref="$attachLabelsButton"
+        :class="['fp-btn-icon', ifAttachingLabels]"
+        @click="toggleAttachLabels"
+      >
         <ObIcon name="tags" />
       </button>
 
@@ -156,6 +195,16 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
         <ObIcon name="message-circle-question-mark" />
       </button>
     </div>
+
+    <Teleport defer :to="`#${idFloatingArea}`">
+      <AttachLabelsPanel
+        v-if="showAttachLabels"
+        ref="$attachLabelsPanel"
+        :style="attachLabelsPanelStyle"
+      />
+    </Teleport>
+
+    <AttachLabelsMobileModal ref="$attachLabelsMobileModal" />
   </FlakeFrame>
 </template>
 

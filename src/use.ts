@@ -9,7 +9,7 @@ export const useCssIf = <T>(
   condition: MaybeRefOrGetter<T>,
   className: MaybeRefOrGetter<string>,
 ) => {
-  return computed(() => toValue(condition) ? toValue(className) : '')
+  return computed(() => ({ [toValue(className)]: toValue(condition) }))
 }
 
 export const useCssWith = <T>(
@@ -18,7 +18,7 @@ export const useCssWith = <T>(
 ) => {
   return computed(() => {
     const value = toValue(condition)
-    return value ? formatter(value) : ''
+    return { [formatter(value)]: value }
   })
 }
 

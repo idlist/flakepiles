@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileLabelsRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf } from '@/use.ts'
 import { useEventListener } from '@vueuse/core'
 import { inject, onUnmounted, ref, watch } from 'vue'
 import LabelsItem from './LabelsItem.vue'

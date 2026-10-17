@@ -4,6 +4,7 @@ import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/common'
 import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
+import { idFloatingArea } from '@/utils'
 import { ObIcon } from '@/wrappers'
 import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
 import { Platform } from 'obsidian'
@@ -11,7 +12,7 @@ import { inject, useTemplateRef } from 'vue'
 import LabelsMobileModal from './LabelsMobileModal.vue'
 import LabelsPanel from './LabelsPanel.vue'
 import MenuButton from './MenuButton.vue'
-import { useOptionsMobileMenu } from './OptionsMobileMenu.ts'
+import { useOptionsMobileMenu } from './OptionsMobileMenu'
 import OptionsPanel from './OptionsPanel.vue'
 
 const props = defineProps<{
@@ -171,7 +172,7 @@ function toggleLabels() {
     </button>
   </div>
 
-  <Teleport defer to="#fp-floating-area">
+  <Teleport defer :to="`#${idFloatingArea}`">
     <OptionsPanel
       v-if="showOptions"
       ref="$optionsPanel"
