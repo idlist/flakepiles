@@ -15,12 +15,12 @@ withDefaults(
 )
 
 const emit = defineEmits<{
-  updateChecked: [checked: boolean]
+  update: [checked: boolean]
 }>()
 </script>
 
 <template>
-  <div class="attach-labels-item" @click="emit('updateChecked', !checked)">
+  <div class="attach-labels-item" @click="emit('update', !checked)">
     <input type="checkbox" :checked="checked">
     <LabelsBadge :name="name" :color="color" />
   </div>

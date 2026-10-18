@@ -2,11 +2,12 @@
 import AttachLabelsCore, { type AttachLabelsProps } from '@/ui/labels/AttachLabelsCore.vue'
 
 defineProps<AttachLabelsProps>()
+const labelIds = defineModel<string[]>('labelIds', { required: true })
 </script>
 
 <template>
   <div class="menu select-label-panel">
-    <AttachLabelsCore :flake="flake" />
+    <AttachLabelsCore :id="id" v-model:label-ids="labelIds" />
   </div>
 </template>
 

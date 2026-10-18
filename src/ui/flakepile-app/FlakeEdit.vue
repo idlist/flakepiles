@@ -2,17 +2,28 @@
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake, FlakeLabelColor } from '@/schemes/common'
 import type { FlakepileLabelsRef, FlakepileMetaRef, FloatingAreaRect } from '@/ui/FlakepileApp.vue'
+import LabelsBadge from '@/ui/labels/LabelsBadge.vue'
 import { useCssIf, useFlakeMetaBinder } from '@/use'
 import { getScrollbarHeight, idFloatingArea, px } from '@/utils'
 import { ObIcon } from '@/wrappers'
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/vue'
 import { useFocus, useResizeObserver, useThrottleFn } from '@vueuse/core'
 import { Platform } from 'obsidian'
-import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch, watchEffect } from 'vue'
-import LabelsBadge from '../labels/LabelsBadge.vue'
 import AttachLabelsMobileModal from './AttachLabelsMobileModal.vue'
 import AttachLabelsPanel from './AttachLabelsPanel.vue'
 import FlakeFrame from './FlakeFrame.vue'
+
+import {
+  type ComponentPublicInstance,
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  ref,
+  useTemplateRef,
+  watch,
+  watchEffect,
+} from 'vue'
 
 const props = defineProps<{
   flake: Flake
@@ -38,6 +49,7 @@ const bind = useFlakeMetaBinder(plugin)
 const textWrap = bind(props.flake.meta, props.flake.id, 'textWrap')
 
 const showAttachLabels = ref(false)
+const labelsUnderEdit = ref<string[]>([])
 
 /* Dynamic Sizing */
 
@@ -67,6 +79,8 @@ onMounted(() => {
       if (val === old) return
 
       contentUnderEdit.value = props.flake.content
+      labelsUnderEdit.value = [...props.flake.labels]
+
       lastHeight.value = 0
       tryCancelling.value = false
       focused.value = true
@@ -96,13 +110,15 @@ function cancelEditing() {
 
 function finishEditing() {
   plugin.updateFlakeContent(props.flake.id, contentUnderEdit.value)
+  plugin.updateFlakeLabels(props.flake.id, labelsUnderEdit.value)
+
   emit('finish', props.flake.id)
 }
 
 /* Flake Attach Labels Panel */
 
 const $attachLabelsButton = useTemplateRef('$attachLabelsButton')
-const $attachLabelsPanel = useTemplateRef<InstanceType<typeof AttachLabelsPanel>>('$attachLabelsPanel')
+const $attachLabelsPanel = useTemplateRef<ComponentPublicInstance>('$attachLabelsPanel')
 
 const { floatingStyles: attachLabelsPanelStyle } = useFloating(
   $attachLabelsButton,
@@ -142,14 +158,14 @@ const labelCountDisplay = ref<string>('')
 const flakeColor = ref<FlakeLabelColor>('none')
 
 watchEffect(() => {
-  const total = props.flake.labels.length
+  const total = labelsUnderEdit.value.length
   showLabelCount.value = total !== 0
   if (!showLabelCount.value) {
     flakeColor.value = 'none'
     return
   }
 
-  const ids = new Set(props.flake.labels)
+  const ids = new Set(labelsUnderEdit.value)
   let collapsed = 0
   let color: FlakeLabelColor | null = null
 
@@ -257,13 +273,16 @@ const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
         v-if="showAttachLabels"
         ref="$attachLabelsPanel"
         :style="attachLabelsPanelStyle"
-        :flake="flake"
+        :id="flake.id"
+        v-model:label-ids="labelsUnderEdit"
       />
     </Teleport>
 
     <AttachLabelsMobileModal
       ref="$attachLabelsMobileModal"
       :flake="flake"
+      :id="flake.id"
+      v-model:label-ids="labelsUnderEdit"
     />
   </FlakeFrame>
 </template>

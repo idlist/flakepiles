@@ -35,7 +35,7 @@ const contentComparator: FlakeComparator = (a, b) => {
   return a.meta.createdAt - b.meta.createdAt
 }
 
-export function getFlakeComparator(meta: FlakepileMeta): FlakeComparator {
+function getFlakeComparator(meta: FlakepileMeta): FlakeComparator {
   if (meta.sortBy === 'createdAt') {
     if (meta.sortOrder === 'asc') {
       return (a, b) => a.meta.createdAt - b.meta.createdAt
@@ -58,29 +58,68 @@ export function getFlakeComparator(meta: FlakepileMeta): FlakeComparator {
   return () => 0
 }
 
+type MaybeSimpleSearch = ReturnType<typeof prepareSimpleSearch> | null
+
+function preprocessQuery(query: string) {
+  const tokens = query.split(/\s+/).filter((t) => !!t)
+  const contentQuery: string[] = []
+  const labelQuery: string[] = []
+
+  for (const token of tokens) {
+    if (token.startsWith('\\@')) {
+      const unescaped = token.slice(1)
+      contentQuery.push(unescaped)
+    } else if (token.startsWith('@label:')) {
+      const label = token.slice(7)
+
+      if (label !== '') {
+        labelQuery.push(label)
+      } else {
+        contentQuery.push(token)
+      }
+    } else {
+      contentQuery.push(token)
+    }
+  }
+
+  return {
+    contentQuery: contentQuery.join(' '),
+    labelQuery: labelQuery.join(' '),
+  }
+}
+
 export function arrangeFlakes(
   flakes: Flake[],
   meta: FlakepileMeta,
-  labels: FlakeLabel[],
+  labels: Map<string, FlakeLabel>,
   query: string,
 ): Flake[] {
-  const filteredOutLabelIds = new Set<string>(
-    labels
-      .filter(label => label.filteredOut)
-      .map(label => label.id),
-  )
+  const { contentQuery, labelQuery } = preprocessQuery(query)
 
-  query = query.trim()
-  let searchQuery: ReturnType<typeof prepareSimpleSearch> | null = null
-  if (query !== '') searchQuery = prepareSimpleSearch(query)
+  let contentSearch: MaybeSimpleSearch = null
+  if (contentQuery !== '') contentSearch = prepareSimpleSearch(contentQuery)
+
+  let labelSearch: MaybeSimpleSearch = null
+  if (labelQuery !== '') labelSearch = prepareSimpleSearch(labelQuery)
 
   const filtered = flakes.filter((flake) => {
-    for (const labelId of flake.labels) {
-      if (filteredOutLabelIds.has(labelId)) return false
+    if (labelSearch && flake.labels.length === 0) {
+      return false
     }
 
-    if (searchQuery) {
-      const result = searchQuery(flake.content)
+    for (const labelId of flake.labels) {
+      const label = labels.get(labelId)
+      if (!label) continue
+      if (label.filteredOut) return false
+
+      if (labelSearch) {
+        const result = labelSearch(label.name)
+        if (result == null) return false
+      }
+    }
+
+    if (contentSearch) {
+      const result = contentSearch(flake.content)
       if (result == null) return false
     }
 

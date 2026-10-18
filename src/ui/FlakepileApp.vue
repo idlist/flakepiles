@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { Flake, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/common'
+import type { Flake, FlakeLabel, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/common'
 import { useCssWith } from '@/use'
 import { idFloatingArea, type Point, type Rect, type Size } from '@/utils'
 import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
@@ -124,11 +124,21 @@ watch(flakeIdUnderEdit, (val, old) => {
 
 /* Flake Management */
 
+const labelMap = computed(() => {
+  const map = new Map<string, FlakeLabel>()
+
+  for (const label of labels.value) {
+    map.set(label.id, label)
+  }
+
+  return map
+})
+
 const flakesArranged = computed<Flake[]>(() => {
   const arranged = arrangeFlakes(
     props.pile.flakes,
     meta.value,
-    labels.value,
+    labelMap.value,
     searchQueryDebounced.value,
   )
 

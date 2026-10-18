@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import type { FlakepilePluginRef } from '@/custom-view'
-import type { Flake } from '@/schemes/common'
 import type { FlakepileLabelsRef } from '@/ui/FlakepileApp.vue'
 import { inject } from 'vue'
 import AttachLabelsItem from './AttachLabelsItem.vue'
 
 export interface AttachLabelsProps {
-  flake: Flake
+  id: string
 }
 
-const props = defineProps<AttachLabelsProps>()
+defineProps<AttachLabelsProps>()
+const labelIds = defineModel<string[]>('labelIds', { required: true })
 
-const plugin = inject('plugin') as FlakepilePluginRef
 const labels = inject('labels') as FlakepileLabelsRef
 
-function updateFlakeLabel(id: string, checked: boolean) {
-  plugin.updateFlakeLabel(props.flake.id, id, checked)
+function updateChecked(labelId: string, checked: boolean) {
+  if (checked) {
+    labelIds.value.push(labelId)
+  } else {
+    const index = labelIds.value.indexOf(labelId)
+    if (index !== -1) labelIds.value.splice(index, 1)
+  }
 }
 </script>
 
@@ -31,8 +34,8 @@ function updateFlakeLabel(id: string, checked: boolean) {
       :key="label.id"
       :name="label.name"
       :color="label.color"
-      :checked="flake.labels.contains(label.id)"
-      @update-checked="(checked) => updateFlakeLabel(label.id, checked)"
+      :checked="labelIds.contains(label.id)"
+      @update="(checked) => updateChecked(label.id, checked)"
     />
   </div>
 </template>

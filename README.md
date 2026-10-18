@@ -38,8 +38,8 @@ Plugin side:
   - [x] Copy Flake content to clipboard
   - [x] Pinning a Flake
 - [x] Search
-  - [x] Search content
-  - [ ] Search labels
+  - [x] Simple search for content
+  - [x] Simple search for labels
 - [x] Flake labels
   - [x] Label creation, update, deletion
   - [x] Attach / remove labels to Flake

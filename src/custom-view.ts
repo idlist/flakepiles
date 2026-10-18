@@ -405,19 +405,13 @@ export class FlakepileView extends TextFileView {
     this.trySave()
   }
 
-  updateFlakeLabel(id: string, labelId: string, checked: boolean) {
+  updateFlakeLabels(id: string, labelIds: string[]) {
     if (!this.flakepile.value) return
 
     const flake = this.flakeMap.get(id)
     if (!flake) return
 
-    if (checked) {
-      flake.labels.push(labelId)
-    } else {
-      const index = flake.labels.indexOf(labelId)
-      flake.labels.splice(index, 1)
-    }
-
+    flake.labels = labelIds
     this.trySave()
   }
 
@@ -531,11 +525,11 @@ export type FlakepilePluginRef = Pick<
   | 'updateHeightCache'
   | 'renderContent'
   | 'updateFlakepileMeta'
-  | 'updateFlakeLabel'
   | 'addFlake'
   | 'deleteFlake'
   | 'updateFlakeMeta'
   | 'updateFlakeContent'
+  | 'updateFlakeLabels'
   | 'addLabel'
   | 'deleteLabel'
   | 'clearUnusedLabels'

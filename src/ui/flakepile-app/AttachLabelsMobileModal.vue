@@ -5,9 +5,9 @@ import { App, Modal } from 'obsidian'
 import { inject, onBeforeUnmount, shallowRef } from 'vue'
 
 defineProps<AttachLabelsProps>()
+const labelIds = defineModel<string[]>('labelIds', { required: true })
 
 const plugin = inject('plugin') as FlakepilePluginRef
-
 const $anchor = shallowRef<HTMLElement | null>(null)
 let modal: Modal | null = null
 
@@ -44,6 +44,6 @@ defineExpose({
 
 <template>
   <Teleport v-if="$anchor" :to="$anchor">
-    <AttachLabelsCore :flake="flake" />
+    <AttachLabelsCore :id="id" v-model:label-ids="labelIds" />
   </Teleport>
 </template>
