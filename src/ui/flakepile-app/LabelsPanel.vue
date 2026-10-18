@@ -10,9 +10,9 @@ import LabelsCore from '@/ui/labels/LabelsCore.vue'
 
 <style scoped lang="scss">
 .labels-panel {
-  padding: var(--size-4-2) var(--size-4-3);
+  padding: var(--size-4-2) 0 var(--size-4-2) var(--scrollbar-width);
   font-size: var(--font-ui-small);
-  max-width: 360px;
+  max-width: 300px;
 
   pointer-events: visible;
 }

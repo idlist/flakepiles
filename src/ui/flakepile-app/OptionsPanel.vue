@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { IsDevRef } from '@/App.vue'
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/common'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
@@ -12,7 +11,6 @@ const props = defineProps<{
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
-const isDev = inject('isDev') as IsDevRef
 
 const bind = useFlakepileMetaBinder(plugin)
 const metaWidth = bind(props.meta, 'width')
@@ -34,7 +32,7 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
       <ObSlider
         v-model="metaWidth"
         :default="280"
-        :min="180"
+        :min="200"
         :max="600"
         :step="20"
         class="slider"
@@ -80,7 +78,7 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
 
     <hr />
 
-    <label v-if="isDev" class="options-item">
+    <label class="options-item">
       <span>Show Labels</span>
       <input type="checkbox" v-model="metaShowLabels" />
     </label>

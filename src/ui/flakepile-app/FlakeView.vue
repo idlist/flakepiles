@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef, FlakeType } from '@/custom-view'
-import type { Flake, FlakepileAdaptiveFlow } from '@/schemes/common'
-import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
+import type { Flake, FlakeLabelColor, FlakepileAdaptiveFlow } from '@/schemes/common'
+import type { FlakepileLabelsRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf, useCssWith } from '@/use'
 import { getScrollbarHeight } from '@/utils'
 import { ObIcon } from '@/wrappers'
@@ -10,6 +10,7 @@ import { useResizeObserver, useThrottleFn } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { Notice } from 'obsidian'
 import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from 'vue'
+import LabelsBadge from '../labels/LabelsBadge.vue'
 import FlakeFrame from './FlakeFrame.vue'
 
 const props = withDefaults(
@@ -32,6 +33,7 @@ const emit = defineEmits<{
 
 const plugin = inject('plugin') as FlakepilePluginRef
 const meta = inject('meta') as FlakepileMetaRef
+const labels = inject('labels') as FlakepileLabelsRef
 
 const $scrollable = useTemplateRef('$scrollable')
 const $anchor = useTemplateRef('$anchor')
@@ -121,6 +123,42 @@ const showMeta = computed(() => {
   return false
 })
 
+/* Flake Labels */
+
+const showLabels = computed(() => {
+  return meta.value.showLabels && props.flake.labels.length !== 0
+})
+
+interface LabelInfo {
+  id: string
+  name: string
+  color: FlakeLabelColor | 'accent'
+}
+
+const flakeLabels = computed<LabelInfo[]>(() => {
+  if (!showLabels.value) return []
+
+  let collapsed = 0
+  const ids = new Set(props.flake.labels)
+  const info: LabelInfo[] = []
+
+  for (const label of labels.value) {
+    if (!ids.has(label.id)) {
+      continue
+    } else if (label.collapsed) {
+      collapsed++
+    } else {
+      info.push({ id: label.id, name: label.name, color: label.color })
+    }
+  }
+
+  if (collapsed !== 0) {
+    info.push({ id: 'plus-n', name: `+${collapsed}`, color: 'accent' })
+  }
+
+  return info
+})
+
 /* Flake Actions */
 
 async function copyContent() {
@@ -195,7 +233,14 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
     </div>
 
     <div v-if="showMeta" ref="$meta" class="flake-meta">
-      <div v-if="props.flake.labels.length !== 0" class="tag-list"></div>
+      <div v-if="showLabels" class="flake-label-list">
+        <LabelsBadge
+          v-for="label of flakeLabels"
+          :key="label.id"
+          :name="label.name"
+          :color="label.color"
+        />
+      </div>
 
       <div v-if="times.showCreated" class="flake-time">
         <ObIcon name="clock" :size="12" />
@@ -278,13 +323,11 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
     width: max-content;
 
     // Margin space for scrollbar gutters.
-    margin-right: var(--size-4-8);
+    margin-right: calc(2 * var(--scrollbar-width) + 2 * var(--size-4-1));
   }
 
-  .is-mobile &.-nowrap,
   .flake-type-code &.-nowrap,
   .flake-type-image &.-nowrap {
-    // Margin space for scrollbar gutters.
     margin-right: 0;
   }
 
@@ -297,14 +340,29 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
     min-height: var(--size-4-16);
     padding: var(--size-4-1) var(--size-4-3);
   }
+
+  .is-mobile &.-nowrap {
+    margin-right: 0;
+  }
 }
 
 .flake-meta {
+  min-width: 0;
   padding: 0 var(--size-4-2) var(--size-2-1) var(--size-4-2);
 
   .flake-type-image & {
     padding-top: var(--size-2-1);
   }
+}
+
+.flake-label-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  column-gap: var(--size-4-1);
+  row-gap: var(--size-4-1);
+
+  margin: var(--size-4-1) 0;
 }
 
 .flake-time {

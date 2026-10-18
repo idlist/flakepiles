@@ -12,10 +12,15 @@ defineProps<AttachLabelsProps>()
 
 <style scoped lang="scss">
 .select-label-panel {
-  padding: var(--size-4-2) var(--size-4-3);
+  padding: var(--size-4-2) 0 var(--size-4-2) var(--scrollbar-width);
   font-size: var(--font-ui-small);
-  max-width: 360px;
+  max-width: 240px;
 
   pointer-events: visible;
+
+  .is-tablet & {
+    padding-left: var(--size-4-3);
+    padding-right: var(--size-4-3);
+  }
 }
 </style>

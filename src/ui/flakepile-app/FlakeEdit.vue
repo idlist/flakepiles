@@ -2,10 +2,10 @@
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake } from '@/schemes/common'
 import type { FlakepileLabelsRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf, useFlakeLabelCounts, useFlakeMetaBinder } from '@/use'
-import { getScrollbarHeight, idFloatingArea } from '@/utils'
+import { useCssIf, useFlakeMetaBinder } from '@/use'
+import { getScrollbarHeight, idFloatingArea, px } from '@/utils'
 import { ObIcon } from '@/wrappers'
-import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
+import { autoUpdate, flip, offset, size, useFloating } from '@floating-ui/vue'
 import { useFocus, useResizeObserver, useThrottleFn } from '@vueuse/core'
 import { Platform } from 'obsidian'
 import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
@@ -25,8 +25,8 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const meta = inject('meta') as FlakepileMetaRef
 const plugin = inject('plugin') as FlakepilePluginRef
+const meta = inject('meta') as FlakepileMetaRef
 const labels = inject('labels') as FlakepileLabelsRef
 
 const $textarea = useTemplateRef('$textarea')
@@ -98,7 +98,7 @@ function finishEditing() {
   emit('finish', props.flake.id)
 }
 
-/* Attach Labels Panel */
+/* Flake Attach Labels Panel */
 
 const $attachLabelsButton = useTemplateRef('$attachLabelsButton')
 const $attachLabelsPanel = useTemplateRef<InstanceType<typeof AttachLabelsPanel>>('$attachLabelsPanel')
@@ -110,7 +110,13 @@ const { floatingStyles: attachLabelsPanelStyle } = useFloating(
     placement: 'top',
     middleware: [
       offset(4),
-      shift({ padding: 8 }),
+      flip(),
+      size({
+        padding: 8,
+        apply({ availableHeight, elements }) {
+          elements.floating.style.maxHeight = px(Math.max(0, availableHeight))
+        },
+      }),
     ],
     whileElementsMounted: autoUpdate,
   },
@@ -127,17 +133,27 @@ function toggleAttachLabels() {
   }
 }
 
-/* Flake Labels Count */
+/* Flake Label Count */
 
-const labelsCounts = useFlakeLabelCounts(labels, props.flake.labels)
-const showLabelsCount = computed(() => labelsCounts.value.total !== 0)
+const showLabelCount = computed(() => props.flake.labels.length !== 0)
 
-const labelsCountDisplay = computed(() => {
-  const { shown, collapsed } = labelsCounts.value
+const labelCounts = computed<string | undefined>(() => {
+  if (!showLabelCount.value) return
+  const total = props.flake.labels.length
+
+  let collapsed = 0
+  for (const id of props.flake.labels) {
+    const label = labels.value.find((l) => l.id === id)
+    if (!label) continue
+    if (!label.collapsed) continue
+    collapsed++
+  }
+
+  const shown = total - collapsed
 
   let display = ''
   if (shown !== 0) display += `${shown}`
-  if (collapsed !== 0) display += `${collapsed}`
+  if (collapsed !== 0) display += `+${collapsed}`
 
   return display
 })
@@ -170,40 +186,42 @@ const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
     </div>
 
     <div ref="$settings" class="flake-settings">
-      <button
-        class="fp-btn-icon fp-danger"
-        @click="tryCancelling = true"
-      >
-        <ObIcon name="pencil-off" />
-      </button>
-      <button
-        :class="['fp-btn-icon', ifTextWrap]"
-        @click="textWrap = !textWrap"
-      >
-        <ObIcon name="text-wrap" />
-      </button>
-      <button
-        ref="$attachLabelsButton"
-        :class="['fp-btn-icon', ifAttachingLabels]"
-        @click="toggleAttachLabels"
-      >
-        <ObIcon name="tags" />
-      </button>
+      <div class="flake-settings-left">
+        <button
+          class="fp-btn-icon fp-danger"
+          @click="tryCancelling = true"
+        >
+          <ObIcon name="pencil-off" />
+        </button>
+        <button
+          :class="['fp-btn-icon', ifTextWrap]"
+          @click="textWrap = !textWrap"
+        >
+          <ObIcon name="text-wrap" />
+        </button>
+        <button
+          ref="$attachLabelsButton"
+          :class="['fp-btn-icon', ifAttachingLabels]"
+          @click="toggleAttachLabels"
+        >
+          <ObIcon name="tags" />
+        </button>
 
-      <LabelsBadge
-        v-if="showLabelsCount"
-        :name="labelsCountDisplay"
-        color="accent"
-      />
+        <LabelsBadge
+          v-if="showLabelCount"
+          :name="labelCounts ?? ''"
+          color="accent"
+        />
+      </div>
 
-      <div class="gap"></div>
-
-      <button class="fp-btn-icon" @click="selectAll">
-        <ObIcon name="scan" />
-      </button>
-      <button class="fp-btn-icon" @click="finishEditing">
-        <ObIcon name="check" />
-      </button>
+      <div class="flake-settings-right">
+        <button class="fp-btn-icon" @click="selectAll">
+          <ObIcon name="scan" />
+        </button>
+        <button class="fp-btn-icon" @click="finishEditing">
+          <ObIcon name="check" />
+        </button>
+      </div>
     </div>
 
     <div
@@ -281,17 +299,31 @@ const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
 
 .flake-settings {
   display: flex;
-  align-items: center;
-  column-gap: var(--size-4-1);
-  padding: var(--size-4-1);
+  flex-wrap: wrap;
+  column-gap: var(--size-4-2);
+  row-gap: var(--size-4-1);
 
-  > .gap {
-    flex-grow: 1;
-  }
+  padding: var(--size-4-1);
 
   .is-mobile & {
     padding: var(--size-4-2);
   }
+}
+
+%flake-settings-row {
+  display: flex;
+  align-items: center;
+  column-gap: var(--size-4-1);
+}
+
+.flake-settings-left {
+  @extend %flake-settings-row;
+}
+
+.flake-settings-right {
+  @extend %flake-settings-row;
+  flex-grow: 1;
+  justify-content: end;
 }
 
 .flake-edit-cancel-fuse {

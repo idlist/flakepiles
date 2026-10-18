@@ -38,5 +38,12 @@ function updateFlakeLabel(id: string, checked: boolean) {
   flex-wrap: wrap;
   column-gap: var(--size-4-4);
   row-gap: var(--size-4-2);
+
+  overflow-y: auto;
+  padding-right: var(--size-4-1);
+
+  .is-phone & {
+    padding-right: 0;
+  }
 }
 </style>

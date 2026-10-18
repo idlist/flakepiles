@@ -27,6 +27,8 @@ const withColor = useCssWith(() => props.color, (val) => `fp-color-${val}`)
   overflow: hidden;
   text-overflow: ellipsis;
 
+  min-width: 0;
+
   font-size: var(--font-ui-smaller);
   padding: var(--size-2-1) var(--size-2-3);
   border-radius: var(--size-4-4);

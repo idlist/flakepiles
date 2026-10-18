@@ -425,7 +425,7 @@ export class FlakepileView extends TextFileView {
 
   private validateLabelName(name: string): boolean {
     if (name.length === 0) {
-      new Notice('Label name cannot be empty.', 500)
+      new Notice('Label name cannot be empty.')
       return false
     }
 

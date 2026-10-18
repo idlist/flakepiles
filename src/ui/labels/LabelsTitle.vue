@@ -27,7 +27,7 @@ const ifMore = useCssIf(more, 'fp-invert')
 </script>
 
 <template>
-  <div class="labels-title">
+  <div class="fp-labels-item labels-title">
     <button
       :class="['fp-btn-icon', ifDisableFiltering]"
       @click="disableLabelFiltering = !disableLabelFiltering"
@@ -51,17 +51,15 @@ const ifMore = useCssIf(more, 'fp-invert')
 
 <style scoped lang="scss">
 .labels-title {
-  display: flex;
-  align-items: center;
-  column-gap: var(--size-4-1);
+  padding-right: var(--scrollbar-width);
 
-  > .expand {
-    flex-grow: 1;
+  .is-mobile & {
+    padding-right: 0;
   }
 }
 
 .labels-new-input {
-  min-width: 0;
+  min-width: 120px;
   width: auto;
 }
 </style>

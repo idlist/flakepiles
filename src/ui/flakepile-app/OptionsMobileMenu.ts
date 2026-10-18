@@ -6,12 +6,20 @@ import { Menu } from 'obsidian'
 export function useOptionsMobileMenu(plugin: FlakepilePluginRef, meta: FlakepileMeta) {
   const bind = useFlakepileMetaBinder(plugin)
 
+  const metaShowLabels = bind(meta, 'showLabels')
   const metaShowTimes = bind(meta, 'showTimes')
   const metaDirectDelete = bind(meta, 'directDelete')
 
   const open = () => {
     const menu = new Menu()
 
+    menu.addItem((item) => {
+      item.setTitle('Show labels')
+      item.setChecked(metaShowLabels.value)
+      item.onClick(() => {
+        metaShowLabels.value = !metaShowLabels.value
+      })
+    })
     menu.addItem((item) => {
       item.setTitle('Show times')
       item.setChecked(metaShowTimes.value)

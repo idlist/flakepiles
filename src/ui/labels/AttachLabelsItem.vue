@@ -30,5 +30,7 @@ const emit = defineEmits<{
 .attach-labels-item {
   display: flex;
   align-items: center;
+
+  min-width: 0;
 }
 </style>

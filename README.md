@@ -41,10 +41,10 @@ Plugin side:
   - [x] Search content
   - [ ] Search labels
 - [ ] Flake labels
-  - [ ] Label creation, update, deletion
-  - [ ] Add / delete labels to Flake
+  - [x] Label creation, update, deletion
+  - [x] Attach / remove labels to Flake
   - [ ] Label color (as Flake color)
-  - [ ] Collapse certain labels in flakes (display as `+N`)
+  - [x] Collapse certain labels in flakes (display as `+N`)
   - [ ] Hide flake with certain labels
 
 Obsidian side:

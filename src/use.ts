@@ -66,24 +66,3 @@ export function useFlakeLabelPropsBinder(plugin: FlakepilePluginRef) {
 
   return bind
 }
-
-export function useFlakeLabelCounts(
-  labels: MaybeRefOrGetter<FlakeLabel[]>,
-  ids: string[],
-) {
-  return computed(() => {
-    const total = ids.length
-    let collapsed = 0
-    const labelsValue = toValue(labels)
-
-    for (const id of ids) {
-      const label = labelsValue.find((l) => l.id === id)
-      if (!label) continue
-      if (!label.collapsed) continue
-      collapsed++
-    }
-
-    const shown = total - collapsed
-    return { total, shown, collapsed }
-  })
-}

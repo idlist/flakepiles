@@ -4,9 +4,9 @@ import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/common'
 import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
-import { idFloatingArea } from '@/utils'
+import { idFloatingArea, px } from '@/utils'
 import { ObIcon } from '@/wrappers'
-import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
+import { autoUpdate, offset, size, useFloating } from '@floating-ui/vue'
 import { Platform } from 'obsidian'
 import { inject, useTemplateRef } from 'vue'
 import LabelsMobileModal from './LabelsMobileModal.vue'
@@ -44,7 +44,6 @@ const { floatingStyles: optionsPanelStyle } = useFloating(
     placement: 'bottom-end',
     middleware: [
       offset(4),
-      shift({ padding: 8 }),
     ],
     whileElementsMounted: autoUpdate,
   },
@@ -73,7 +72,12 @@ const { floatingStyles: labelsPanelStyle } = useFloating(
     placement: 'bottom-start',
     middleware: [
       offset(4),
-      shift({ padding: 8 }),
+      size({
+        padding: 8,
+        apply({ availableHeight, elements }) {
+          elements.floating.style.maxHeight = px(Math.max(0, availableHeight))
+        },
+      }),
     ],
     whileElementsMounted: autoUpdate,
   },

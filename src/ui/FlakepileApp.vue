@@ -32,13 +32,13 @@ export type FlakeIdUnderEditRef = typeof flakeIdUnderEdit
 
 /* Responsive Layout */
 
-const $root = useTemplateRef('$root')
-const rootSize = useElementSize($root)
-const rootWidth = ref(0)
+const $viewport = useTemplateRef('$viewport')
+const viewportSize = useElementSize($viewport)
+const viewportWidth = ref(0)
 
 onMounted(() => {
-  watchThrottled(rootSize.width, (value) => {
-    rootWidth.value = value
+  watchThrottled(viewportSize.width, (value) => {
+    viewportWidth.value = value
   }, { throttle: 100 })
 })
 
@@ -46,7 +46,7 @@ interface Environment {
   size: 'small' | 'large'
 }
 const env = computed<Environment>(() => ({
-  size: rootWidth.value > 600 ? 'large' : 'small',
+  size: viewportWidth.value > 600 ? 'large' : 'small',
 }))
 provide('env', env)
 export type EnvironmentRef = typeof env
@@ -137,7 +137,7 @@ async function newFlake() {
 </script>
 
 <template>
-  <div ref="$root" class="flakepile-app">
+  <div ref="$viewport" class="flakepile-app">
     <div class="layout">
       <div class="flakepile-menu">
         <MenuShrinked
@@ -281,7 +281,7 @@ async function newFlake() {
   position: absolute;
   inset: 0;
 
-  z-index: 16;
+  z-index: 64;
   pointer-events: none;
 }
 

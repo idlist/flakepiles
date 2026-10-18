@@ -125,25 +125,28 @@ function isSlotActive(index: number) {
     <LabelsTitle v-model:more="more" />
 
     <div class="labels-list">
-      <div
-        v-for="(label, index) of labels"
-        :key="label.id"
-        :ref="($el) => updateRowsMap($el as HTMLDivElement | null, label.id)"
-      >
-        <div :class="['labels-dropping-line-before', isSlotActive(index)]"></div>
+      <div class="scrollable">
+        <div
+          v-for="(label, index) of labels"
+          :key="label.id"
+          :ref="($el) => updateRowsMap($el as HTMLDivElement | null, label.id)"
+          class="label-list-row"
+        >
+          <div :class="['labels-dropping-line-before', isSlotActive(index)]"></div>
 
-        <LabelsItem
-          :label="label"
-          :more="more"
-          :state="label.id === labelUnderEdit ? editType : 'idle'"
-          :is-dragging="label.id === idDragging"
-          @edit="updateEditingState"
-          @finish="resetEditingState"
-          @delete="deleteLabel"
-          @reorder="startReorder"
-        />
+          <LabelsItem
+            :label="label"
+            :more="more"
+            :state="label.id === labelUnderEdit ? editType : 'idle'"
+            :is-dragging="label.id === idDragging"
+            @edit="updateEditingState"
+            @finish="resetEditingState"
+            @delete="deleteLabel"
+            @reorder="startReorder"
+          />
 
-        <div :class="['labels-dropping-line-after', isSlotActive(index + 1)]"></div>
+          <div :class="['labels-dropping-line-after', isSlotActive(index + 1)]"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -152,17 +155,26 @@ function isSlotActive(index: number) {
 <style scoped lang="scss">
 .labels-core {
   display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: min-content 1fr;
+  grid-template-rows: min-content auto;
   row-gap: var(--size-4-1);
+
+  min-height: 0;
 }
 
 .labels-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  padding: var(--size-2-1) 0;
-
+  min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
+
+  > .scrollable {
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: var(--size-2-1) 0;
+  }
+}
+
+.label-list-row {
+  min-width: 0;
 }
 
 %labels-dropping-line {
