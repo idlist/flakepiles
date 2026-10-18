@@ -8,7 +8,7 @@ import { ObIcon } from '@/wrappers'
 import { delay } from '@rewl/kit'
 import { useResizeObserver, useThrottleFn } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { Notice } from 'obsidian'
+import { Keymap, Notice } from 'obsidian'
 import { computed, inject, nextTick, onMounted, ref, shallowRef, useTemplateRef, watchEffect } from 'vue'
 import LabelsBadge from '../labels/LabelsBadge.vue'
 import FlakeFrame from './FlakeFrame.vue'
@@ -196,10 +196,10 @@ async function copyContent() {
 
 const tryDeleting = ref(false)
 
-function tryRequestDelete() {
+function tryRequestDelete(event: MouseEvent) {
   if (props.disableDelete) return
 
-  if (meta.value.directDelete) {
+  if (meta.value.directDelete || Keymap.isModifier(event, 'Mod')) {
     requestDelete()
   } else {
     tryDeleting.value = true

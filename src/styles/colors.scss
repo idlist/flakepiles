@@ -1,6 +1,6 @@
 .fp-flake-frame {
   border: var(--border-width) solid
-    color-mix(in oklch, var(--fp-color-primary) 45%, transparent);
+    color-mix(in oklch, var(--fp-color-border) 40%, transparent);
   border-radius: var(--radius-m);
   box-shadow: var(--shadow-normal);
 
@@ -8,11 +8,11 @@
   background-color: var(--flake-background);
 
   --shadow-normal:
-    0 0 4px color-mix(in oklch, var(--fp-color-primary) 25%, transparent),
-    0 1px 2px color-mix(in oklch, var(--fp-color-primary) 10%, transparent);
+    0 0 4px color-mix(in oklch, var(--fp-color-shadow) 25%, transparent),
+    0 1px 2px color-mix(in oklch, var(--fp-color-shadow) 10%, transparent);
   --shadow-heavy:
-    0 0 8px var(--fp-color-primary),
-    0 1px 4px color-mix(in oklch, var(--fp-color-primary) 75%, transparent);
+    0 0 8px color-mix(in oklch, var(--fp-color-shadow) 75%, transparent),
+    0 1px 4px color-mix(in oklch, var(--fp-color-shadow) 50%, transparent);
 
   --flake-text: var(--text-normal);
   --flake-background: var(--background-primary);
@@ -20,45 +20,54 @@
 
 .fp-color-none {
   --fp-color-tag: var(--color-base-70);
-  --fp-color-primary: var(--color-base-50);
+  --fp-color-border: var(--color-base-40);
+  --fp-color-shadow: var(--color-base-70);
 }
 
 .fp-color-red {
   --fp-color-tag: var(--color-red);
-  --fp-color-primary: var(--color-red);
+  --fp-color-border: var(--color-red);
+  --fp-color-shadow: var(--color-red);
 }
 
 .fp-color-orange {
   --fp-color-tag: var(--color-orange);
-  --fp-color-primary: var(--color-orange);
+  --fp-color-border: var(--color-orange);
+  --fp-color-shadow: var(--color-orange);
 }
 
 .fp-color-yellow {
   --fp-color-tag: var(--color-yellow);
-  --fp-color-primary: var(--color-yellow);
+  --fp-color-border: var(--color-yellow);
+  --fp-color-shadow: var(--color-yellow);
 }
 
 .fp-color-green {
   --fp-color-tag: var(--color-green);
-  --fp-color-primary: var(--color-green);
+  --fp-color-border: var(--color-green);
+  --fp-color-shadow: var(--color-green);
 }
 
 .fp-color-cyan {
   --fp-color-tag: var(--color-cyan);
-  --fp-color-primary: var(--color-cyan);
+  --fp-color-border: var(--color-cyan);
+  --fp-color-shadow: var(--color-cyan);
 }
 
 .fp-color-blue {
   --fp-color-tag: var(--color-blue);
-  --fp-color-primary: var(--color-blue);
+  --fp-color-border: var(--color-blue);
+  --fp-color-shadow: var(--color-blue);
 }
 
 .fp-color-purple {
   --fp-color-tag: var(--color-purple);
-  --fp-color-primary: var(--color-purple);
+  --fp-color-border: var(--color-purple);
+  --fp-color-shadow: var(--color-purple);
 }
 
 .fp-color-pink {
   --fp-color-tag: var(--color-pink);
-  --fp-color-primary: var(--color-pink);
+  --fp-color-border: var(--color-pink);
+  --fp-color-shadow: var(--color-pink);
 }

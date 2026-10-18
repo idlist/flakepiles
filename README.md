@@ -18,6 +18,7 @@ I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about in
 - View and manage your Flakes (small pieces of notes) in masonry layout, vertical or horizontal.
 - Edit Flakes in place instead of having to open another window or dialog.
 - Easy to copy and paste your Flakes from everywhere to everywhere.
+- A simple label system to categorize and filter your Flakes.
 
 ## Roadmap
 
@@ -42,10 +43,10 @@ Plugin side:
   - [x] Simple search for labels
 - [x] Flake labels
   - [x] Label creation, update, deletion
-  - [x] Attach / remove labels to Flake
+  - [x] Attach / detach labels to Flake
   - [x] Label color (as Flake color)
-  - [x] Collapse certain labels in flakes (display as `+N`)
-  - [x] Hide flake with certain labels
+  - [x] Collapse certain labels on Flakes (display as `+N`)
+  - [x] Hide Flakes with certain labels
 
 Obsidian side:
 
@@ -59,13 +60,13 @@ Obsidian side:
 
 These are something I want to achieve if I've completed the roadmap and still have extra time. Most of them are desktop-only features.
 
-- Search keywords highlighting
 - Embed a Flake into another markdown file
 - Export a Flakepile as markdown
   - Export as a single markdown file
   - Export as a `.zip` archive, each Flake as a markdown file
 - Import the `.zip` archive mentioned above to a Flakepile
 - Import multiple markdown files to a Flakepile
+- Search keywords highlighting (sounds challenging, though)
 
 ## Non-goals
 

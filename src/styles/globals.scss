@@ -19,7 +19,7 @@
 
   &.-disabled {
     color: var(--color-base-00);
-    background-color: color-mix(in oklch, var(--text-error) 50%, transparent);
+    background-color: color-mix(in oklch, var(--text-error) 50%, white);
   }
 }
 

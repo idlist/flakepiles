@@ -8,7 +8,7 @@ import { getScrollbarHeight, idFloatingArea, px } from '@/utils'
 import { ObIcon } from '@/wrappers'
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/vue'
 import { useFocus, useResizeObserver, useThrottleFn } from '@vueuse/core'
-import { Platform } from 'obsidian'
+import { Keymap, Platform } from 'obsidian'
 import AttachLabelsMobileModal from './AttachLabelsMobileModal.vue'
 import AttachLabelsPanel from './AttachLabelsPanel.vue'
 import FlakeFrame from './FlakeFrame.vue'
@@ -103,6 +103,14 @@ function selectAll() {
 }
 
 const tryCancelling = ref(false)
+
+function tryRequestCancel(event: MouseEvent) {
+  if (Keymap.isModifier(event, 'Mod')) {
+    cancelEditing()
+  } else {
+    tryCancelling.value = true
+  }
+}
 
 function cancelEditing() {
   emit('cancel')
@@ -220,7 +228,7 @@ const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
       <div class="flake-settings-left">
         <button
           class="fp-btn-icon fp-danger"
-          @click="tryCancelling = true"
+          @click="tryRequestCancel"
         >
           <ObIcon name="pencil-off" />
         </button>
@@ -280,7 +288,6 @@ const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
 
     <AttachLabelsMobileModal
       ref="$attachLabelsMobileModal"
-      :flake="flake"
       :id="flake.id"
       v-model:label-ids="labelsUnderEdit"
     />
