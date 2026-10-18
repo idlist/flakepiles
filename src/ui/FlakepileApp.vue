@@ -10,7 +10,7 @@ import MenuDefault from './flakepile-app/MenuDefault.vue'
 import MenuExpanded from './flakepile-app/MenuExpanded.vue'
 import MenuShrinked from './flakepile-app/MenuShrinked.vue'
 import { bus } from './logic/event-bus'
-import { getFlakeComparator, queryFlakes } from './logic/query'
+import { arrangeFlakes } from './logic/query'
 
 const props = defineProps<{ pile: Flakepile }>()
 const plugin = inject('plugin') as FlakepilePluginRef
@@ -125,18 +125,14 @@ watch(flakeIdUnderEdit, (val, old) => {
 /* Flake Management */
 
 const flakesArranged = computed<Flake[]>(() => {
-  const queried = queryFlakes(props.pile.flakes, searchQueryDebounced.value)
-  if (queried.length === 0) return queried
+  const arranged = arrangeFlakes(
+    props.pile.flakes,
+    meta.value,
+    labels.value,
+    searchQueryDebounced.value,
+  )
 
-  const comparator = getFlakeComparator(meta.value)
-  const pinned = queried.filter((f) => f.meta.pinned)
-  const unpinned = queried.filter((f) => !f.meta.pinned)
-
-  pinned.sort(comparator)
-  unpinned.sort(comparator)
-  const merged = [...pinned, ...unpinned]
-
-  return merged
+  return arranged
 })
 
 async function newFlake() {

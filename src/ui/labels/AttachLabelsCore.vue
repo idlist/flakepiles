@@ -45,7 +45,7 @@ function updateFlakeLabel(id: string, checked: boolean) {
   row-gap: var(--size-4-2);
 
   overflow-y: auto;
-  padding-right: var(--size-4-1);
+  padding-right: var(--scrollbar-width);
 
   .is-phone & {
     padding-right: 0;
