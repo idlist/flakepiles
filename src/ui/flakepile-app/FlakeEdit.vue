@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake } from '@/schemes/common'
-import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf, useFlakeMetaBinder } from '@/use'
+import type { FlakepileLabelsRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
+import { useCssIf, useFlakeLabelCounts, useFlakeMetaBinder } from '@/use'
 import { getScrollbarHeight, idFloatingArea } from '@/utils'
 import { ObIcon } from '@/wrappers'
 import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
 import { useFocus, useResizeObserver, useThrottleFn } from '@vueuse/core'
 import { Platform } from 'obsidian'
 import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
+import LabelsBadge from '../labels/LabelsBadge.vue'
 import AttachLabelsMobileModal from './AttachLabelsMobileModal.vue'
 import AttachLabelsPanel from './AttachLabelsPanel.vue'
 import FlakeFrame from './FlakeFrame.vue'
@@ -24,8 +25,9 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const plugin = inject('plugin') as FlakepilePluginRef
 const meta = inject('meta') as FlakepileMetaRef
+const plugin = inject('plugin') as FlakepilePluginRef
+const labels = inject('labels') as FlakepileLabelsRef
 
 const $textarea = useTemplateRef('$textarea')
 const $settings = useTemplateRef('$settings')
@@ -125,6 +127,21 @@ function toggleAttachLabels() {
   }
 }
 
+/* Flake Labels Count */
+
+const labelsCounts = useFlakeLabelCounts(labels, props.flake.labels)
+const showLabelsCount = computed(() => labelsCounts.value.total !== 0)
+
+const labelsCountDisplay = computed(() => {
+  const { shown, collapsed } = labelsCounts.value
+
+  let display = ''
+  if (shown !== 0) display += `${shown}`
+  if (collapsed !== 0) display += `${collapsed}`
+
+  return display
+})
+
 /* Flake Scrollable State */
 
 const shouldScrollY = computed(() => {
@@ -173,6 +190,12 @@ const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
         <ObIcon name="tags" />
       </button>
 
+      <LabelsBadge
+        v-if="showLabelsCount"
+        :name="labelsCountDisplay"
+        color="accent"
+      />
+
       <div class="gap"></div>
 
       <button class="fp-btn-icon" @click="selectAll">
@@ -201,10 +224,14 @@ const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
         v-if="showAttachLabels"
         ref="$attachLabelsPanel"
         :style="attachLabelsPanelStyle"
+        :flake="flake"
       />
     </Teleport>
 
-    <AttachLabelsMobileModal ref="$attachLabelsMobileModal" />
+    <AttachLabelsMobileModal
+      ref="$attachLabelsMobileModal"
+      :flake="flake"
+    />
   </FlakeFrame>
 </template>
 
@@ -254,6 +281,7 @@ const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
 
 .flake-settings {
   display: flex;
+  align-items: center;
   column-gap: var(--size-4-1);
   padding: var(--size-4-1);
 

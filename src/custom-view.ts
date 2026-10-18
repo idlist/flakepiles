@@ -405,6 +405,22 @@ export class FlakepileView extends TextFileView {
     this.trySave()
   }
 
+  updateFlakeLabel(id: string, labelId: string, checked: boolean) {
+    if (!this.flakepile.value) return
+
+    const flake = this.flakeMap.get(id)
+    if (!flake) return
+
+    if (checked) {
+      flake.labels.push(labelId)
+    } else {
+      const index = flake.labels.indexOf(labelId)
+      flake.labels.splice(index, 1)
+    }
+
+    this.trySave()
+  }
+
   /* Label Management */
 
   private validateLabelName(name: string): boolean {
@@ -515,6 +531,7 @@ export type FlakepilePluginRef = Pick<
   | 'updateHeightCache'
   | 'renderContent'
   | 'updateFlakepileMeta'
+  | 'updateFlakeLabel'
   | 'addFlake'
   | 'deleteFlake'
   | 'updateFlakeMeta'

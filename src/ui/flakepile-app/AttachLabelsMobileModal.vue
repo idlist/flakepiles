@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import AttachLabelsCore from '@/ui/labels/AttachLabelsCore.vue'
+import AttachLabelsCore, { type AttachLabelsProps } from '@/ui/labels/AttachLabelsCore.vue'
 import { App, Modal } from 'obsidian'
 import { inject, onBeforeUnmount, shallowRef } from 'vue'
+
+defineProps<AttachLabelsProps>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
 
@@ -42,6 +44,6 @@ defineExpose({
 
 <template>
   <Teleport v-if="$anchor" :to="$anchor">
-    <AttachLabelsCore />
+    <AttachLabelsCore :flake="flake" />
   </Teleport>
 </template>

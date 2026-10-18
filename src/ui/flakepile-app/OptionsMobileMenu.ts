@@ -1,5 +1,5 @@
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { FlakepileMeta } from '@/schemes/v1'
+import type { FlakepileMeta } from '@/schemes/common'
 import { useFlakepileMetaBinder } from '@/use'
 import { Menu } from 'obsidian'
 

@@ -2,7 +2,7 @@
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileMeta } from '@/schemes/common'
 import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf } from '@/use.ts'
+import { useCssIf } from '@/use'
 import { ObIcon, ObSearch } from '@/wrappers'
 import { Platform } from 'obsidian'
 import { inject } from 'vue'

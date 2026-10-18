@@ -5,7 +5,7 @@ import { useCssWith } from '@/use'
 const props = withDefaults(
   defineProps<{
     name: string
-    color?: FlakeLabelColor
+    color?: FlakeLabelColor | 'accent'
   }>(),
   {
     color: 'none',
@@ -33,5 +33,9 @@ const withColor = useCssWith(() => props.color, (val) => `fp-color-${val}`)
 
   color: var(--color-base-00);
   background-color: var(--fp-color-tag);
+}
+
+.fp-color-accent {
+  background-color: var(--color-accent);
 }
 </style>

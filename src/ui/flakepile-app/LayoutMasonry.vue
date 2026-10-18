@@ -2,7 +2,7 @@
 import type { FlakepilePluginRef } from '@/custom-view'
 import { type Flake, type FlakepileAdaptiveFlow } from '@/schemes/common'
 import type { FlakeIdUnderEditRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
-import { bus } from '@/ui/logic/event-bus.ts'
+import { bus } from '@/ui/logic/event-bus'
 import { type ComputedMasonry, computeInitialWidth, computeMasonry, getDesign } from '@/ui/masonry/entry'
 import { type Point, point, px, type Size } from '@/utils'
 import { useThrottleFn, useTimeoutFn } from '@vueuse/core'

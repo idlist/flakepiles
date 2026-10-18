@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FlakepilePluginRef } from '@/custom-view.ts'
+import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakeLabel, FlakeLabelColor } from '@/schemes/common'
 import { flakeLabelColors } from '@/schemes/common'
 import { inject } from 'vue'

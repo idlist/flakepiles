@@ -43,14 +43,14 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
 
     <label v-if="flow === 'vertical'" class="options-item">
       <span>Elastic width</span>
-      <input v-model="metaElasticWidth" type="checkbox" />
+      <input type="checkbox" v-model="metaElasticWidth" />
     </label>
 
     <hr />
 
     <label class="options-item">
       <span>Set maximum height</span>
-      <input v-model="metaEnableMaxHeight" type="checkbox" />
+      <input type="checkbox" v-model="metaEnableMaxHeight" />
     </label>
 
     <div :class="['options-item', ifMaxHeightDisabled]">
@@ -72,8 +72,8 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
     >
       <span class="label">Elastic height</span>
       <input
-        v-model="metaElasticHeight"
         type="checkbox"
+        v-model="metaElasticHeight"
         :disabled="!metaEnableMaxHeight"
       />
     </label>
@@ -82,17 +82,17 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
 
     <label v-if="isDev" class="options-item">
       <span>Show Labels</span>
-      <input v-model="metaShowLabels" type="checkbox" />
+      <input type="checkbox" v-model="metaShowLabels" />
     </label>
 
     <label class="options-item">
       <span>Show times</span>
-      <input v-model="metaShowTimes" type="checkbox" />
+      <input type="checkbox" v-model="metaShowTimes" />
     </label>
 
     <label class="options-item">
       <span>Delete without confirmation</span>
-      <input v-model="metaDirectDelete" type="checkbox" />
+      <input type="checkbox" v-model="metaDirectDelete" />
     </label>
   </div>
 </template>

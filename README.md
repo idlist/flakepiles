@@ -69,7 +69,7 @@ These are something I want to achieve if I've completed the roadmap and still ha
 
 ## Non-goals
 
-- Freedom / manual layout (consider using Canvas)
+- Freedom / manual layout and sorting (consider using Canvas)
 - Very large Flakepile support (not impossible, but lots of work)
 - Live editing of a Flake (consider copying to an editor and then copy it back)
 - Cross-file searching / Obsidian-wise searching (restricted by API)

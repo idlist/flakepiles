@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import AttachLabelsCore from '@/ui/labels/AttachLabelsCore.vue'
+import AttachLabelsCore, { type AttachLabelsProps } from '@/ui/labels/AttachLabelsCore.vue'
+
+defineProps<AttachLabelsProps>()
 </script>
 
 <template>
   <div class="menu select-label-panel">
-    <AttachLabelsCore />
+    <AttachLabelsCore :flake="flake" />
   </div>
 </template>
 

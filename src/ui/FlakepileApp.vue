@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/common'
-import { useCssWith } from '@/use.ts'
+import { useCssWith } from '@/use'
 import { idFloatingArea, type Point, type Size } from '@/utils'
 import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { computed, inject, nextTick, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
@@ -9,7 +9,7 @@ import LayoutMasonry from './flakepile-app/LayoutMasonry.vue'
 import MenuDefault from './flakepile-app/MenuDefault.vue'
 import MenuExpanded from './flakepile-app/MenuExpanded.vue'
 import MenuShrinked from './flakepile-app/MenuShrinked.vue'
-import { bus } from './logic/event-bus.ts'
+import { bus } from './logic/event-bus'
 import { getFlakeComparator, queryFlakes } from './logic/query'
 
 const props = defineProps<{ pile: Flakepile }>()
