@@ -2,7 +2,7 @@
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/common'
 import { useCssWith } from '@/use'
-import { idFloatingArea, type Point, type Size } from '@/utils'
+import { idFloatingArea, type Point, type Rect, type Size } from '@/utils'
 import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { computed, inject, nextTick, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
 import LayoutMasonry from './flakepile-app/LayoutMasonry.vue'
@@ -74,6 +74,20 @@ const usableSizeValues = computed<Size>(() => ({
   width: usableSize.width.value,
   height: usableSize.height.value,
 }))
+
+const $floatingArea = useTemplateRef('$floatingArea')
+const floatingAreaBounding = useElementBounding($floatingArea)
+const floatingAreaRect = computed<Rect>(() => ({
+  x: floatingAreaBounding.x.value,
+  y: floatingAreaBounding.y.value,
+  width: floatingAreaBounding.width.value,
+  height: floatingAreaBounding.height.value,
+}))
+provide('floatingAreaRect', floatingAreaRect)
+export type FloatingAreaRect = typeof floatingAreaRect
+
+provide('$floatingArea', $floatingArea)
+export type $FloatingAreaRef = typeof $floatingArea
 
 /* Variables */
 
@@ -192,7 +206,12 @@ async function newFlake() {
       </div>
 
       <div class="floating-panels">
-        <div :id="idFloatingArea" class="floating-area"></div>
+        <div
+          :id="idFloatingArea"
+          class="floating-area"
+          ref="$floatingArea"
+        >
+        </div>
       </div>
     </div>
   </div>

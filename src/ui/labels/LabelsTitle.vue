@@ -59,7 +59,6 @@ const ifMore = useCssIf(more, 'fp-invert')
 }
 
 .labels-new-input {
-  min-width: 120px;
   width: auto;
 }
 </style>

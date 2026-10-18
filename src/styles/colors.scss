@@ -1,6 +1,6 @@
 .fp-flake-frame {
   border: var(--border-width) solid
-    color-mix(in oklch, var(--fp-color-primary) 25%, transparent);
+    color-mix(in oklch, var(--fp-color-primary) 40%, transparent);
   border-radius: var(--radius-m);
   box-shadow: var(--shadow-normal);
 
@@ -8,11 +8,11 @@
   background-color: var(--flake-background);
 
   --shadow-normal:
-    0 0 4px color-mix(in oklch, var(--fp-color-primary) 15%, transparent),
-    0 1px 2px color-mix(in oklch, var(--fp-color-primary) 5%, transparent);
+    0 0 4px color-mix(in oklch, var(--fp-color-primary) 25%, transparent),
+    0 1px 2px color-mix(in oklch, var(--fp-color-primary) 10%, transparent);
   --shadow-heavy:
-    0 0 8px color-mix(in oklch, var(--fp-color-primary) 75%, transparent),
-    0 1px 4px color-mix(in oklch, var(--fp-color-primary) 50%, transparent);
+    0 0 8px var(--fp-color-primary),
+    0 1px 4px color-mix(in oklch, var(--fp-color-primary) 75%, transparent);
 
   --flake-text: var(--text-normal);
   --flake-background: var(--background-primary);
@@ -20,7 +20,7 @@
 
 .fp-color-none {
   --fp-color-tag: var(--color-base-70);
-  --fp-color-primary: var(--color-base-70);
+  --fp-color-primary: var(--color-base-50);
 }
 
 .fp-color-red {

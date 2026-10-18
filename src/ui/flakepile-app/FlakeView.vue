@@ -9,7 +9,7 @@ import { delay } from '@rewl/kit'
 import { useResizeObserver, useThrottleFn } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { Notice } from 'obsidian'
-import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, shallowRef, useTemplateRef, watchEffect } from 'vue'
 import LabelsBadge from '../labels/LabelsBadge.vue'
 import FlakeFrame from './FlakeFrame.vue'
 
@@ -93,7 +93,7 @@ const times = computed<TimeInfo>(() => {
   if (!meta.value.showTimes) return info
 
   const created = dayjs(props.flake.meta.createdAt)
-  info.created = created.format('YYYY / M / D hh:mm:ss')
+  info.created = created.format('YYYY / M / D HH:mm:ss')
 
   if (props.flake.meta.createdAt === props.flake.meta.modifiedAt) {
     info.showModified = false
@@ -107,11 +107,11 @@ const times = computed<TimeInfo>(() => {
   const sameDate = created.date() === modified.date()
 
   if (sameYear && sameMonth && sameDate) {
-    info.modified = modified.format('hh:mm:ss')
+    info.modified = modified.format('HH:mm:ss')
   } else if (sameYear) {
-    info.modified = modified.format('M / D hh:mm:ss')
+    info.modified = modified.format('M / D HH:mm:ss')
   } else {
-    info.modified = modified.format('YYYY / M / D hh:mm:ss')
+    info.modified = modified.format('YYYY / M / D HH:mm:ss')
   }
 
   return info
@@ -123,11 +123,7 @@ const showMeta = computed(() => {
   return false
 })
 
-/* Flake Labels */
-
-const showLabels = computed(() => {
-  return meta.value.showLabels && props.flake.labels.length !== 0
-})
+/* Flake Labels & Flake Color */
 
 interface LabelInfo {
   id: string
@@ -135,12 +131,24 @@ interface LabelInfo {
   color: FlakeLabelColor | 'accent'
 }
 
-const flakeLabels = computed<LabelInfo[]>(() => {
-  if (!showLabels.value) return []
+const showLabels = ref(false)
+// shallowRef as it will only be substituted at the root level.
+const flakeLabels = shallowRef<LabelInfo[]>([])
+const flakeColor = ref<FlakeLabelColor>('none')
 
-  let collapsed = 0
+watchEffect(() => {
+  const total = props.flake.labels.length
+  showLabels.value = meta.value.showLabels && total !== 0
+  if (!showLabels.value) {
+    flakeLabels.value = []
+    flakeColor.value = 'none'
+    return
+  }
+
   const ids = new Set(props.flake.labels)
   const info: LabelInfo[] = []
+  let collapsed = 0
+  let color: FlakeLabelColor | null = null
 
   for (const label of labels.value) {
     if (!ids.has(label.id)) {
@@ -148,15 +156,17 @@ const flakeLabels = computed<LabelInfo[]>(() => {
     } else if (label.collapsed) {
       collapsed++
     } else {
+      color ??= label.color
       info.push({ id: label.id, name: label.name, color: label.color })
     }
   }
 
   if (collapsed !== 0) {
-    info.push({ id: 'plus-n', name: `+${collapsed}`, color: 'accent' })
+    info.push({ id: 'plus-n', name: `+${collapsed}`, color: 'none' })
   }
 
-  return info
+  flakeColor.value = color ?? 'none'
+  flakeLabels.value = info
 })
 
 /* Flake Actions */
@@ -227,7 +237,7 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
 </script>
 
 <template>
-  <FlakeFrame :class="['flake-view', withType]" :id="flake.id" color="none">
+  <FlakeFrame :class="['flake-view', withType]" :id="flake.id" :color="flakeColor">
     <div ref="$scrollable" :class="['scrollable', ifScrollY]">
       <div ref="$anchor" :class="['fp-markdown', 'flake-anchor', ifNoWrap]"></div>
     </div>

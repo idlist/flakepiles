@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { Flake } from '@/schemes/common'
-import type { FlakepileLabelsRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
+import type { Flake, FlakeLabelColor } from '@/schemes/common'
+import type { FlakepileLabelsRef, FlakepileMetaRef, FloatingAreaRect } from '@/ui/FlakepileApp.vue'
 import { useCssIf, useFlakeMetaBinder } from '@/use'
 import { getScrollbarHeight, idFloatingArea, px } from '@/utils'
 import { ObIcon } from '@/wrappers'
-import { autoUpdate, flip, offset, size, useFloating } from '@floating-ui/vue'
+import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/vue'
 import { useFocus, useResizeObserver, useThrottleFn } from '@vueuse/core'
 import { Platform } from 'obsidian'
-import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch, watchEffect } from 'vue'
 import LabelsBadge from '../labels/LabelsBadge.vue'
 import AttachLabelsMobileModal from './AttachLabelsMobileModal.vue'
 import AttachLabelsPanel from './AttachLabelsPanel.vue'
@@ -28,6 +28,7 @@ const emit = defineEmits<{
 const plugin = inject('plugin') as FlakepilePluginRef
 const meta = inject('meta') as FlakepileMetaRef
 const labels = inject('labels') as FlakepileLabelsRef
+const floatingAreaRect = inject('floatingAreaRect') as FloatingAreaRect
 
 const $textarea = useTemplateRef('$textarea')
 const $settings = useTemplateRef('$settings')
@@ -107,11 +108,12 @@ const { floatingStyles: attachLabelsPanelStyle } = useFloating(
   $attachLabelsButton,
   $attachLabelsPanel,
   {
-    placement: 'top',
     middleware: [
       offset(4),
+      shift(),
       flip(),
       size({
+        boundary: floatingAreaRect.value,
         padding: 8,
         apply({ availableHeight, elements }) {
           elements.floating.style.maxHeight = px(Math.max(0, availableHeight))
@@ -133,29 +135,42 @@ function toggleAttachLabels() {
   }
 }
 
-/* Flake Label Count */
+/* Flake Label Count & Flake Color */
 
-const showLabelCount = computed(() => props.flake.labels.length !== 0)
+const showLabelCount = ref<boolean>(false)
+const labelCountDisplay = ref<string>('')
+const flakeColor = ref<FlakeLabelColor>('none')
 
-const labelCounts = computed<string | undefined>(() => {
-  if (!showLabelCount.value) return
+watchEffect(() => {
   const total = props.flake.labels.length
-
-  let collapsed = 0
-  for (const id of props.flake.labels) {
-    const label = labels.value.find((l) => l.id === id)
-    if (!label) continue
-    if (!label.collapsed) continue
-    collapsed++
+  showLabelCount.value = total !== 0
+  if (!showLabelCount.value) {
+    flakeColor.value = 'none'
+    return
   }
 
+  const ids = new Set(props.flake.labels)
+  let collapsed = 0
+  let color: FlakeLabelColor | null = null
+
+  for (const label of labels.value) {
+    if (!ids.has(label.id)) {
+      continue
+    } else if (label.collapsed) {
+      collapsed++
+    } else {
+      color ??= label.color
+    }
+  }
+
+  flakeColor.value = color ?? 'none'
   const shown = total - collapsed
 
   let display = ''
   if (shown !== 0) display += `${shown}`
   if (collapsed !== 0) display += `+${collapsed}`
 
-  return display
+  labelCountDisplay.value = display
 })
 
 /* Flake Scrollable State */
@@ -175,7 +190,7 @@ const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
 </script>
 
 <template>
-  <FlakeFrame class="flake-edit" :id="flake.id" color="none">
+  <FlakeFrame class="flake-edit" :id="flake.id" :color="flakeColor">
     <div :class="['scrollable', ifScrollY]">
       <textarea
         ref="$textarea"
@@ -209,7 +224,7 @@ const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
 
         <LabelsBadge
           v-if="showLabelCount"
-          :name="labelCounts ?? ''"
+          :name="labelCountDisplay ?? ''"
           color="accent"
         />
       </div>
