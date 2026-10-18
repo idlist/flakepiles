@@ -16,7 +16,6 @@ const props = defineProps<{ pile: Flakepile }>()
 const plugin = inject('plugin') as FlakepilePluginRef
 
 const loadingState = computed(() => plugin.meta.loadingState)
-const hasFlake = computed(() => props.pile.flakes.length !== 0)
 
 const meta = computed(() => props.pile.meta)
 provide('meta', meta)
@@ -144,6 +143,8 @@ const flakesArranged = computed<Flake[]>(() => {
 
   return arranged
 })
+
+const hasFlake = computed(() => flakesArranged.value.length !== 0)
 
 async function newFlake() {
   const flakeId = plugin.addFlake()

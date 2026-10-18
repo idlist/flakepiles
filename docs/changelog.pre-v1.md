@@ -1,5 +1,9 @@
 Changelog (pre 1.0)
 
+## 0.3.1
+
+- Fixed a bug where "No Flakes" text was not displayed when all Flakes are filterd out by label settings.
+
 ## 0.3.0
 
 The label system.
@@ -17,7 +21,7 @@ The label system.
 
 Changes to existing features:
 
-- Besides the option, danger actions (deletion, cancelling) can also be skipped by clicking the corresponding button while holding Ctrl/Command button.
+- Besides the option, confirmation to danger actions (deletion, cancelling) can also be skipped by clicking the corresponding button while holding Ctrl/Command button.
 - Fixed a bug where the times were displayed in 12-hour format without AM/PM. It should be in 24-hour format and is not customizable.
 
 **Note**: this version might be kind of unstable (especially on mobile). Feedback and bug reports are much appreciated.
