@@ -13,6 +13,8 @@ export interface Rect extends Point, Size {
 
 export const dbKey = 'flakepiles:height-cache'
 
+export const idFloatingArea = 'fp-floating-area'
+
 export const px = (x: number) => `${x}px`
 
 export const point = (x: number, y: number) => `${x}px ${y}px`

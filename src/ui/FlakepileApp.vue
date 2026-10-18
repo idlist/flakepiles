@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { Flake, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/common'
-import { useCssWith } from '@/use.ts'
-import type { Point, Size } from '@/utils'
+import type { Flake, FlakeLabel, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/common'
+import { useCssWith } from '@/use'
+import { idFloatingArea, type Point, type Rect, type Size } from '@/utils'
 import { refDebounced, useElementBounding, useElementSize, watchThrottled } from '@vueuse/core'
 import { computed, inject, nextTick, onMounted, provide, ref, useTemplateRef, watch } from 'vue'
 import LayoutMasonry from './flakepile-app/LayoutMasonry.vue'
 import MenuDefault from './flakepile-app/MenuDefault.vue'
 import MenuExpanded from './flakepile-app/MenuExpanded.vue'
 import MenuShrinked from './flakepile-app/MenuShrinked.vue'
-import { bus } from './logic/event-bus.ts'
-import { getFlakeComparator, queryFlakes } from './logic/query'
+import { bus } from './logic/event-bus'
+import { arrangeFlakes } from './logic/query'
 
 const props = defineProps<{ pile: Flakepile }>()
 const plugin = inject('plugin') as FlakepilePluginRef
@@ -26,19 +26,19 @@ const labels = computed(() => props.pile.labels)
 provide('labels', labels)
 export type FlakepileLabelsRef = typeof labels
 
-const flakeIdEditing = ref<string | null>(null)
-provide('flakeIdEditing', flakeIdEditing)
-export type FlakeIdEditingRef = typeof flakeIdEditing
+const flakeIdUnderEdit = ref<string | null>(null)
+provide('flakeIdUnderEdit', flakeIdUnderEdit)
+export type FlakeIdUnderEditRef = typeof flakeIdUnderEdit
 
 /* Responsive Layout */
 
-const $root = useTemplateRef('$root')
-const rootSize = useElementSize($root)
-const rootWidth = ref(0)
+const $viewport = useTemplateRef('$viewport')
+const viewportSize = useElementSize($viewport)
+const viewportWidth = ref(0)
 
 onMounted(() => {
-  watchThrottled(rootSize.width, (value) => {
-    rootWidth.value = value
+  watchThrottled(viewportSize.width, (value) => {
+    viewportWidth.value = value
   }, { throttle: 100 })
 })
 
@@ -46,7 +46,7 @@ interface Environment {
   size: 'small' | 'large'
 }
 const env = computed<Environment>(() => ({
-  size: rootWidth.value > 600 ? 'large' : 'small',
+  size: viewportWidth.value > 600 ? 'large' : 'small',
 }))
 provide('env', env)
 export type EnvironmentRef = typeof env
@@ -75,6 +75,20 @@ const usableSizeValues = computed<Size>(() => ({
   height: usableSize.height.value,
 }))
 
+const $floatingArea = useTemplateRef('$floatingArea')
+const floatingAreaBounding = useElementBounding($floatingArea)
+const floatingAreaRect = computed<Rect>(() => ({
+  x: floatingAreaBounding.x.value,
+  y: floatingAreaBounding.y.value,
+  width: floatingAreaBounding.width.value,
+  height: floatingAreaBounding.height.value,
+}))
+provide('floatingAreaRect', floatingAreaRect)
+export type FloatingAreaRect = typeof floatingAreaRect
+
+provide('$floatingArea', $floatingArea)
+export type $FloatingAreaRef = typeof $floatingArea
+
 /* Variables */
 
 const searchQuery = ref<string>('')
@@ -89,7 +103,7 @@ const showLabels = ref(false)
 // Wwhen Flakepile changes:
 watch(() => props.pile.id, () => {
   // Reset editing state (without saving).
-  flakeIdEditing.value = null
+  flakeIdUnderEdit.value = null
 
   // Close panels.
   showOptions.value = false
@@ -97,7 +111,7 @@ watch(() => props.pile.id, () => {
 })
 
 // When start editing:
-watch(flakeIdEditing, (val, old) => {
+watch(flakeIdUnderEdit, (val, old) => {
   if (val != null && val !== old) {
     // Close panels.
     showOptions.value = false
@@ -110,24 +124,32 @@ watch(flakeIdEditing, (val, old) => {
 
 /* Flake Management */
 
+const labelMap = computed(() => {
+  const map = new Map<string, FlakeLabel>()
+
+  for (const label of labels.value) {
+    map.set(label.id, label)
+  }
+
+  return map
+})
+
 const flakesArranged = computed<Flake[]>(() => {
-  const queried = queryFlakes(props.pile.flakes, searchQueryDebounced.value)
-  if (queried.length === 0) return queried
+  const arranged = arrangeFlakes(
+    props.pile.flakes,
+    meta.value,
+    labelMap.value,
+    searchQueryDebounced.value,
+  )
 
-  const comparator = getFlakeComparator(meta.value)
-  const pinned = queried.filter((flake) => flake.meta.pinned)
-  const unpinned = queried.filter((flake) => !flake.meta.pinned)
-
-  pinned.sort(comparator)
-  unpinned.sort(comparator)
-  return [...pinned, ...unpinned]
+  return arranged
 })
 
 async function newFlake() {
   const flakeId = plugin.addFlake()
   if (!flakeId) return
 
-  flakeIdEditing.value = flakeId
+  flakeIdUnderEdit.value = flakeId
 
   await nextTick()
   bus.emit('scroll-to', flakeId)
@@ -135,7 +157,7 @@ async function newFlake() {
 </script>
 
 <template>
-  <div ref="$root" class="flakepile-app">
+  <div ref="$viewport" class="flakepile-app">
     <div class="layout">
       <div class="flakepile-menu">
         <MenuShrinked
@@ -190,7 +212,12 @@ async function newFlake() {
       </div>
 
       <div class="floating-panels">
-        <div id="fp-floating-area" class="floating-area"></div>
+        <div
+          :id="idFloatingArea"
+          class="floating-area"
+          ref="$floatingArea"
+        >
+        </div>
       </div>
     </div>
   </div>
@@ -228,7 +255,9 @@ async function newFlake() {
 
   padding: var(--size-4-2) var(--size-4-4);
   background-color: var(--background-primary);
-  border-bottom: var(--fp-border);
+
+  border: none;
+  border-bottom: var(--border-width) solid var(--background-modifier-border);
 }
 
 .menu-masking {
@@ -277,7 +306,7 @@ async function newFlake() {
   position: absolute;
   inset: 0;
 
-  z-index: 16;
+  z-index: 64;
   pointer-events: none;
 }
 

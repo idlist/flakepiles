@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef, FlakeType } from '@/custom-view'
-import type { Flake, FlakepileAdaptiveFlow } from '@/schemes/common'
-import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
-import { useCssIf, useCssWith } from '@/use.ts'
-import { getScrollbarHeight } from '@/utils.ts'
+import type { Flake, FlakeLabelColor, FlakepileAdaptiveFlow } from '@/schemes/common'
+import type { FlakepileLabelsRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
+import { useCssIf, useCssWith } from '@/use'
+import { getScrollbarHeight } from '@/utils'
 import { ObIcon } from '@/wrappers'
 import { delay } from '@rewl/kit'
 import { useResizeObserver, useThrottleFn } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { Notice } from 'obsidian'
-import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from 'vue'
+import { Keymap, Notice } from 'obsidian'
+import { computed, inject, nextTick, onMounted, ref, shallowRef, useTemplateRef, watchEffect } from 'vue'
+import LabelsBadge from '../labels/LabelsBadge.vue'
 import FlakeFrame from './FlakeFrame.vue'
 
 const props = withDefaults(
@@ -32,6 +33,7 @@ const emit = defineEmits<{
 
 const plugin = inject('plugin') as FlakepilePluginRef
 const meta = inject('meta') as FlakepileMetaRef
+const labels = inject('labels') as FlakepileLabelsRef
 
 const $scrollable = useTemplateRef('$scrollable')
 const $anchor = useTemplateRef('$anchor')
@@ -91,7 +93,7 @@ const times = computed<TimeInfo>(() => {
   if (!meta.value.showTimes) return info
 
   const created = dayjs(props.flake.meta.createdAt)
-  info.created = created.format('YYYY / M / D hh:mm:ss')
+  info.created = created.format('YYYY / M / D HH:mm:ss')
 
   if (props.flake.meta.createdAt === props.flake.meta.modifiedAt) {
     info.showModified = false
@@ -105,11 +107,11 @@ const times = computed<TimeInfo>(() => {
   const sameDate = created.date() === modified.date()
 
   if (sameYear && sameMonth && sameDate) {
-    info.modified = modified.format('hh:mm:ss')
+    info.modified = modified.format('HH:mm:ss')
   } else if (sameYear) {
-    info.modified = modified.format('M / D hh:mm:ss')
+    info.modified = modified.format('M / D HH:mm:ss')
   } else {
-    info.modified = modified.format('YYYY / M / D hh:mm:ss')
+    info.modified = modified.format('YYYY / M / D HH:mm:ss')
   }
 
   return info
@@ -119,6 +121,52 @@ const showMeta = computed(() => {
   if (props.flake.labels.length !== 0) return true
   if (meta.value.showTimes) return true
   return false
+})
+
+/* Flake Labels & Flake Color */
+
+interface LabelInfo {
+  id: string
+  name: string
+  color: FlakeLabelColor | 'accent'
+}
+
+const showLabels = ref(false)
+// shallowRef as it will only be substituted at the root level.
+const flakeLabels = shallowRef<LabelInfo[]>([])
+const flakeColor = ref<FlakeLabelColor>('none')
+
+watchEffect(() => {
+  const total = props.flake.labels.length
+  showLabels.value = meta.value.showLabels && total !== 0
+  if (!showLabels.value) {
+    flakeLabels.value = []
+    flakeColor.value = 'none'
+    return
+  }
+
+  const ids = new Set(props.flake.labels)
+  const info: LabelInfo[] = []
+  let collapsed = 0
+  let color: FlakeLabelColor | null = null
+
+  for (const label of labels.value) {
+    if (!ids.has(label.id)) {
+      continue
+    } else if (label.collapsed) {
+      collapsed++
+    } else {
+      color ??= label.color
+      info.push({ id: label.id, name: label.name, color: label.color })
+    }
+  }
+
+  if (collapsed !== 0) {
+    info.push({ id: 'plus-n', name: `+${collapsed}`, color: 'none' })
+  }
+
+  flakeColor.value = color ?? 'none'
+  flakeLabels.value = info
 })
 
 /* Flake Actions */
@@ -146,15 +194,15 @@ async function copyContent() {
   }
 }
 
-const tryDelete = ref(false)
+const tryDeleting = ref(false)
 
-function tryRequestDelete() {
+function tryRequestDelete(event: MouseEvent) {
   if (props.disableDelete) return
 
-  if (meta.value.directDelete) {
+  if (meta.value.directDelete || Keymap.isModifier(event, 'Mod')) {
     requestDelete()
   } else {
-    tryDelete.value = true
+    tryDeleting.value = true
   }
 }
 
@@ -189,13 +237,20 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
 </script>
 
 <template>
-  <FlakeFrame :class="['flake-view', withType]" :id="flake.id">
+  <FlakeFrame :class="['flake-view', withType]" :id="flake.id" :color="flakeColor">
     <div ref="$scrollable" :class="['scrollable', ifScrollY]">
       <div ref="$anchor" :class="['fp-markdown', 'flake-anchor', ifNoWrap]"></div>
     </div>
 
     <div v-if="showMeta" ref="$meta" class="flake-meta">
-      <div v-if="props.flake.labels.length !== 0" class="tag-list"></div>
+      <div v-if="showLabels" class="flake-label-list">
+        <LabelsBadge
+          v-for="label of flakeLabels"
+          :key="label.id"
+          :name="label.name"
+          :color="label.color"
+        />
+      </div>
 
       <div v-if="times.showCreated" class="flake-time">
         <ObIcon name="clock" :size="12" />
@@ -233,9 +288,9 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
     </div>
 
     <div
-      v-if="tryDelete"
+      v-if="tryDeleting"
       class="flake-view-delete-fuse"
-      @click="tryDelete = false"
+      @click="tryDeleting = false"
     >
       <button
         class="fp-btn-icon fp-warning flake-view-delete"
@@ -278,13 +333,11 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
     width: max-content;
 
     // Margin space for scrollbar gutters.
-    margin-right: var(--size-4-8);
+    margin-right: calc(2 * var(--scrollbar-width) + 2 * var(--size-4-1));
   }
 
-  .is-mobile &.-nowrap,
   .flake-type-code &.-nowrap,
   .flake-type-image &.-nowrap {
-    // Margin space for scrollbar gutters.
     margin-right: 0;
   }
 
@@ -297,14 +350,29 @@ const withType = useCssWith(flakeType, (val) => `flake-type-${val}`)
     min-height: var(--size-4-16);
     padding: var(--size-4-1) var(--size-4-3);
   }
+
+  .is-mobile &.-nowrap {
+    margin-right: 0;
+  }
 }
 
 .flake-meta {
+  min-width: 0;
   padding: 0 var(--size-4-2) var(--size-2-1) var(--size-4-2);
 
   .flake-type-image & {
     padding-top: var(--size-2-1);
   }
+}
+
+.flake-label-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  column-gap: var(--size-4-1);
+  row-gap: var(--size-4-1);
+
+  margin: var(--size-4-1) 0;
 }
 
 .flake-time {

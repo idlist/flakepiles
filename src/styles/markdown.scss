@@ -3,7 +3,7 @@
 /* Adjustment to markdown styles */
 
 .fp-markdown {
-  font-size: var(--flakepile-font-size, var(--font-text-size));
+  font-size: var(--fp-font-size, var(--font-text-size));
   font-family: var(--font-text);
   line-height: var(--line-height-normal);
 
@@ -101,7 +101,7 @@
   pre:has(code) {
     position: relative;
 
-    border-radius: var(--radius-m);
+    border-radius: var(--radius-s);
     background-color: var(--code-background);
   }
 

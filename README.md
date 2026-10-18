@@ -1,6 +1,6 @@
 # Flakepiles for Obsidian
 
-An Obsidian plugin to put small notes / stickies / cards in a single file, and manage them in a masonry layout.
+An Obsidian plugin to put small notes / stickies / code snippets in a single file, and manage them in a masonry layout.
 
 > This is a refactor of the original [Flakepiles (legacy)](https://github.com/idlist/flakepiles-legacy) with a change to [license](#license). The original plugin will remain as open source, and is available via [BRAT](https://github.com/TfTHacker/obsidian42-brat).
 
@@ -15,10 +15,14 @@ I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about in
 ## Features
 
 - UI design that (tried my best to) align with Obsidian's design language.
-- Edit Flakes in place instead of having to open another window.
+- View and manage your Flakes (small pieces of notes) in masonry layout, vertical or horizontal.
+- Edit Flakes in place instead of having to open another window or dialog.
 - Easy to copy and paste your Flakes from everywhere to everywhere.
+- A simple label system to categorize and filter your Flakes.
 
 ## Roadmap
+
+**Note:** Version 0.2.3 has currently covered all features back to 0.1.5 in the legacy version with some small addition (like displaying creation time or pinning) with pretty good stability. **Labels** are still in development and is supposed to be released in 0.3.0.
 
 Plugin side:
 
@@ -27,6 +31,7 @@ Plugin side:
   - [x] Masonry direction (vertical / horizontal)
   - [x] (Sort of) mobile-adaptive layout
   - [x] Flake size settings and elastic sizing
+  - [x] Auto expand on single image or block of code
   - [x] Flake sorting (time created, time modified, content)
 - [x] Flake
   - [x] Flake creation, update, deletion
@@ -34,14 +39,14 @@ Plugin side:
   - [x] Copy Flake content to clipboard
   - [x] Pinning a Flake
 - [x] Search
-  - [x] Search content
-  - [ ] Search labels
-- [ ] Flake labels
-  - [ ] Label creation, update, deletion
-  - [ ] Add / remove labels to Flake
-  - [ ] Label color (as Flake color)
-  - [ ] Collapse certain labels in flakes (display as `+N`)
-  - [ ] Hide flake with certain labels
+  - [x] Simple search for content
+  - [x] Simple search for labels
+- [x] Flake labels
+  - [x] Label creation, update, deletion
+  - [x] Attach / detach labels to Flake
+  - [x] Label color (as Flake color)
+  - [x] Collapse certain labels on Flakes (display as `+N`)
+  - [x] Hide Flakes with certain labels
 
 Obsidian side:
 
@@ -55,17 +60,17 @@ Obsidian side:
 
 These are something I want to achieve if I've completed the roadmap and still have extra time. Most of them are desktop-only features.
 
-- Search keywords highlighting
 - Embed a Flake into another markdown file
 - Export a Flakepile as markdown
   - Export as a single markdown file
   - Export as a `.zip` archive, each Flake as a markdown file
 - Import the `.zip` archive mentioned above to a Flakepile
 - Import multiple markdown files to a Flakepile
+- Search keywords highlighting (sounds challenging, though)
 
 ## Non-goals
 
-- Freedom / manual layout (consider using Canvas)
+- Freedom / manual layout and sorting (consider using Canvas)
 - Very large Flakepile support (not impossible, but lots of work)
 - Live editing of a Flake (consider copying to an editor and then copy it back)
 - Cross-file searching / Obsidian-wise searching (restricted by API)

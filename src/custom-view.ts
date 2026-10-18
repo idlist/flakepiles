@@ -1,21 +1,24 @@
 import { get, update } from 'idb-keyval'
-import { Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
+import { App, Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
 import { funnel } from 'remeda'
 import { type App as VueApp, type Component, createApp, reactive, ref, toRaw } from 'vue'
 import FlakepileApp from './App.vue'
 import type FlakepilesPlugin from './main.ts'
-import { parseFlakepile } from './schemes/common.ts'
 import { dbKey, noopAsync, px } from './utils'
 
 import {
   createFlake,
+  createFlakeLabel,
   createHeightCache,
   type Flake,
+  type FlakeLabel,
+  type FlakeLabelProps,
   type FlakeMeta,
   type Flakepile,
   type FlakepileMeta,
   type HeightCache,
   type HeightCacheCollection,
+  parseFlakepile,
 } from '@/schemes/common'
 
 export const VIEW_TYPE = 'flakepile'
@@ -132,6 +135,10 @@ export class FlakepileView extends TextFileView {
 
   /* Obsidian-wise Operations */
 
+  getApp(): Readonly<App> {
+    return this.app
+  }
+
   private updateFileInfo() {
     this.meta.filename = this.file?.basename ?? ''
   }
@@ -141,9 +148,9 @@ export class FlakepileView extends TextFileView {
     const size = this.plugin.settings.fontSize
 
     if (enable) {
-      this.$anchor?.style.setProperty('--flakepile-font-size', px(size))
+      this.$anchor?.style.setProperty('--fp-font-size', px(size))
     } else {
-      this.$anchor?.style.removeProperty('--flakepile-font-size')
+      this.$anchor?.style.removeProperty('--fp-font-size')
     }
   }
 
@@ -369,7 +376,7 @@ export class FlakepileView extends TextFileView {
     if (!this.flakepile.value) return
 
     const flakes = this.flakepile.value.flakes
-    const index = flakes.findIndex((flake) => flake.id === id)
+    const index = flakes.findIndex((f) => f.id === id)
     if (index === -1) return
 
     this.flakepile.value.flakes.splice(index, 1)
@@ -397,12 +404,122 @@ export class FlakepileView extends TextFileView {
     flake.meta.modifiedAt = Date.now()
     this.trySave()
   }
+
+  updateFlakeLabels(id: string, labelIds: string[]) {
+    if (!this.flakepile.value) return
+
+    const flake = this.flakeMap.get(id)
+    if (!flake) return
+
+    flake.labels = labelIds
+    this.trySave()
+  }
+
+  /* Label Management */
+
+  private validateLabelName(name: string): boolean {
+    if (name.length === 0) {
+      new Notice('Label name cannot be empty.')
+      return false
+    }
+
+    return true
+  }
+
+  addLabel(name: string): boolean {
+    if (!this.flakepile.value) return false
+
+    const trimmed = name.trim()
+    if (!this.validateLabelName(trimmed)) return false
+
+    const labels = this.flakepile.value.labels
+    const label = createFlakeLabel()
+    label.name = trimmed
+
+    labels.push(label)
+    this.trySave()
+    return true
+  }
+
+  deleteLabel(id: string) {
+    if (!this.flakepile.value) return
+
+    const labels = this.flakepile.value.labels
+    const index = labels.findIndex((label) => label.id === id)
+    if (index === -1) return
+
+    labels.splice(index, 1)
+
+    for (const flake of this.flakepile.value.flakes) {
+      const labelIndex = flake.labels.indexOf(id)
+      if (labelIndex === -1) continue
+
+      flake.labels.splice(labelIndex, 1)
+    }
+
+    this.trySave()
+  }
+
+  clearUnusedLabels() {
+    if (!this.flakepile.value) return
+
+    const labels = this.flakepile.value.labels
+    const labelIds = new Set(labels.map((label) => label.id))
+
+    for (const flake of this.flakepile.value.flakes) {
+      for (let i = flake.labels.length - 1; i >= 0; i--) {
+        if (!labelIds.has(flake.labels[i]!)) {
+          flake.labels.splice(i, 1)
+        }
+      }
+    }
+
+    this.trySave()
+  }
+
+  updateLabelProps<T extends FlakeLabelProps>(
+    id: string,
+    key: T,
+    value: FlakeLabel[T],
+  ): boolean {
+    if (!this.flakepile.value) return false
+
+    const labels = this.flakepile.value.labels
+    const label = labels.find((label) => label.id === id)
+    if (!label) return false
+    if (key === 'name' && !this.validateLabelName(value as string)) return false
+
+    label[key] = value
+    this.trySave()
+    return true
+  }
+
+  updateLabelOrder(id: string, toIndex: number) {
+    if (!this.flakepile.value) return
+
+    const labels = this.flakepile.value.labels
+    const from = labels.findIndex((label) => label.id === id)
+    if (from === -1) return
+
+    const to = Math.clamp(
+      from < toIndex ? toIndex - 1 : toIndex,
+      0,
+      labels.length - 1,
+    )
+    if (to === from) return
+
+    const [moved] = labels.splice(from, 1)
+    labels.splice(to, 0, moved!)
+
+    this.trySave()
+  }
 }
 
 export type FlakepilePluginRef = Pick<
   FlakepileView,
   | 'meta'
   | 'flakeMap'
+  | 'getApp'
   | 'heightCache'
   | 'heightCacheLazySave'
   | 'updateHeightCache'
@@ -412,4 +529,10 @@ export type FlakepilePluginRef = Pick<
   | 'deleteFlake'
   | 'updateFlakeMeta'
   | 'updateFlakeContent'
+  | 'updateFlakeLabels'
+  | 'addLabel'
+  | 'deleteLabel'
+  | 'clearUnusedLabels'
+  | 'updateLabelProps'
+  | 'updateLabelOrder'
 >

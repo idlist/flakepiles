@@ -1,7 +1,7 @@
 import type { Emitter } from 'mitt'
 import { computed, type MaybeRefOrGetter, onScopeDispose, toValue } from 'vue'
 import type { FlakepilePluginRef } from './custom-view'
-import type { FlakeMeta, FlakepileMeta } from './schemes/common'
+import type { FlakeLabel, FlakeLabelProps, FlakeMeta, FlakepileMeta } from './schemes/common'
 
 // Uses are ordered roughly from more general to more specific.
 
@@ -9,7 +9,7 @@ export const useCssIf = <T>(
   condition: MaybeRefOrGetter<T>,
   className: MaybeRefOrGetter<string>,
 ) => {
-  return computed(() => toValue(condition) ? toValue(className) : '')
+  return computed(() => ({ [toValue(className)]: toValue(condition) }))
 }
 
 export const useCssWith = <T>(
@@ -18,7 +18,7 @@ export const useCssWith = <T>(
 ) => {
   return computed(() => {
     const value = toValue(condition)
-    return value ? formatter(value) : ''
+    return { [formatter(value)]: value }
   })
 }
 
@@ -50,6 +50,17 @@ export function useFlakeMetaBinder(plugin: FlakepilePluginRef) {
     return computed<FlakeMeta[T]>({
       get: () => meta[key],
       set: (val) => plugin.updateFlakeMeta(id, key, val),
+    })
+  }
+
+  return bind
+}
+
+export function useFlakeLabelPropsBinder(plugin: FlakepilePluginRef) {
+  const bind = <T extends FlakeLabelProps>(label: FlakeLabel, key: T) => {
+    return computed<FlakeLabel[T]>({
+      get: () => label[key],
+      set: (val) => plugin.updateLabelProps(label.id, key, val),
     })
   }
 

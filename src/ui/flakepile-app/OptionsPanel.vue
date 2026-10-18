@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { IsDevRef } from '@/App.vue'
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/common'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
@@ -12,7 +11,6 @@ const props = defineProps<{
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
-const isDev = inject('isDev') as IsDevRef
 
 const bind = useFlakepileMetaBinder(plugin)
 const metaWidth = bind(props.meta, 'width')
@@ -28,32 +26,32 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
 </script>
 
 <template>
-  <div class="menu panel-options">
-    <div class="option-item">
+  <div class="menu options-panel">
+    <div class="options-item">
       <span>Width</span>
       <ObSlider
         v-model="metaWidth"
         :default="280"
-        :min="180"
+        :min="200"
         :max="600"
         :step="20"
         class="slider"
       />
     </div>
 
-    <label v-if="flow === 'vertical'" class="option-item">
+    <label v-if="flow === 'vertical'" class="options-item">
       <span>Elastic width</span>
-      <input v-model="metaElasticWidth" type="checkbox" />
+      <input type="checkbox" v-model="metaElasticWidth" />
     </label>
 
     <hr />
 
-    <label class="option-item">
+    <label class="options-item">
       <span>Set maximum height</span>
-      <input v-model="metaEnableMaxHeight" type="checkbox" />
+      <input type="checkbox" v-model="metaEnableMaxHeight" />
     </label>
 
-    <div :class="['option-item', ifMaxHeightDisabled]">
+    <div :class="['options-item', ifMaxHeightDisabled]">
       <span class="label">Height</span>
       <ObSlider
         v-model="metaMaxHeight"
@@ -68,37 +66,37 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
 
     <label
       v-if="flow === 'horizontal'"
-      :class="['option-item', ifMaxHeightDisabled]"
+      :class="['options-item', ifMaxHeightDisabled]"
     >
       <span class="label">Elastic height</span>
       <input
-        v-model="metaElasticHeight"
         type="checkbox"
+        v-model="metaElasticHeight"
         :disabled="!metaEnableMaxHeight"
       />
     </label>
 
     <hr />
 
-    <label v-if="isDev" class="option-item">
+    <label class="options-item">
       <span>Show Labels</span>
-      <input v-model="metaShowLabels" type="checkbox" />
+      <input type="checkbox" v-model="metaShowLabels" />
     </label>
 
-    <label class="option-item">
+    <label class="options-item">
       <span>Show times</span>
-      <input v-model="metaShowTimes" type="checkbox" />
+      <input type="checkbox" v-model="metaShowTimes" />
     </label>
 
-    <label class="option-item">
+    <label class="options-item">
       <span>Delete without confirmation</span>
-      <input v-model="metaDirectDelete" type="checkbox" />
+      <input type="checkbox" v-model="metaDirectDelete" />
     </label>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.panel-options {
+.options-panel {
   display: grid;
   pointer-events: visible;
 
@@ -112,7 +110,7 @@ const ifMaxHeightDisabled = useCssIf(() => !metaEnableMaxHeight.value, '-disable
   }
 }
 
-.option-item {
+.options-item {
   display: flex;
   align-items: center;
   justify-content: space-between;

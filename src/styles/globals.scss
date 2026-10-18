@@ -19,13 +19,13 @@
 
   &.-disabled {
     color: var(--color-base-00);
-    background-color: color-mix(in oklch, var(--text-error) 50%, transparent);
+    background-color: color-mix(in oklch, var(--text-error) 50%, white);
   }
 }
 
 .fp-invert, button.fp-invert {
   color: var(--color-base-00);
-  background-color: var(--text-normal);
+  background-color: var(--color-accent);
 }
 
 /* Reusable components */
@@ -66,10 +66,17 @@
   padding-right: var(--size-4-3);
 }
 
-.fp-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.fp-labels-item {
+  display: flex;
+  align-items: center;
+  column-gap: var(--size-4-1);
+
+  position: relative;
+
+  > .expand,
+  > .gap {
+    flex-grow: 1;
+  }
 }
 
 /* Override global styles */

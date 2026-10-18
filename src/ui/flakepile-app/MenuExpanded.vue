@@ -4,13 +4,15 @@ import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakepileAdaptiveFlow, FlakepileMeta } from '@/schemes/common'
 import type { EnvironmentRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
+import { idFloatingArea, px } from '@/utils'
 import { ObIcon } from '@/wrappers'
-import { autoUpdate, offset, shift, useFloating } from '@floating-ui/vue'
+import { autoUpdate, offset, size, useFloating } from '@floating-ui/vue'
 import { Platform } from 'obsidian'
 import { inject, useTemplateRef } from 'vue'
+import LabelsMobileModal from './LabelsMobileModal.vue'
 import LabelsPanel from './LabelsPanel.vue'
 import MenuButton from './MenuButton.vue'
-import { useOptionsMobileMenu } from './OptionsMobileMenu.ts'
+import { useOptionsMobileMenu } from './OptionsMobileMenu'
 import OptionsPanel from './OptionsPanel.vue'
 
 const props = defineProps<{
@@ -30,8 +32,6 @@ const bind = useFlakepileMetaBinder(plugin)
 const metaSortBy = bind(props.meta, 'sortBy')
 const metaFlow = bind(props.meta, 'flow')
 
-const openOptionsMobileMenu = useOptionsMobileMenu(plugin, props.meta)
-
 /* Options Panel */
 
 const $optionsButton = useTemplateRef('$optionsButton')
@@ -44,11 +44,12 @@ const { floatingStyles: optionsPanelStyle } = useFloating(
     placement: 'bottom-end',
     middleware: [
       offset(4),
-      shift({ padding: 8 }),
     ],
     whileElementsMounted: autoUpdate,
   },
 )
+
+const openOptionsMobileMenu = useOptionsMobileMenu(plugin, props.meta)
 
 function toggleOptions() {
   if (Platform.isDesktop || Platform.isTablet) {
@@ -71,18 +72,25 @@ const { floatingStyles: labelsPanelStyle } = useFloating(
     placement: 'bottom-start',
     middleware: [
       offset(4),
-      shift({ padding: 8 }),
+      size({
+        padding: 8,
+        apply({ availableHeight, elements }) {
+          elements.floating.style.maxHeight = px(Math.max(0, availableHeight))
+        },
+      }),
     ],
     whileElementsMounted: autoUpdate,
   },
 )
+
+const $labelsMobileModal = useTemplateRef('$labelsMobileModal')
 
 function toggleLabels() {
   if (Platform.isDesktop) {
     showLabels.value = !showLabels.value
   }
   if (Platform.isMobile) {
-    // TODO...
+    $labelsMobileModal.value?.open()
   }
 }
 </script>
@@ -130,7 +138,6 @@ function toggleLabels() {
 
   <div class="menu-expand menu-expand-row">
     <MenuButton
-      v-if="isDev"
       ref="$labelsButton"
       :class="['fp-btn-icon-label', ifIconOnly]"
       icon="tags"
@@ -162,14 +169,14 @@ function toggleLabels() {
     </button>
 
     <button
-      class="fp-btn-icon"
+      class="fp-btn-icon fp-invert"
       @click="plugin.updateFlakepileMeta('menu', 'default')"
     >
       <ObIcon name="cross" />
     </button>
   </div>
 
-  <Teleport defer to="#fp-floating-area">
+  <Teleport defer :to="`#${idFloatingArea}`">
     <OptionsPanel
       v-if="showOptions"
       ref="$optionsPanel"
@@ -184,6 +191,8 @@ function toggleLabels() {
       :style="labelsPanelStyle"
     />
   </Teleport>
+
+  <LabelsMobileModal ref="$labelsMobileModal" />
 </template>
 
 <style lang="scss" scoped>

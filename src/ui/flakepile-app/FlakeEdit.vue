@@ -1,14 +1,29 @@
 <script setup lang="ts">
-import type { IsDevRef } from '@/App.vue'
 import type { FlakepilePluginRef } from '@/custom-view'
-import type { Flake } from '@/schemes/common'
-import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
+import type { Flake, FlakeLabelColor } from '@/schemes/common'
+import type { FlakepileLabelsRef, FlakepileMetaRef, FloatingAreaRect } from '@/ui/FlakepileApp.vue'
+import LabelsBadge from '@/ui/labels/LabelsBadge.vue'
 import { useCssIf, useFlakeMetaBinder } from '@/use'
-import { getScrollbarHeight } from '@/utils'
+import { getScrollbarHeight, idFloatingArea, px } from '@/utils'
 import { ObIcon } from '@/wrappers'
+import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/vue'
 import { useFocus, useResizeObserver, useThrottleFn } from '@vueuse/core'
-import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { Keymap, Platform } from 'obsidian'
+import AttachLabelsMobileModal from './AttachLabelsMobileModal.vue'
+import AttachLabelsPanel from './AttachLabelsPanel.vue'
 import FlakeFrame from './FlakeFrame.vue'
+
+import {
+  type ComponentPublicInstance,
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  ref,
+  useTemplateRef,
+  watch,
+  watchEffect,
+} from 'vue'
 
 const props = defineProps<{
   flake: Flake
@@ -22,8 +37,9 @@ const emit = defineEmits<{
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
-const isDev = inject('isDev') as IsDevRef
 const meta = inject('meta') as FlakepileMetaRef
+const labels = inject('labels') as FlakepileLabelsRef
+const floatingAreaRect = inject('floatingAreaRect') as FloatingAreaRect
 
 const $textarea = useTemplateRef('$textarea')
 const $settings = useTemplateRef('$settings')
@@ -32,9 +48,12 @@ const { focused } = useFocus($textarea)
 const bind = useFlakeMetaBinder(plugin)
 const textWrap = bind(props.flake.meta, props.flake.id, 'textWrap')
 
+const showAttachLabels = ref(false)
+const labelsUnderEdit = ref<string[]>([])
+
 /* Dynamic Sizing */
 
-const contentEditing = ref<string>('')
+const contentUnderEdit = ref<string>('')
 const lastHeight = ref<number>(0)
 
 function updateHeight() {
@@ -59,10 +78,13 @@ onMounted(() => {
     async (val, old) => {
       if (val === old) return
 
-      contentEditing.value = props.flake.content
+      contentUnderEdit.value = props.flake.content
+      labelsUnderEdit.value = [...props.flake.labels]
+
       lastHeight.value = 0
-      tryCancelEditing.value = false
+      tryCancelling.value = false
       focused.value = true
+      showAttachLabels.value = false
 
       await nextTick()
       updateHeight()
@@ -80,16 +102,100 @@ function selectAll() {
   $textarea.value.select()
 }
 
-const tryCancelEditing = ref(false)
+const tryCancelling = ref(false)
+
+function tryRequestCancel(event: MouseEvent) {
+  if (Keymap.isModifier(event, 'Mod')) {
+    cancelEditing()
+  } else {
+    tryCancelling.value = true
+  }
+}
 
 function cancelEditing() {
   emit('cancel')
 }
 
 function finishEditing() {
-  plugin.updateFlakeContent(props.flake.id, contentEditing.value)
+  plugin.updateFlakeContent(props.flake.id, contentUnderEdit.value)
+  plugin.updateFlakeLabels(props.flake.id, labelsUnderEdit.value)
+
   emit('finish', props.flake.id)
 }
+
+/* Flake Attach Labels Panel */
+
+const $attachLabelsButton = useTemplateRef('$attachLabelsButton')
+const $attachLabelsPanel = useTemplateRef<ComponentPublicInstance>('$attachLabelsPanel')
+
+const { floatingStyles: attachLabelsPanelStyle } = useFloating(
+  $attachLabelsButton,
+  $attachLabelsPanel,
+  {
+    middleware: [
+      offset(4),
+      shift(),
+      flip(),
+      size({
+        boundary: floatingAreaRect.value,
+        padding: 8,
+        apply({ availableHeight, elements }) {
+          elements.floating.style.maxHeight = px(Math.max(0, availableHeight))
+        },
+      }),
+    ],
+    whileElementsMounted: autoUpdate,
+  },
+)
+
+const $attachLabelsMobileModal = useTemplateRef('$attachLabelsMobileModal')
+
+function toggleAttachLabels() {
+  if (Platform.isDesktop || Platform.isTablet) {
+    showAttachLabels.value = !showAttachLabels.value
+  }
+  if (Platform.isPhone) {
+    $attachLabelsMobileModal.value?.open()
+  }
+}
+
+/* Flake Label Count & Flake Color */
+
+const showLabelCount = ref<boolean>(false)
+const labelCountDisplay = ref<string>('')
+const flakeColor = ref<FlakeLabelColor>('none')
+
+watchEffect(() => {
+  const total = labelsUnderEdit.value.length
+  showLabelCount.value = total !== 0
+  if (!showLabelCount.value) {
+    flakeColor.value = 'none'
+    return
+  }
+
+  const ids = new Set(labelsUnderEdit.value)
+  let collapsed = 0
+  let color: FlakeLabelColor | null = null
+
+  for (const label of labels.value) {
+    if (!ids.has(label.id)) {
+      continue
+    } else if (label.collapsed) {
+      collapsed++
+    } else {
+      color ??= label.color
+    }
+  }
+
+  flakeColor.value = color ?? 'none'
+  const shown = total - collapsed
+
+  let display = ''
+  if (shown !== 0) display += `${shown}`
+  if (collapsed !== 0) display += `+${collapsed}`
+
+  labelCountDisplay.value = display
+})
 
 /* Flake Scrollable State */
 
@@ -104,50 +210,63 @@ const shouldScrollY = computed(() => {
 const ifScrollY = useCssIf(shouldScrollY, '-scrolly')
 const ifNoWrap = useCssIf(() => !textWrap.value, '-nowrap')
 const ifTextWrap = useCssIf(textWrap, 'fp-invert')
+const ifAttachingLabels = useCssIf(showAttachLabels, 'fp-invert')
 </script>
 
 <template>
-  <FlakeFrame class="flake-edit" :id="flake.id">
+  <FlakeFrame class="flake-edit" :id="flake.id" :color="flakeColor">
     <div :class="['scrollable', ifScrollY]">
       <textarea
         ref="$textarea"
-        v-model="contentEditing"
+        v-model="contentUnderEdit"
         :class="['content-editor', ifNoWrap]"
         placeholder="Note here..."
       ></textarea>
     </div>
 
     <div ref="$settings" class="flake-settings">
-      <button
-        class="fp-btn-icon fp-danger"
-        @click="tryCancelEditing = true"
-      >
-        <ObIcon name="pencil-off" />
-      </button>
-      <button
-        :class="['fp-btn-icon', ifTextWrap]"
-        @click="textWrap = !textWrap"
-      >
-        <ObIcon name="text-wrap" />
-      </button>
-      <button v-if="isDev" class="fp-btn-icon">
-        <ObIcon name="tags" />
-      </button>
+      <div class="flake-settings-left">
+        <button
+          class="fp-btn-icon fp-danger"
+          @click="tryRequestCancel"
+        >
+          <ObIcon name="pencil-off" />
+        </button>
+        <button
+          :class="['fp-btn-icon', ifTextWrap]"
+          @click="textWrap = !textWrap"
+        >
+          <ObIcon name="text-wrap" />
+        </button>
+        <button
+          ref="$attachLabelsButton"
+          :class="['fp-btn-icon', ifAttachingLabels]"
+          @click="toggleAttachLabels"
+        >
+          <ObIcon name="tags" />
+        </button>
 
-      <div class="gap"></div>
+        <LabelsBadge
+          v-if="showLabelCount"
+          :name="labelCountDisplay ?? ''"
+          color="accent"
+        />
+      </div>
 
-      <button class="fp-btn-icon" @click="selectAll">
-        <ObIcon name="scan" />
-      </button>
-      <button class="fp-btn-icon" @click="finishEditing">
-        <ObIcon name="check" />
-      </button>
+      <div class="flake-settings-right">
+        <button class="fp-btn-icon" @click="selectAll">
+          <ObIcon name="scan" />
+        </button>
+        <button class="fp-btn-icon" @click="finishEditing">
+          <ObIcon name="check" />
+        </button>
+      </div>
     </div>
 
     <div
-      v-if="tryCancelEditing"
+      v-if="tryCancelling"
       class="flake-edit-cancel-fuse"
-      @click="tryCancelEditing = false"
+      @click="tryCancelling = false"
     >
       <button
         class="fp-btn-icon fp-warning flake-edit-cancel"
@@ -156,6 +275,22 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
         <ObIcon name="message-circle-question-mark" />
       </button>
     </div>
+
+    <Teleport defer :to="`#${idFloatingArea}`">
+      <AttachLabelsPanel
+        v-if="showAttachLabels"
+        ref="$attachLabelsPanel"
+        :style="attachLabelsPanelStyle"
+        :id="flake.id"
+        v-model:label-ids="labelsUnderEdit"
+      />
+    </Teleport>
+
+    <AttachLabelsMobileModal
+      ref="$attachLabelsMobileModal"
+      :id="flake.id"
+      v-model:label-ids="labelsUnderEdit"
+    />
   </FlakeFrame>
 </template>
 
@@ -189,7 +324,7 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
   box-shadow: none;
   field-sizing: content;
 
-  font-size: var(--flakepile-font-size, var(--font-text-size));
+  font-size: var(--fp-font-size, var(--font-text-size));
   font-family: var(--font-text);
   line-height: var(--line-height-normal);
   padding: calc(0.5em + var(--size-2-1)) 0;
@@ -205,16 +340,31 @@ const ifTextWrap = useCssIf(textWrap, 'fp-invert')
 
 .flake-settings {
   display: flex;
-  column-gap: var(--size-4-1);
-  padding: var(--size-4-1);
+  flex-wrap: wrap;
+  column-gap: var(--size-4-2);
+  row-gap: var(--size-4-1);
 
-  > .gap {
-    flex-grow: 1;
-  }
+  padding: var(--size-4-1);
 
   .is-mobile & {
     padding: var(--size-4-2);
   }
+}
+
+%flake-settings-row {
+  display: flex;
+  align-items: center;
+  column-gap: var(--size-4-1);
+}
+
+.flake-settings-left {
+  @extend %flake-settings-row;
+}
+
+.flake-settings-right {
+  @extend %flake-settings-row;
+  flex-grow: 1;
+  justify-content: end;
 }
 
 .flake-edit-cancel-fuse {

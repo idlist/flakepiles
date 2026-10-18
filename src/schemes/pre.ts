@@ -53,7 +53,7 @@ export function updateFromPreToV1(old: FlakepilePreV1): Flakepile {
     name: label.name,
     color: label.color,
     collapsed: !label.listed,
-    filtered: label.filter,
+    filteredOut: label.filter,
   }))
 
   const flakes: Flake[] = old.flakes.map((flake) => ({
@@ -85,6 +85,7 @@ export function updateFromPreToV1(old: FlakepilePreV1): Flakepile {
       showLabels: true,
       showTimes: false,
       directDelete: false,
+      disableLabelFiltering: false,
     },
     labels,
     flakes,
