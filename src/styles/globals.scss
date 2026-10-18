@@ -51,6 +51,13 @@
   column-gap: var(--size-4-1);
   padding-left: var(--size-4-2);
 
+  flex-shrink: 0;
+
+  &.-icononly {
+    padding: var(--size-4-1);
+    width: var(--input-height);
+  }
+
   &.-icononly .label {
     display: none;
   }

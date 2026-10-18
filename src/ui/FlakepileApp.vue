@@ -45,7 +45,7 @@ interface Environment {
   size: 'small' | 'large'
 }
 const env = computed<Environment>(() => ({
-  size: viewportWidth.value > 600 ? 'large' : 'small',
+  size: viewportWidth.value > 480 ? 'large' : 'small',
 }))
 provide('env', env)
 export type EnvironmentRef = typeof env
