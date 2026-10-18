@@ -21,7 +21,12 @@ function updateFlakeLabel(id: string, checked: boolean) {
 
 <template>
   <div class="attach-labels-core">
+    <div v-if="labels.length === 0" class="attach-labels-none">
+      No Labels.
+    </div>
+
     <AttachLabelsItem
+      v-else
       v-for="label of labels"
       :key="label.id"
       :name="label.name"
@@ -41,6 +46,17 @@ function updateFlakeLabel(id: string, checked: boolean) {
 
   overflow-y: auto;
   padding-right: var(--size-4-1);
+
+  .is-phone & {
+    padding-right: 0;
+  }
+}
+
+.attach-labels-none {
+  color: var(--text-faint);
+  font-style: italic;
+
+  padding-right: var(--scrollbar-width);
 
   .is-phone & {
     padding-right: 0;

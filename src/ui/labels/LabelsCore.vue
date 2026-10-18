@@ -124,7 +124,11 @@ function isSlotActive(index: number) {
   <div class="labels-core">
     <LabelsTitle v-model:more="more" />
 
-    <div class="labels-list">
+    <div v-if="labels.length === 0" class="labels-none">
+      No Labels.
+    </div>
+
+    <div v-else class="labels-list">
       <div class="scrollable">
         <div
           v-for="(label, index) of labels"
@@ -159,6 +163,18 @@ function isSlotActive(index: number) {
   row-gap: var(--size-4-1);
 
   min-height: 0;
+}
+
+.labels-none {
+  color: var(--text-faint);
+  font-style: italic;
+  text-align: center;
+
+  padding: var(--size-4-2) var(--scrollbar-width) var(--size-4-1) 0;
+
+  .is-mobile & {
+    padding-right: 0;
+  }
 }
 
 .labels-list {

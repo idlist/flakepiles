@@ -43,7 +43,7 @@ Plugin side:
 - [ ] Flake labels
   - [x] Label creation, update, deletion
   - [x] Attach / remove labels to Flake
-  - [ ] Label color (as Flake color)
+  - [x] Label color (as Flake color)
   - [x] Collapse certain labels in flakes (display as `+N`)
   - [ ] Hide flake with certain labels
 
