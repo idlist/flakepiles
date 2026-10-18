@@ -16,7 +16,7 @@ const emit = defineEmits<{
   (e: 'pick', color: FlakeLabelColor): void
 }>()
 
-const selectColor = () => {
+function selectColor() {
   emit('pick', props.color)
 }
 

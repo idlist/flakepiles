@@ -60,7 +60,7 @@ export class FlakepileSettingTab extends PluginSettingTab {
         items: [
           {
             name: 'Clear unused cache',
-            desc: 'Check if there is cache for Flakepiles that no longer exists.',
+            desc: 'Check if there is cache for Flakepiles that no longer exist.',
             render: (settings: Setting) => {
               settings.addButton((button) => {
                 button

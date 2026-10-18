@@ -69,7 +69,7 @@ watch(() => props.disabled, (next) => {
   slider?.setDisabled(next)
 })
 
-const reset = () => {
+function reset() {
   model.value = props.default
 }
 
