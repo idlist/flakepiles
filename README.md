@@ -22,7 +22,7 @@ I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about in
 
 ## Roadmap
 
-**Note:** Version 0.2.3 has currently covered all features back to 0.1.5 in the legacy version with some small addition (like displaying creation time or pinning) with pretty good stability. **Labels** are still in development and is supposed to be released in 0.3.0.
+**Note:** Labels are here in 0.3.0! This version might be kind of unstable, though (especially on mobile). Feedback and bug reports are much appreciated.
 
 Plugin side:
 

@@ -20,7 +20,7 @@ Changes to existing features:
 - Besides the option, danger actions (deletion, cancelling) can also be skipped by clicking the corresponding button while holding Ctrl/Command button.
 - Fixed a bug where the times were displayed in 12-hour format without AM/PM. It should be in 24-hour format and is not customizable.
 
-Note that this version might be kind of unstable (especially on mobile). Feedback and bug reports are much appreciated.
+**Note**: this version might be kind of unstable (especially on mobile). Feedback and bug reports are much appreciated.
 
 ## 0.2.5
 
