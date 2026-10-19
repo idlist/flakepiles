@@ -2,6 +2,8 @@
 
 An Obsidian plugin to put small notes / stickies / code snippets in a single file, and manage them in a masonry layout.
 
+The plugin registers a custom file type `.flakes` (which is [JSON](#file-format)) and a custom view. You can check what the plugin looks like at the [Community Page](https://community.obsidian.md/plugins/flakepiles).
+
 > This is a refactor of the original [Flakepiles (legacy)](https://github.com/idlist/flakepiles-legacy) with a change to [license](#license). The original plugin will remain as open source, and is available via [BRAT](https://github.com/TfTHacker/obsidian42-brat).
 
 ## Prerequisite
@@ -58,7 +60,7 @@ Obsidian side:
 
 ## Long term goals
 
-These are something I want to achieve if I've completed the roadmap and still have extra time. Most of them are desktop-only features.
+These are something I want to achieve if I've completed the roadmap and still have some extra time. Most of them are desktop-only features.
 
 - Embed a Flake into another markdown file
 - Export a Flakepile as markdown
@@ -72,7 +74,7 @@ These are something I want to achieve if I've completed the roadmap and still ha
 
 - Freedom / manual layout and sorting (consider using Canvas)
 - Very large Flakepile support (not impossible, but lots of work)
-- Live editing of a Flake (consider copying to an editor and then copy it back)
+- Live editing of a Flake (consider copying it to an editor and then back)
 - Cross-file searching / Obsidian-wise searching (restricted by API)
 - Global search indexing (restricted by API)
 
@@ -80,9 +82,15 @@ This plugin is primarily to fulfill my own use cases. For this reason, I would p
 
 ## Technical details
 
-The tech stack of the plugin is Vite + Vue 3 + TypeScript + Sass.
+### Tech stack
 
-The underlying file format (`.flakes`) is JSON.
+Vite + Vue 3 + TypeScript + Sass.
+
+### File format
+
+The underlying file format (`.flakes`) is plain (i.e., unencrypted) JSON. You can open it in an external editor to see the content, or check the data schema ([here](./src/schemes/v1.ts)) in this repository.
+
+Though not in a more common `.md` file, your data is still and always on your local machine. This also means that file-based syncing is supported out of the box (though without the ability to merge conflicts).
 
 ### Build from source
 
@@ -105,8 +113,8 @@ This plugin uses IndexedDB with [`idb-keyval`](https://github.com/jakearchibald/
 
 ### Overrides in `package.json`
 
-- `chokidar`: Resolves vulunrability in `vite-plugin-static-copy`.
-- `moment`: Resolves vulunrability in `obsidian` (package). As the plugin itself uses `dayjs` instead and never touches `moment`, it's safe to have (maybe) inconsistent version with Obsidian.
+- `chokidar`: Resolves vulnerability in `vite-plugin-static-copy`.
+- `moment`: Resolves vulnerability in `obsidian` (package). As the plugin itself uses `dayjs` instead and never touches `moment`, it's safe to have (possibly) inconsistent version with Obsidian.
 
 ## Changelog
 

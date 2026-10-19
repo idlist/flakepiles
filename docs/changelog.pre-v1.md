@@ -1,5 +1,12 @@
 Changelog (pre 1.0)
 
+## 0.3.2
+
+- The input field to add new labels will be auto-focused when the label panel is open.
+- Label can also be added by pressing Enter key, and the input field will be auto-focused again after adding the label.
+- The input field to edit the label name will be auto-focused when entering editing mode.
+- Tweaked some UI styling.
+
 ## 0.3.1
 
 - Fixed a bug where "No Flakes" text was not displayed when all Flakes are filterd out by label settings.

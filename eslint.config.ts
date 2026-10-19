@@ -14,8 +14,6 @@ export default defineConfig(
       'eslint.config.js',
       'versions.json',
       'main.js',
-      // * Temporarily ignore before refactoring finished
-      'src/vue',
     ],
   },
   ...obsidianmd.configs.recommended,
