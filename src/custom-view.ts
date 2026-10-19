@@ -254,9 +254,9 @@ export class FlakepileView extends TextFileView {
     const sourcePath = this.file.path
 
     // Disable input of task item checkbox.
-    const taskItemChechboxes = $anchor.querySelectorAll('.task-list-item > input')
+    const taskItemCheckboxes = $anchor.querySelectorAll('.task-list-item > input')
 
-    taskItemChechboxes.forEach((element) => {
+    taskItemCheckboxes.forEach((element) => {
       element.setAttrs({ disabled: true })
     })
 

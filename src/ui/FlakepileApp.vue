@@ -99,7 +99,7 @@ const showLabels = ref(false)
 
 /* Element State Tweaks */
 
-// Wwhen Flakepile changes:
+// When Flakepile changes:
 watch(() => props.pile.id, () => {
   // Reset editing state (without saving).
   flakeIdUnderEdit.value = null

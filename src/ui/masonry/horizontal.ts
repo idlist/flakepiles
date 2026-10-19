@@ -38,7 +38,7 @@ export function computeHorizontalMasonry(
       // Find how many flakes are overflowed.
       let nOverflowed = 0
       let shortestHeight = Infinity
-      let shortestIntex = 0
+      let shortestIndex = 0
 
       for (let i = 0; i < stash.length; i++) {
         const item = stash[i]!
@@ -47,7 +47,7 @@ export function computeHorizontalMasonry(
           nOverflowed++
           if (item.height < shortestHeight) {
             shortestHeight = item.height
-            shortestIntex = i
+            shortestIndex = i
           }
         }
       }
@@ -57,7 +57,7 @@ export function computeHorizontalMasonry(
 
       // Get how many space each overflowed flake can have.
       const leftoverEach = leftover / nOverflowed
-      const smallestOverflow = shortestHeight - stash[shortestIntex]!.allocated
+      const smallestOverflow = shortestHeight - stash[shortestIndex]!.allocated
 
       // If the least overflowed flake cannot be fully expanded
       // by allocating leftover space:
@@ -75,7 +75,7 @@ export function computeHorizontalMasonry(
           item.allocated += smallestOverflow
         }
 
-        stash[shortestIntex]!.overflow = false
+        stash[shortestIndex]!.overflow = false
         leftover -= smallestOverflow * nOverflowed
       }
     } while (leftover > 0)
