@@ -1,5 +1,10 @@
 Changelog (pre 1.0)
 
+## 0.3.3
+
+- The input field to add new labels will only be auto-focused on desktop.
+- Fixed some styles on mobile.
+
 ## 0.3.2
 
 - The input field to add new labels will be auto-focused when the label panel is open.

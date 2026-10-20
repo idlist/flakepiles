@@ -59,10 +59,6 @@ export default class FlakepilesPlugin extends Plugin {
     // Register status bar item.
     this.$flakeCount = this.addStatusBarItem()
 
-    this.registerInterval(window.setInterval(() => {
-      this.updateFlakeCount()
-    }, 100))
-
     // Hide other status bar items as most of them are not useful in the custom view.
     this.registerEvent(this.app.workspace.on('file-open', () => {
       this.updateStatusBar()
@@ -140,12 +136,7 @@ export default class FlakepilesPlugin extends Plugin {
     }
   }
 
-  updateFlakeCount() {
-    const view = this.app.workspace.getActiveViewOfType(FlakepileView)
-    if (!view) return
-    if (!view.flakepile.value) return
-
-    const count = view.flakepile.value.flakes.length
+  updateFlakeCount(count: number) {
     this.$flakeCount?.setText(`${count} Flake${count === 1 ? '' : 's'}`)
   }
 

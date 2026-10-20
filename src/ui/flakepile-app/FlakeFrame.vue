@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FlakeLabelColor } from '@/schemes/common'
 import { bus } from '@/ui/logic/event-bus'
-import { useCssWith, useListener } from '@/use'
+import { useCssWith, useMittListener } from '@/use'
 import { until, type UntilToMatchOptions } from '@vueuse/core'
 import { inject, useTemplateRef } from 'vue'
 import type { IsLayoutStableRef } from './LayoutMasonry.vue'
@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const isLayoutStable = inject('isLayoutStable') as IsLayoutStableRef
 const $flake = useTemplateRef('$flake')
-const listen = useListener(bus)
+const listen = useMittListener(bus)
 
 /* Scroll Into View */
 

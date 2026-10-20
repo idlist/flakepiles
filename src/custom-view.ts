@@ -1,7 +1,7 @@
 import { get, update } from 'idb-keyval'
 import { App, Keymap, MarkdownRenderer, Notice, TextFileView, type WorkspaceLeaf } from 'obsidian'
 import { funnel } from 'remeda'
-import { type App as VueApp, type Component, createApp, reactive, ref, toRaw } from 'vue'
+import { type App as VueApp, type Component, createApp, reactive, ref, toRaw, watch, type WatchHandle } from 'vue'
 import FlakepileApp from './App.vue'
 import type FlakepilesPlugin from './main.ts'
 import { dbKey, noopAsync, px } from './utils'
@@ -49,6 +49,7 @@ export class FlakepileView extends TextFileView {
   meta: PluginMeta = reactive(createAppMeta())
 
   flakepile = ref<Flakepile | null>(null)
+  flakepileCountWatcher: WatchHandle | null = null
   flakeMap = new Map<string, Flake>()
   heightCache = ref<HeightCache | null>(null)
 
@@ -104,6 +105,7 @@ export class FlakepileView extends TextFileView {
     this.$anchor = null
 
     this.flakepile.value = null
+    this.flakepileCountWatcher?.stop()
     this.flakeMap = new Map()
     this.heightCache.value = null
 
@@ -116,6 +118,7 @@ export class FlakepileView extends TextFileView {
 
     // Load file data.
     this.loadJsonData()
+    this.registerFlakepileCountWatcher()
 
     // Load height cache.
     void this.loadHeightCache()
@@ -174,7 +177,6 @@ export class FlakepileView extends TextFileView {
 
       this.meta.loadingState = 'success'
       this.flakepile.value = nextFlakepile
-      this.initializeFlakeMap()
     } catch (e) {
       this.meta.loadingState = 'invalid'
 
@@ -184,7 +186,30 @@ export class FlakepileView extends TextFileView {
 
       new Notice('Cannot parse the Flakepile. Check the dev console for more information.')
       console.error('Cannot parse Flakepile: ', e)
+      return
     }
+
+    this.flakepileCountWatcher = watch(
+      () => this.flakepile.value?.flakes.length ?? 0,
+      (val) => {
+        this.plugin.updateFlakeCount(val)
+      },
+      { immediate: true },
+    )
+
+    this.initializeFlakeMap()
+  }
+
+  registerFlakepileCountWatcher() {
+    this.flakepileCountWatcher?.stop()
+
+    this.flakepileCountWatcher = watch(
+      () => this.flakepile.value?.flakes.length ?? 0,
+      (val) => {
+        this.plugin.updateFlakeCount(val)
+      },
+      { immediate: true },
+    )
   }
 
   /* Content Renderer */
@@ -400,8 +425,11 @@ export class FlakepileView extends TextFileView {
     const flake = this.flakeMap.get(id)
     if (!flake) return
 
+    if (flake.content !== content) {
+      flake.meta.modifiedAt = Date.now()
+    }
+
     flake.content = content
-    flake.meta.modifiedAt = Date.now()
     this.trySave()
   }
 

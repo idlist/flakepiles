@@ -22,7 +22,7 @@ export const useCssWith = <T>(
   })
 }
 
-export function useListener<T extends Record<string, unknown>>(bus: Emitter<T>) {
+export function useMittListener<T extends Record<string, unknown>>(bus: Emitter<T>) {
   const listen = <K extends keyof T>(key: K, listener: (value: T[K]) => void) => {
     bus.on(key, listener)
     onScopeDispose(() => bus.off(key, listener))
