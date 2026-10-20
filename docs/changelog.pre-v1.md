@@ -1,5 +1,10 @@
 Changelog (pre 1.0)
 
+## 0.3.5
+
+- Fixed a bug where when enabling text wrapping, text in a `<pre>` block that is too long (i.e., a long word without spaces) cannot be wrapped.
+- Fixed some styles on mobile.
+
 ## 0.3.4
 
 - Fixed a bug about the auto-focus behavior.
