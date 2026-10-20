@@ -62,11 +62,11 @@
     display: none;
   }
 
-  .is-phone & {
+  .is-mobile & {
     padding-left: var(--size-4-3);
   }
 
-  .is-phone &.-icononly {
+  .is-mobile &.-icononly {
     padding-left: var(--size-4-2);
   }
 }

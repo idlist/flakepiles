@@ -3,6 +3,7 @@ Changelog (pre 1.0)
 ## 0.3.3
 
 - The input field to add new labels will only be auto-focused on desktop.
+- Fixed a bug where creating a Flake will have its modification time updated.
 - Fixed some styles on mobile.
 
 ## 0.3.2

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FlakeLabel } from '@/schemes/common'
 import LabelsColorPicker from './LabelsColorPicker.vue'
-import type { LabelEditingState } from './LabelsCore.vue'
+import type { LabelEditType } from './LabelsCore.vue'
 import LabelsItemEdit from './LabelsItemEdit.vue'
 import LabelsItemView from './LabelsItemView.vue'
 import LabelsItemViewMore from './LabelsItemViewMore.vue'
@@ -9,18 +9,18 @@ import LabelsItemViewMore from './LabelsItemViewMore.vue'
 const props = defineProps<{
   label: FlakeLabel
   more: boolean
-  state: LabelEditingState
+  state: LabelEditType
   isDragging: boolean
 }>()
 
 const emit = defineEmits<{
-  edit: [type: LabelEditingState, id: string]
+  edit: [type: LabelEditType, id: string]
   finish: []
   delete: [id: string]
   reorder: [id: string]
 }>()
 
-function updateEditingState(type: LabelEditingState, id: string) {
+function updateEditType(type: LabelEditType, id: string) {
   if (type === 'name') {
     emit('edit', type, id)
   } else if (type === 'color') {
@@ -41,7 +41,7 @@ function updateEditingState(type: LabelEditingState, id: string) {
       :label="label"
       :state="state"
       :is-dragging="isDragging"
-      @edit="updateEditingState"
+      @edit="updateEditType"
       @delete="(id) => emit('delete', id)"
       @reorder="(id) => emit('reorder', id)"
     />

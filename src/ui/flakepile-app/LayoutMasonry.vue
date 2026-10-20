@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
 import { type Flake, type FlakepileAdaptiveFlow } from '@/schemes/common'
-import type { FlakeIdUnderEditRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
+import type { FlakeEditTypeRef, FlakeIdUnderEditRef, FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { bus } from '@/ui/logic/event-bus'
 import { type ComputedMasonry, computeInitialWidth, computeMasonry, getDesign } from '@/ui/masonry/entry'
 import { type Point, point, px, type Size } from '@/utils'
@@ -20,6 +20,7 @@ const props = defineProps<{
 }>()
 
 const plugin = inject('plugin') as FlakepilePluginRef
+const flakeEditType = inject('flakeEditType') as FlakeEditTypeRef
 const flakeIdUnderEdit = inject('flakeIdUnderEdit') as FlakeIdUnderEditRef
 const meta = inject('meta') as FlakepileMetaRef
 
@@ -50,7 +51,7 @@ const stableTimerHandler = useTimeoutFn(() => {
 
 async function resolveMasonry() {
   // Do not recalculate layout when some Flake is being edit.
-  if (flakeIdUnderEdit.value != null) return
+  if (flakeEditType.value !== 'none') return
 
   // Mark the layout to be unstable.
   isLayoutStable.value = false
@@ -136,7 +137,7 @@ const styleUnderEdit = computed<StyleValue>(() => {
   const rect = resolvedMasonry.value?.rects.get(id)
 
   // If cannot find originally computed rect,
-  // this is a newly craeted Flake and is to be put at the top left.
+  // this is a newly created Flake and is to be put at the top left.
   if (!rect) {
     return {
       translate: point(design.pad.x, props.scroll.y + design.pad.y),
@@ -203,6 +204,8 @@ async function togglePinning(id: string, value: boolean) {
 
 async function startEditing(id: string) {
   heightUnderEdit.value = 0
+
+  flakeEditType.value = 'edit'
   flakeIdUnderEdit.value = id
 
   await nextTick()
@@ -214,8 +217,8 @@ function updateHeightUnderEdit(height: number) {
 }
 
 async function cancelEditing() {
-  flakeIdUnderEdit.value = null
   heightUnderEdit.value = 0
+  flakeEditType.value = 'none'
   resolveMasonry()
 }
 
@@ -228,7 +231,7 @@ async function finishEditing(id: string) {
 function deleteFlake(id: string) {
   // Disable the ability to delete other flakes when editing a flake.
   // This is an extra guard, as it is already guarded in FlakeView.
-  if (flakeIdUnderEdit.value) return
+  if (flakeEditType.value !== 'none') return
 
   plugin.deleteFlake(id)
   resolveMasonry()
@@ -244,7 +247,7 @@ function deleteFlake(id: string) {
       :flake="flake"
       :flow="flow"
       :inner-height="innerHeight"
-      :disable-delete="flakeIdUnderEdit != null"
+      :disable-delete="flakeEditType !== 'none'"
       @pin="togglePinning"
       @edit="startEditing"
       @delete="deleteFlake"

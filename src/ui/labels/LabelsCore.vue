@@ -9,10 +9,10 @@ import LabelsTitle from './LabelsTitle.vue'
 const plugin = inject('plugin') as FlakepilePluginRef
 const labels = inject('labels') as FlakepileLabelsRef
 
-export type LabelEditingState = 'idle' | 'name' | 'color'
+export type LabelEditType = 'idle' | 'name' | 'color'
 
 const more = ref(false)
-const editType = ref<LabelEditingState>('idle')
+const editType = ref<LabelEditType>('idle')
 const labelUnderEdit = ref<string | null>(null)
 
 /* Label Management */
@@ -31,7 +31,7 @@ onUnmounted(() => {
   resetEditingState()
 })
 
-function updateEditingState(type: LabelEditingState, id: string) {
+function updateEditingState(type: LabelEditType, id: string) {
   editType.value = type
   labelUnderEdit.value = id
 }

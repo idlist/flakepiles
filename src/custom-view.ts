@@ -39,6 +39,8 @@ function createAppMeta(): PluginMeta {
   }
 }
 
+export type FlakeEditType = 'none' | 'new' | 'edit'
+
 export type FlakeType = 'normal' | 'code' | 'image'
 
 export class FlakepileView extends TextFileView {
@@ -419,13 +421,16 @@ export class FlakepileView extends TextFileView {
     this.trySave()
   }
 
-  updateFlakeContent(id: string, content: string) {
+  updateFlakeContent(id: string, type: FlakeEditType, content: string) {
     if (!this.flakepile.value) return
 
     const flake = this.flakeMap.get(id)
     if (!flake) return
 
-    if (flake.content !== content) {
+    if (type === 'new') {
+      flake.meta.createdAt = Date.now()
+      flake.meta.modifiedAt = Date.now()
+    } else if (type === 'edit' && flake.content !== content) {
       flake.meta.modifiedAt = Date.now()
     }
 

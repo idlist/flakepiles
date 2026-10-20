@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FlakepilePluginRef } from '@/custom-view'
+import type { FlakeEditType, FlakepilePluginRef } from '@/custom-view'
 import type { Flake, FlakeLabel, Flakepile, FlakepileAdaptiveFlow } from '@/schemes/common'
 import { useCssWith } from '@/use'
 import { idFloatingArea, type Point, type Rect, type Size } from '@/utils'
@@ -25,9 +25,21 @@ const labels = computed(() => props.pile.labels)
 provide('labels', labels)
 export type FlakepileLabelsRef = typeof labels
 
+/* Flake Editing State */
+
+const flakeEditType = ref<FlakeEditType>('none')
+provide('flakeEditType', flakeEditType)
+export type FlakeEditTypeRef = typeof flakeEditType
+
 const flakeIdUnderEdit = ref<string | null>(null)
 provide('flakeIdUnderEdit', flakeIdUnderEdit)
 export type FlakeIdUnderEditRef = typeof flakeIdUnderEdit
+
+watch(flakeEditType, (val) => {
+  if (val === 'none') {
+    flakeIdUnderEdit.value = null
+  }
+})
 
 /* Responsive Layout */
 
@@ -102,7 +114,7 @@ const showLabels = ref(false)
 // When Flakepile changes:
 watch(() => props.pile.id, () => {
   // Reset editing state (without saving).
-  flakeIdUnderEdit.value = null
+  flakeEditType.value = 'none'
 
   // Close panels.
   showOptions.value = false
@@ -110,15 +122,15 @@ watch(() => props.pile.id, () => {
 })
 
 // When start editing:
-watch(flakeIdUnderEdit, (val, old) => {
-  if (val != null && val !== old) {
+watch(flakeEditType, (val, old) => {
+  if (val !== 'none' && val !== old) {
     // Close panels.
     showOptions.value = false
     showLabels.value = false
   }
 
   // Mask the menu
-  showMenuMask.value = val != null
+  showMenuMask.value = val !== 'none'
 })
 
 /* Flake Management */
@@ -150,6 +162,7 @@ async function newFlake() {
   const flakeId = plugin.addFlake()
   if (!flakeId) return
 
+  flakeEditType.value = 'new'
   flakeIdUnderEdit.value = flakeId
 
   await nextTick()

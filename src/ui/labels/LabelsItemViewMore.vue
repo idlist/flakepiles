@@ -6,16 +6,16 @@ import { ObIcon } from '@/wrappers'
 import { Keymap } from 'obsidian'
 import { inject, ref } from 'vue'
 import LabelsBadge from './LabelsBadge.vue'
-import type { LabelEditingState } from './LabelsCore.vue'
+import type { LabelEditType } from './LabelsCore.vue'
 
 const props = defineProps<{
   label: FlakeLabel
-  state: LabelEditingState
+  state: LabelEditType
   isDragging: boolean
 }>()
 
 const emit = defineEmits<{
-  edit: [type: LabelEditingState, id: string]
+  edit: [type: LabelEditType, id: string]
   delete: [id: string]
   reorder: [id: string]
 }>()

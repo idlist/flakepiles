@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FlakepilePluginRef } from '@/custom-view'
 import type { Flake, FlakeLabelColor } from '@/schemes/common'
-import type { FlakepileLabelsRef, FlakepileMetaRef, FloatingAreaRect } from '@/ui/FlakepileApp.vue'
+import type { FlakeEditTypeRef, FlakepileLabelsRef, FlakepileMetaRef, FloatingAreaRect } from '@/ui/FlakepileApp.vue'
 import LabelsBadge from '@/ui/labels/LabelsBadge.vue'
 import { useCssIf, useFlakeMetaBinder } from '@/use'
 import { getScrollbarHeight, idFloatingArea, px } from '@/utils'
@@ -40,6 +40,7 @@ const plugin = inject('plugin') as FlakepilePluginRef
 const meta = inject('meta') as FlakepileMetaRef
 const labels = inject('labels') as FlakepileLabelsRef
 const floatingAreaRect = inject('floatingAreaRect') as FloatingAreaRect
+const flakeEditType = inject('flakeEditType') as FlakeEditTypeRef
 
 const $textarea = useTemplateRef('$textarea')
 const $settings = useTemplateRef('$settings')
@@ -117,7 +118,7 @@ function cancelEditing() {
 }
 
 function finishEditing() {
-  plugin.updateFlakeContent(props.flake.id, contentUnderEdit.value)
+  plugin.updateFlakeContent(props.flake.id, flakeEditType.value, contentUnderEdit.value)
   plugin.updateFlakeLabels(props.flake.id, labelsUnderEdit.value)
 
   emit('finish', props.flake.id)
