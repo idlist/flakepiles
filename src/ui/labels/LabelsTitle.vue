@@ -4,6 +4,7 @@ import type { FlakepileMetaRef } from '@/ui/FlakepileApp.vue'
 import { useCssIf, useFlakepileMetaBinder } from '@/use'
 import { ObIcon } from '@/wrappers'
 import { useFocus } from '@vueuse/core'
+import { Platform } from 'obsidian'
 import { inject, onMounted, ref, useTemplateRef } from 'vue'
 
 const more = defineModel<boolean>('more', { required: true })
@@ -20,7 +21,9 @@ const disableLabelFiltering = bind(meta.value, 'disableLabelFiltering')
 const newLabelName = ref('')
 
 onMounted(() => {
-  focused.value = true
+  if (Platform.isDesktop) {
+    focused.value = true
+  }
 })
 
 function tryAddLabel() {

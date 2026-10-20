@@ -1,5 +1,9 @@
 Changelog (pre 1.0)
 
+## 0.3.4
+
+- Fixed a bug about the auto-focus behavior.
+
 ## 0.3.3
 
 - The input field to add new labels will only be auto-focused on desktop.

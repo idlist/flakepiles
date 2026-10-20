@@ -3,7 +3,6 @@ import type { FlakepilePluginRef } from '@/custom-view'
 import type { FlakeLabel } from '@/schemes/common'
 import { ObIcon } from '@/wrappers'
 import { useFocus } from '@vueuse/core'
-import { Platform } from 'obsidian'
 import { inject, onMounted, ref, useTemplateRef } from 'vue'
 
 const props = defineProps<{
@@ -21,10 +20,7 @@ const { focused } = useFocus($editInput)
 
 onMounted(() => {
   nameUnderEdit.value = props.label.name
-
-  if (Platform.isDesktop) {
-    focused.value = true
-  }
+  focused.value = true
 })
 
 function tryFinishEditing() {
