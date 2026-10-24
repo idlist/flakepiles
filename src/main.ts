@@ -164,7 +164,7 @@ export default class FlakepilesPlugin extends Plugin {
     }
 
     await set(dbKey, collection)
-    new Notice(`${count} Unused cache cleared.`)
+    new Notice(`${count} unused cache cleared.`)
   }
 
   async clearAllCache() {

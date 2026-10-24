@@ -1,4 +1,4 @@
-Changelog (pre 1.0)
+# Changelog (pre 1.0)
 
 ## 0.3.5
 

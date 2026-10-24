@@ -1,6 +1,6 @@
 # Flakepiles for Obsidian
 
-An Obsidian plugin to put small notes / stickies / code snippets in a single file, and manage them in a masonry layout.
+An Obsidian plugin to put small notes, stickies, code snippets and more in a single file, and manage them in a masonry layout.
 
 The plugin registers a custom file type `.flakes` (which is [JSON](#file-format)) and a custom view. You can check what the plugin looks like at the [Community Page](https://community.obsidian.md/plugins/flakepiles).
 
@@ -22,10 +22,6 @@ I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about in
 - Easy to copy and paste your Flakes from everywhere to everywhere.
 - A simple label system to categorize and filter your Flakes.
 
-## Roadmap
-
-**Note:** Labels are here in 0.3.0! This version might be kind of unstable, though (especially on mobile). Feedback and bug reports are much appreciated.
-
 Plugin side:
 
 - [x] Flakepile
@@ -36,7 +32,6 @@ Plugin side:
   - [x] Auto expand on single image or block of code
   - [x] Flake sorting (time created, time modified, content)
 - [x] Flake
-  - [x] Flake creation, update, deletion
   - [x] Markdown rendering of Flake content
   - [x] Copy Flake content to clipboard
   - [x] Pinning a Flake
@@ -44,7 +39,6 @@ Plugin side:
   - [x] Simple search for content
   - [x] Simple search for labels
 - [x] Flake labels
-  - [x] Label creation, update, deletion
   - [x] Attach / detach labels to Flake
   - [x] Label color (as Flake color)
   - [x] Collapse certain labels on Flakes (display as `+N`)
@@ -60,7 +54,7 @@ Obsidian side:
 
 ## Long term goals
 
-These are something I want to achieve if I've completed the roadmap and still have some extra time. Most of them are desktop-only features.
+These are something I want to achieve if I've completed the core features and still have some extra time. Most of them are desktop-only features.
 
 - Embed a Flake into another markdown file
 - Export a Flakepile as markdown

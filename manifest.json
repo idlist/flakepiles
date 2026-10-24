@@ -1,9 +1,9 @@
 {
   "id": "flakepiles",
   "name": "Flakepiles",
-  "version": "0.3.5",
+  "version": "1.0.0",
   "minAppVersion": "1.13.0",
-  "description": "Put small notes / stickies / code snippets in a single file. Manage them in masonry layout.",
+  "description": "Put small notes, stickies, code snippets and more in a single file. Manage them in masonry layout.",
   "author": "i'DLisT",
   "authorUrl": "https://idl.ist",
   "isDesktopOnly": false

@@ -135,7 +135,7 @@ export class FlakepileView extends TextFileView {
   }
 
   clear() {
-    // Do nothing for now.
+    this.heightCache.value = null
   }
 
   /* Obsidian-wise Operations */
@@ -349,9 +349,7 @@ export class FlakepileView extends TextFileView {
   )
 
   updateHeightCache(id: string, height: number) {
-    if (this.heightCache.value == null) {
-      this.heightCache.value = createHeightCache()
-    }
+    if (this.heightCache.value == null) return
 
     this.heightCache.value.heights[id] = height
     this.heightCacheLazySave.call()
