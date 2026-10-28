@@ -191,14 +191,6 @@ export class FlakepileView extends TextFileView {
       return
     }
 
-    this.flakepileCountWatcher = watch(
-      () => this.flakepile.value?.flakes.length ?? 0,
-      (val) => {
-        this.plugin.updateFlakeCount(val)
-      },
-      { immediate: true },
-    )
-
     this.initializeFlakeMap()
   }
 
