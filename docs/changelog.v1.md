@@ -1,5 +1,10 @@
 # Changelog for version 1.0
 
+## 1.0.1
+
+- Added a custom icon.
+- Had a clearer license disclaimer in the bundled file.
+
 ## 1.0.0
 
 - Try to fix the issue of the height cache desyncing when changing `.flake` file.
