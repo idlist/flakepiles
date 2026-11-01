@@ -13,7 +13,6 @@ const props = withDefaults(
     step?: number
     disabled?: boolean
     instant?: boolean
-    showTooltip?: boolean
   }>(),
   {
     min: 0,
@@ -21,7 +20,6 @@ const props = withDefaults(
     step: 1,
     disabled: false,
     instant: true,
-    showTooltip: true,
   },
 )
 
@@ -41,10 +39,6 @@ onMounted(async () => {
     .onChange((value) => {
       model.value = value
     })
-
-  if (props.showTooltip) {
-    slider.setDynamicTooltip()
-  }
 })
 
 watch(() => model.value, (next) => {

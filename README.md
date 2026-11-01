@@ -120,4 +120,4 @@ This plugin uses IndexedDB with [`idb-keyval`](https://github.com/jakearchibald/
 [PolyForm Internal Use](https://polyformproject.org/licenses/internal-use/1.0.0) (c) i'DLisT 2026
 
 - This is not open-source, but a source-available plugin.
-- In short, you may freely use the plugin or modify the code for your own use, but you cannot redistribute it.
+- In short, you can do pretty much anything to it except redistribution.
