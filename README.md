@@ -19,8 +19,9 @@ I don't want 100 `.md` files with 1 sentence each, and I'm pretty picky about in
 - UI design that (tried my best to) align with Obsidian's design language.
 - View and manage your Flakes (small pieces of notes) in masonry layout, vertical or horizontal.
 - Edit Flakes in place instead of having to open another window or dialog.
+- A simple label and coloring system to categorize and archive your Flakes.
+- Handy tools including sorting, searching, pinning and toggleable text wrapping.
 - Easy to copy and paste your Flakes from everywhere to everywhere.
-- A simple label system to categorize and filter your Flakes.
 
 Plugin side:
 

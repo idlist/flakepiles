@@ -2,7 +2,7 @@ import './styles/colors.scss'
 import './styles/globals.scss'
 import './styles/markdown.scss'
 import { get, set } from 'idb-keyval'
-import { Notice, Plugin, TFolder } from 'obsidian'
+import { addIcon, Notice, Plugin, TFolder } from 'obsidian'
 import { FlakepileView, VIEW_TYPE } from './custom-view'
 import { createFlakepile, type HeightCacheCollection, parseFlakepile } from './schemes/common'
 import { createPluginSettings, type FlakepilePluginSettings, FlakepileSettingTab } from './settings'
@@ -13,6 +13,26 @@ export default class FlakepilesPlugin extends Plugin {
   $flakeCount?: HTMLElement
 
   async onload() {
+    addIcon(
+      'flakepile',
+      /* svg */ `<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m11 20-7.194-6.948" />
+  <path d="M15 21h4a2 2 0 002-2V9h-5a1 1 0 01-1-1V3H5a2 2 0 00-2 2v4" />
+  <path d="m2.5 18 9.614-2.757" />
+  <path d="M21 9a2.4 2.4 0 00-.706-1.706l-3.588-3.588A2.4 2.4 0 0015 3" />
+  <path d="m6 21.5 2.42-9.704" />
+</svg>
+`,
+    )
+
     // Setup settings.
     await this.loadSettings()
 
@@ -34,7 +54,7 @@ export default class FlakepilesPlugin extends Plugin {
       menu.addItem((item) => {
         item
           .setTitle('New Flakepile')
-          .setIcon('sticker')
+          .setIcon('flakepile')
           .onClick(async () => {
             await this.createFlakepileFile(file)
           })
