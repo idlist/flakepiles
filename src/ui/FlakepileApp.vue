@@ -156,7 +156,8 @@ const flakesArranged = computed<Flake[]>(() => {
   return arranged
 })
 
-const hasFlake = computed(() => flakesArranged.value.length !== 0)
+const hasFlake = computed(() => props.pile.flakes.length !== 0)
+const hasFlakeToDisplay = computed(() => flakesArranged.value.length !== 0)
 
 async function newFlake() {
   const flakeId = plugin.addFlake()
@@ -206,22 +207,31 @@ async function newFlake() {
             Loading Flakes...
           </div>
 
-          <div
-            v-if="loadingState === 'success' && !hasFlake"
-            class="layout-none"
-          >
-            No Flakes.
-          </div>
+          <template v-if="loadingState === 'success'">
+            <div
+              v-if="!hasFlake"
+              class="layout-none"
+            >
+              No Flakes.
+            </div>
 
-          <LayoutMasonry
-            v-if="loadingState === 'success' && hasFlake"
-            ref="$masonry"
-            :id="pile.id"
-            :flow="flowAdaptive"
-            :usable-size="usableSizeValues"
-            :scroll="scroll"
-            :flakes="flakesArranged"
-          />
+            <div
+              v-else-if="!hasFlakeToDisplay"
+              class="layout-none"
+            >
+              No Flakes under current filtering condition.
+            </div>
+
+            <LayoutMasonry
+              v-else
+              ref="$masonry"
+              :id="pile.id"
+              :flow="flowAdaptive"
+              :usable-size="usableSizeValues"
+              :scroll="scroll"
+              :flakes="flakesArranged"
+            />
+          </template>
         </div>
       </div>
 

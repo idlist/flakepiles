@@ -54,7 +54,7 @@ const ifColorUnderEdit = useCssIf(() => props.state === 'color', 'fp-invert')
 <template>
   <div :class="['fp-labels-item', ifDragging]">
     <div class="fp-btn-icon fp-grabbler" @pointerdown="startReorder">
-      <ObIcon name="grip-horizontal" />
+      <ObIcon name="grip-vertical" />
     </div>
     <LabelsBadge :name="label.name" :color="label.color" />
 
