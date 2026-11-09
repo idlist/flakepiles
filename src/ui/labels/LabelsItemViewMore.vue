@@ -53,7 +53,7 @@ const ifColorUnderEdit = useCssIf(() => props.state === 'color', 'fp-invert')
 
 <template>
   <div :class="['fp-labels-item', ifDragging]">
-    <div class="fp-btn-icon fp-grabbler" @pointerdown="startReorder">
+    <div class="fp-btn-icon fp-grabber" @pointerdown="startReorder">
       <ObIcon name="grip-vertical" />
     </div>
     <LabelsBadge :name="label.name" :color="label.color" />
@@ -95,7 +95,7 @@ const ifColorUnderEdit = useCssIf(() => props.state === 'color', 'fp-invert')
 </template>
 
 <style scoped lang="scss">
-.fp-grabbler {
+.fp-grabber {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -109,7 +109,7 @@ const ifColorUnderEdit = useCssIf(() => props.state === 'color', 'fp-invert')
   opacity: 0.5;
 }
 
-.fp-labels-item.-dragging > .fp-grabbler {
+.fp-labels-item.-dragging > .fp-grabber {
   cursor: grabbing;
 }
 

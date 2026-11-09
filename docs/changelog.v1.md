@@ -1,5 +1,10 @@
 # Changelog for version 1.0
 
+## 1.0.2
+
+- Better "No Flakes" hint.
+- Changed the sorting grabber icon in label menu.
+
 ## 1.0.1
 
 - Added a custom icon.

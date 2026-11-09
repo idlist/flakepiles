@@ -219,7 +219,7 @@ async function newFlake() {
               v-else-if="!hasFlakeToDisplay"
               class="layout-none"
             >
-              No Flakes under current filtering condition.
+              No Flakes under current filters.
             </div>
 
             <LayoutMasonry
