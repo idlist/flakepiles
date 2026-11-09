@@ -2,7 +2,7 @@
 
 An Obsidian plugin to put small notes, stickies, code snippets and more in [a single file](#file-format), and manage them in a masonry layout.
 
-Check the [Obsidian Community Page](https://community.obsidian.md/plugins/flakepiles) to see what the plugin looks like at.
+Check the [Obsidian Community Page](https://community.obsidian.md/plugins/flakepiles) to see what the plugin looks like.
 
 > This is a refactor of the original [Flakepiles (legacy)](https://github.com/idlist/flakepiles-legacy) with a change to [license](#license). The original plugin will remain as open source, and is available via [BRAT](https://github.com/TfTHacker/obsidian42-brat).
 
