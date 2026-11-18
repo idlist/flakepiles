@@ -1,5 +1,9 @@
 # Changelog for version 1.0
 
+## 1.0.3
+
+- Fixed the issue where the "disable filtering" button under label panel is not working.
+
 ## 1.0.2
 
 - Better "No Flakes" hint.
