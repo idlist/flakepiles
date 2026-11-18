@@ -113,6 +113,8 @@ This plugin uses IndexedDB with [`idb-keyval`](https://github.com/jakearchibald/
 
 ## Changelog
 
+[Changelog for 1.0 versions](docs/changelog.v1.md)
+
 [Changelog for pre-1.0 versions](docs/changelog.pre-v1.md)
 
 ## License

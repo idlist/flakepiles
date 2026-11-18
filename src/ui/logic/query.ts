@@ -110,7 +110,7 @@ export function arrangeFlakes(
     for (const labelId of flake.labels) {
       const label = labels.get(labelId)
       if (!label) continue
-      if (label.filteredOut) return false
+      if (!meta.disableLabelFiltering && label.filteredOut) return false
 
       if (labelSearch) {
         const result = labelSearch(label.name)
